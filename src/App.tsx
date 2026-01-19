@@ -5,6 +5,7 @@ import { AssignmentModal } from './components/AssignmentModal';
 import { HomeView } from './components/HomeView';
 import { ProfileView } from './components/ProfileView';
 import { AuthPage } from './components/AuthPage';
+import { LandingPage } from './components/LandingPage';
 import { Toaster, toast } from 'sonner';
 import { createClient } from '@supabase/supabase-js';
 import { projectId, publicAnonKey } from './utils/supabase/info';
@@ -18,18 +19,43 @@ const supabase = createClient(
 // Mock data for initial messages or empty state
 const INITIAL_MESSAGES: Message[] = [];
 
+// Default User Data
+const DEFAULT_USER = {
+  name: "张同学",
+  avatar: "https://images.unsplash.com/photo-1644904105846-095e45fca990?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwc3R1ZGVudCUyMGF2YXRhcnxlbnwxfHx8fDE3Njg3OTU3NDh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+  role: "机械工程专业学生"
+};
+
 export default function App() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
   const [activeView, setActiveView] = useState('home'); // 'home', 'chat', 'profile'
   const [chatMode, setChatMode] = useState<'study' | 'boss'>('study');
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [isTyping, setIsTyping] = useState(false);
   const [isSubmissionOpen, setIsSubmissionOpen] = useState(false);
+  
+  // Chat Persistence State
+  const [chatSessions, setChatSessions] = useState<any[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // User Profile State
+  const [userProfile, setUserProfile] = useState(DEFAULT_USER);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session?.user?.user_metadata) {
+        const { name, avatar_url, role } = session.user.user_metadata;
+        setUserProfile({
+           name: name || DEFAULT_USER.name,
+           avatar: avatar_url || DEFAULT_USER.avatar,
+           role: role || DEFAULT_USER.role
+        });
+        // Fetch chats when session is active
+        fetchChatSessions();
+      }
       setLoading(false);
     });
 
@@ -37,10 +63,126 @@ export default function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session?.user?.user_metadata) {
+        const { name, avatar_url, role } = session.user.user_metadata;
+        setUserProfile({
+           name: name || DEFAULT_USER.name,
+           avatar: avatar_url || DEFAULT_USER.avatar,
+           role: role || DEFAULT_USER.role
+        });
+        // Fetch chats on auth change
+        fetchChatSessions();
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchChatSessions = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-5abdc916/chats`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setChatSessions(data.chats || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch chats", error);
+    }
+  };
+
+  const saveChatSession = async (id: string | null, msgs: Message[], title?: string) => {
+    try {
+       const { data: { session } } = await supabase.auth.getSession();
+       if (!session) return;
+       
+       const generatedTitle = title || (msgs.length > 0 ? msgs[0].content.slice(0, 20) : "新对话");
+
+       const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-5abdc916/chats`, {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${session.access_token}`
+         },
+         body: JSON.stringify({
+           id: id,
+           title: generatedTitle,
+           messages: msgs
+         })
+       });
+
+       if (response.ok) {
+         const savedChat = await response.json();
+         // If it was a new chat, update the current ID
+         if (!id) {
+            setCurrentSessionId(savedChat.id);
+         }
+         // Refresh list
+         fetchChatSessions();
+         return savedChat.id;
+       }
+    } catch (error) {
+      console.error("Failed to save chat", error);
+    }
+    return id;
+  };
+  
+  const deleteChatSession = async (id: string) => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-5abdc916/chats/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
+
+        if (response.ok) {
+           setChatSessions(prev => prev.filter(c => c.id !== id));
+           if (currentSessionId === id) {
+               handleStartNewQuest();
+           }
+           toast.success("对话已删除");
+        }
+      } catch (error) {
+        console.error("Failed to delete chat", error);
+        toast.error("删除失败");
+      }
+  };
+  
+  const handleSelectSession = (id: string) => {
+      const session = chatSessions.find(c => c.id === id);
+      if (session) {
+          setCurrentSessionId(id);
+          setMessages(session.messages || []);
+          setActiveView('chat');
+      }
+  };
+
+  const handleUpdateProfile = async (name: string, role: string, avatar: string) => {
+      // Optimistic update
+      setUserProfile({ name, role, avatar });
+      
+      const { error } = await supabase.auth.updateUser({
+        data: { name, role, avatar_url: avatar }
+      });
+
+      if (error) {
+        toast.error("更新个人信息失败");
+        // Revert? For now we'll just leave the optimistic update or would need previous state
+      } else {
+        toast.success("个人信息已更新");
+      }
+  };
 
   // Mock function to handle sending messages
   const handleSendMessage = async (text: string, image?: File) => {
@@ -56,8 +198,19 @@ export default function App() {
       type: 'text',
       content: text,
     };
-    setMessages(prev => [...prev, newMessage]);
+    
+    // Update local state immediately
+    const updatedMessages = [...messages, newMessage];
+    setMessages(updatedMessages);
     setIsTyping(true);
+
+    // Save user message immediately to backend
+    const activeId = await saveChatSession(currentSessionId, updatedMessages);
+    
+    // If we just created a new session, update our state ID
+    if (!currentSessionId && activeId) {
+        setCurrentSessionId(activeId);
+    }
 
     // Simulate AI delay and response
     setTimeout(() => {
@@ -114,12 +267,18 @@ export default function App() {
         };
       }
       
-      setMessages(prev => [...prev, aiResponse]);
+      const finalMessages = [...updatedMessages, aiResponse];
+      setMessages(finalMessages);
+      
+      // Save AI response to backend
+      // activeId is captured from the outer scope
+      saveChatSession(activeId || currentSessionId, finalMessages);
     }, 1500);
   };
 
   const handleStartNewQuest = () => {
     setMessages([]);
+    setCurrentSessionId(null);
     setActiveView('home');
     setChatMode('study');
   };
@@ -144,10 +303,22 @@ export default function App() {
   }
 
   if (!session) {
+      if (showAuth) {
+        return (
+          <>
+              <Toaster position="top-center" richColors />
+              <AuthPage onLoginSuccess={() => {}} />
+          </>
+        );
+      }
+
       return (
         <>
             <Toaster position="top-center" richColors />
-            <AuthPage onLoginSuccess={() => {}} />
+            <LandingPage 
+              onStart={() => setShowAuth(true)} 
+              onLogin={() => setShowAuth(true)} 
+            />
         </>
       );
   }
@@ -161,6 +332,13 @@ export default function App() {
             activeView={activeView} 
             setActiveView={setActiveView} 
             onNewQuest={handleStartNewQuest}
+            userName={userProfile.name}
+            userAvatar={userProfile.avatar}
+            userRole={userProfile.role}
+            sessions={chatSessions}
+            currentSessionId={currentSessionId}
+            onSelectSession={handleSelectSession}
+            onDeleteSession={deleteChatSession}
         />
         <div className="mt-auto p-4 border-r border-slate-100 bg-white">
              <button onClick={handleSignOut} className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors w-full px-4 py-2 rounded-lg hover:bg-slate-50">
@@ -172,7 +350,12 @@ export default function App() {
       
       <main className="flex-1 flex flex-col h-full relative overflow-hidden">
         {activeView === 'home' && (
-            <HomeView onStartChat={(msg) => handleSendMessage(msg || "我们开始吧！")} />
+            <HomeView 
+              onStartChat={(msg) => handleSendMessage(msg || "我们开始吧！")} 
+              mode={chatMode}
+              setMode={setChatMode}
+              userName={userProfile.name}
+            />
         )}
         
         {activeView === 'chat' && (
@@ -187,7 +370,10 @@ export default function App() {
         )}
 
         {activeView === 'profile' && (
-            <ProfileView />
+            <ProfileView 
+              user={userProfile}
+              onUpdateProfile={handleUpdateProfile}
+            />
         )}
       </main>
 

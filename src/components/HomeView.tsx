@@ -5,14 +5,25 @@ import {
   Brain, 
   Award, 
   Archive, 
-  ArrowRight
+  ArrowRight,
+  GraduationCap,
+  Shield,
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface HomeViewProps {
   onStartChat: (message?: string) => void;
+  mode?: 'study' | 'boss';
+  setMode?: (mode: 'study' | 'boss') => void;
+  userName?: string;
 }
 
-export const HomeView: React.FC<HomeViewProps> = ({ onStartChat }) => {
+export const HomeView: React.FC<HomeViewProps> = ({ 
+  onStartChat,
+  mode = 'study',
+  setMode = () => {},
+  userName = "同学"
+}) => {
   const [inputValue, setInputValue] = React.useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -20,6 +31,12 @@ export const HomeView: React.FC<HomeViewProps> = ({ onStartChat }) => {
     if (inputValue.trim()) {
       onStartChat(inputValue);
     }
+  };
+
+  const handleMockImageUpload = () => {
+    if (mode !== 'boss') setMode('boss');
+    // We can simulate an image upload by starting chat with a specific message that triggers image logic in parent
+    onStartChat("请帮我批改这道静力学习题"); 
   };
 
   return (
@@ -41,7 +58,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onStartChat }) => {
               <Rocket size={150} strokeWidth={1.2} className="text-slate-900 fill-slate-50 relative z-20" />
               
               {/* Speed Lines Exhaust */}
-              <div className="absolute top-[55%] right-[55%] -z-10">
+              <div className="absolute top-[75%] right-[75%] -z-10">
                 <svg width="100" height="100" viewBox="0 0 100 100" fill="none" className="overflow-visible transform rotate-[45deg] opacity-60">
                   <motion.path
                     d="M50 0 L50 60"
@@ -86,62 +103,74 @@ export const HomeView: React.FC<HomeViewProps> = ({ onStartChat }) => {
           </div>
         </motion.div>
 
-        <h1 className="text-4xl font-bold text-slate-900 mb-[16px] tracking-tight text-center text-[160px] mt-[10px] mr-[0px] ml-[0px] not-italic font-[Abhaya_Libre_Medium]">
-          Hello!
+        <h1 className="text-4xl font-bold text-slate-900 mb-[16px] tracking-tight text-center text-[80px] mt-[10px] mr-[0px] ml-[0px] not-italic font-[Abhaya_Libre_Medium]">
+          Hello, {userName}
         </h1>
-        <p className="text-slate-500 text-lg mb-12 text-center max-w-lg">
-          选择你的任务，成为力学大师！
-        </p>
 
-        {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full mb-16">
-          <ActionCard 
-            icon={<Brain className="text-blue-500" />}
-            title="解锁新概念"
-            description="开启通往新概念和精通之路。"
-            buttonText="初学者路径"
-            onClick={() => onStartChat("让我们开始初学者路径")}
-          />
-          <ActionCard 
-            icon={<Rocket className="text-purple-500" />}
-            title="征服测验！"
-            description="完成测验挑战，检验你的运算能力。"
-            buttonText="挑战模式"
-            onClick={() => onStartChat("我想尝试挑战模式")}
-          />
-          <ActionCard 
-            icon={<Award className="text-amber-500" />}
-            title="赢取徽章"
-            description="完成本次任务，赢取属于你的荣誉徽章。"
-            buttonText="赢取徽章"
-            onClick={() => onStartChat("我该如何赢得下一个徽章？")}
-          />
-          <ActionCard 
-            icon={<Archive className="text-emerald-500" />}
-            title="访问知识库"
-            description="查看你收藏的力学笔记和关卡记录。"
-            buttonText="访问知识库"
-            onClick={() => onStartChat("显示我保存的笔记")}
-          />
-        </div>
 
         {/* Bottom Search Bar */}
         <form onSubmit={handleSubmit} className="w-full max-w-2xl relative">
-          <div className="relative flex items-center p-[0px]">
-            <div className="absolute left-4 text-slate-400">
-               <Brain size={20} />
+          <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 transition-colors rounded-[32px] p-2 pr-2 border border-slate-200 focus-within:border-slate-300 focus-within:ring-4 focus-within:ring-slate-100 shadow-sm">
+            
+            {/* Integrated Mode Switcher */}
+            <div className="flex bg-white/80 relative p-1 rounded-[24px] border border-slate-200 mr-1 flex-shrink-0">
+                {/* Active Pill Background */}
+                <motion.div 
+                  className="absolute top-1 bottom-1 bg-slate-900 rounded-[20px] shadow-sm z-0"
+                  layoutId="activeModeInputHome" // Distinct ID to avoid conflict if both mounted (though unlikely)
+                  initial={false}
+                  animate={{ 
+                    left: mode === 'study' ? '4px' : 'calc(50% + 2px)',
+                    width: 'calc(50% - 6px)',
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+
+                <button 
+                  type="button"
+                  onClick={() => setMode('study')}
+                  className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-[20px] text-xs font-bold transition-colors w-[100px] ${
+                    mode === 'study' ? 'text-white' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <GraduationCap size={14} />
+                  提问
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setMode('boss')}
+                  className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-[20px] text-xs font-bold transition-colors w-[100px] ${
+                    mode === 'boss' ? 'text-white' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <Shield size={14} />
+                  批改
+                </button>
             </div>
+
+            <div className="h-8 w-[1px] bg-slate-200 mx-1"></div>
+
+            <button 
+               type="button"
+               onClick={handleMockImageUpload}
+               className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-900 transition-all border border-transparent hover:border-slate-200 hover:shadow-sm"
+               title="上传作业"
+            >
+               <ImageIcon size={20} />
+            </button>
+
             <input 
               type="text" 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="问问你的 AI 学习搭档..."
-              className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-slate-400 focus:ring-0 rounded-full py-4 pl-12 pr-14 outline-none transition-all shadow-sm text-slate-700 placeholder:text-slate-400 text-lg text-[16px]"
+              placeholder={mode === 'boss' ? "传入你的过程进行批改..." : "问问你的 AI 学习搭档..."}
+              className="flex-1 bg-transparent border-none outline-none py-3 px-2 text-slate-700 placeholder:text-slate-400 text-lg min-w-0"
             />
+            
             <button 
               type="submit"
               disabled={!inputValue.trim()}
-              className="absolute right-3 p-2 bg-slate-900 text-white rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-900 text-white disabled:bg-slate-200 disabled:text-slate-400 transition-all hover:scale-105 shadow-md hover:shadow-lg flex-shrink-0"
             >
               <ArrowRight size={20} />
             </button>
@@ -160,21 +189,3 @@ interface ActionCardProps {
   buttonText: string;
   onClick: () => void;
 }
-
-const ActionCard: React.FC<ActionCardProps> = ({ icon, title, description, buttonText, onClick }) => (
-  <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center h-full">
-    <div className="p-3 bg-slate-50 rounded-xl mb-4">
-      {icon}
-    </div>
-    <h3 className="font-bold text-slate-800 mb-2 text-sm uppercase tracking-wide">{title}</h3>
-    <p className="text-slate-500 text-xs mb-6 leading-relaxed flex-1">
-      {description}
-    </p>
-    <button 
-      onClick={onClick}
-      className="w-full py-2 px-4 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors uppercase tracking-wider"
-    >
-      {buttonText}
-    </button>
-  </div>
-);
