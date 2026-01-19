@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap");
 /*! tailwindcss v4.1.3 | MIT License | https://tailwindcss.com */
 @layer properties {
   @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
@@ -70,7 +71,7 @@
 
 @layer theme {
   :root, :host {
-    --font-sans: "PingFang SC", "Microsoft YaHei", "Heiti SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", "Heiti SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
     --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --color-red-500: oklch(.637 .237 25.331);
@@ -131,6 +132,7 @@
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
     --tracking-tight: -.025em;
     --tracking-wide: .025em;
     --tracking-wider: .05em;
@@ -623,6 +625,10 @@
     margin-top: calc(var(--spacing) * 12);
   }
 
+  .mt-\[0px\] {
+    margin-top: 0;
+  }
+
   .mt-\[10px\] {
     margin-top: 10px;
   }
@@ -677,6 +683,10 @@
 
   .mb-\[16px\] {
     margin-bottom: 16px;
+  }
+
+  .mb-\[30px\] {
+    margin-bottom: 30px;
   }
 
   .ml-1 {
@@ -1547,8 +1557,8 @@
     text-align: right;
   }
 
-  .font-\[Abhaya_Libre_ExtraBold\] {
-    font-family: Abhaya Libre ExtraBold;
+  .font-\[\'Abhaya_Libre\'\] {
+    font-family: Abhaya Libre;
   }
 
   .font-\[Abhaya_Libre_Medium\] {
@@ -1624,6 +1634,10 @@
     font-size: 24px;
   }
 
+  .text-\[28px\] {
+    font-size: 28px;
+  }
+
   .text-\[32px\] {
     font-size: 32px;
   }
@@ -1654,6 +1668,11 @@
   .font-bold {
     --tw-font-weight: var(--font-weight-bold);
     font-weight: var(--font-weight-bold);
+  }
+
+  .font-extrabold {
+    --tw-font-weight: var(--font-weight-extrabold);
+    font-weight: var(--font-weight-extrabold);
   }
 
   .font-medium {
@@ -2253,6 +2272,7 @@
     backdrop-filter: blur(12px);
   }
 }
+
 
 body {
   font-family: var(--font-sans);

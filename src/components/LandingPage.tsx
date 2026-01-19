@@ -52,19 +52,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) =>
               <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center">
                 <Settings className="animate-spin-slow" size={24} strokeWidth={2.5} />
               </div>
-              <span className="text-xl font-bold tracking-tight font-[Abhaya_Libre_ExtraBold] text-[32px]">MechHub</span>
+              <span className="text-xl font-bold tracking-tight font-['Abhaya_Libre'] font-extrabold text-[32px]">MechHub</span>
             </div>
             
             <button 
               onClick={onLogin}
-              className="px-6 py-2 rounded-full border border-slate-200 font-medium hover:bg-slate-50 hover:border-slate-300 transition-all font-[Abhaya_Libre_ExtraBold] text-[20px] text-[rgb(28,44,67)]"
+              className="px-6 py-2 rounded-full border border-slate-200 font-medium hover:bg-slate-50 hover:border-slate-300 transition-all font-['Abhaya_Libre'] font-extrabold text-[20px] text-[rgb(28,44,67)]"
             >
               Login
             </button>
           </div>
 
           {/* Hero Content */}
-          <div className="flex-1 flex flex-col justify-center max-w-lg">
+          <div className="flex-1 flex flex-col justify-center max-w-lg mt-[0px] mr-[0px] mb-[30px] ml-[0px]">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -82,7 +82,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) =>
             >
               <button 
                 onClick={onStart}
-                className="group bg-black text-white text-lg font-medium px-8 py-4 rounded-full flex items-center gap-2 hover:bg-slate-800 hover:scale-105 transition-all shadow-xl shadow-slate-200"
+                className="group bg-black text-white text-lg font-medium px-8 py-4 rounded-full flex items-center gap-2 hover:bg-slate-800 hover:scale-105 transition-all shadow-xl shadow-slate-200 font-['Abhaya_Libre'] font-extrabold text-[28px]"
               >
                 Start Now
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />

@@ -120,11 +120,18 @@ export default function App() {
 
        if (response.ok) {
          const savedChat = await response.json();
+         
+         // Manually update local state for immediate feedback
+         setChatSessions(prev => {
+            const filtered = prev.filter(c => c.id !== savedChat.id);
+            return [savedChat, ...filtered].sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0));
+         });
+
          // If it was a new chat, update the current ID
          if (!id) {
             setCurrentSessionId(savedChat.id);
          }
-         // Refresh list
+         // Refresh list from server to ensure synchronization
          fetchChatSessions();
          return savedChat.id;
        }

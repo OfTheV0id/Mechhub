@@ -56,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
           <div>
-            <h1 className="font-bold leading-tight tracking-tight font-[Abhaya_Libre_Medium] text-[40px]">
+            <h1 className="font-bold leading-tight tracking-tight font-['Abhaya_Libre'] font-medium text-[40px]">
               MechHub
             </h1>
             <p className="text-[13px] font-bold text-slate-400 tracking-widest uppercase">
