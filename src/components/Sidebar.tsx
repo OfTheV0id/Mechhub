@@ -49,9 +49,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="flex items-center gap-3 mb-8 cursor-pointer"
           onClick={() => setActiveView("home")}
         >
-          <div className="bg-black text-white rounded-lg p-[10px] p-[14px]">
+          <div 
+            className="bg-black text-white rounded-lg p-[14px] cursor-pointer hover:opacity-90 transition-all"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveView('landing');
+            }}
+          >
             <Settings
-              size={20}
+              size={30}
               className="animate-[spin_10s_linear_infinite]"
             />
           </div>
@@ -67,10 +73,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={onNewQuest}
-          className="w-full flex items-center justify-center gap-2 bg-black hover:bg-slate-800 text-white py-3.5 px-4 rounded-full font-bold text-sm transition-all shadow-lg shadow-slate-200 text-[20px]"
+          className="w-full flex items-center justify-center gap-2 bg-black hover:bg-slate-800 text-white py-[6px] px-[16px] rounded-full font-bold text-sm transition-all shadow-lg shadow-slate-200 text-[18px]"
         >
           <Plus size={18} strokeWidth={3} />
-          <span className="text-[24px]">新对话</span>
+          <span className="text-[22px]">新对话</span>
         </button>
       </div>
 

@@ -85,7 +85,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         <motion.div variants={itemVariants} className="flex items-center justify-between mb-12">
            <div className="w-10" /> {/* Spacer */}
            <h2 className="text-3xl font-bold text-slate-900 text-center tracking-tight">
-            账号设置与个人档案
+            账号设置
           </h2>
            {isEditing ? (
              <div className="flex gap-2">

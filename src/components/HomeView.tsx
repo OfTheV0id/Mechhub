@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   Rocket, 
@@ -8,7 +8,8 @@ import {
   ArrowRight,
   GraduationCap,
   Shield,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Settings
 } from 'lucide-react';
 
 interface HomeViewProps {
@@ -17,6 +18,29 @@ interface HomeViewProps {
   setMode?: (mode: 'study' | 'boss') => void;
   userName?: string;
 }
+
+const TypewriterText = ({ text, delay = 0 }: { text: string; delay?: number }) => {
+  const letters = text.split("");
+  
+  return (
+    <span className="inline-block text-left no-underline p-[0px]">
+      {letters.map((letter, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{
+            duration: 0.1,
+            delay: delay + i * 0.05,
+            ease: "easeOut"
+          }}
+        >
+          {letter}
+        </motion.span>
+      ))}
+    </span>
+  );
+};
 
 export const HomeView: React.FC<HomeViewProps> = ({ 
   onStartChat,
@@ -41,83 +65,45 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   return (
     <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-white relative">
-      <div className="max-w-4xl w-full flex flex-col items-center pt-[0px] pr-[0px] pb-[0px] pl-[100px] p-[0px]">
+      <div className="max-w-4xl w-full flex flex-col items-start p-[0px] mt-[0px] mr-[0px] mb-[0px] ml-[50px]">
         
-        {/* Hero Icon */}
+        {/* Top Greeting Row */}
         <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="mb-8 text-slate-800"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-3 mb-4"
         >
-          <div className="relative flex flex-col items-center py-6">
-            <motion.div
-              animate={{ x: [0, 5, 0], y: [0, -5, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="relative z-10"
-            >
-              <Rocket size={150} strokeWidth={1.2} className="text-slate-900 fill-slate-50 relative z-20" />
-              
-              {/* Speed Lines Exhaust */}
-              <div className="absolute top-[75%] right-[75%] -z-10">
-                <svg width="100" height="100" viewBox="0 0 100 100" fill="none" className="overflow-visible transform rotate-[45deg] opacity-60">
-                  <motion.path
-                    d="M50 0 L50 60"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    className="text-slate-800"
-                    animate={{ 
-                      pathLength: [0.2, 0.6, 0.2],
-                      pathOffset: [0, 1, 0],
-                      opacity: [0.3, 0.8, 0.3]
-                    }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                  />
-                  <motion.path
-                    d="M30 10 L30 50"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    className="text-slate-800"
-                    animate={{ 
-                      pathLength: [0.2, 0.5, 0.2],
-                      opacity: [0.3, 0.7, 0.3]
-                    }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear", delay: 0.2 }}
-                  />
-                  <motion.path
-                    d="M70 10 L70 55"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    className="text-slate-800"
-                    animate={{ 
-                      pathLength: [0.2, 0.7, 0.2],
-                      opacity: [0.3, 0.7, 0.3]
-                    }}
-                    transition={{ duration: 1.8, repeat: Infinity, ease: "linear", delay: 0.1 }}
-                  />
-                </svg>
-              </div>
-            </motion.div>
-          </div>
+           <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
+              {/* Spinning Black Gear */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              >
+                <Settings size={20} className="text-black" />
+              </motion.div>
+           </div>
+           {/* Greeting */}
+           <span className="text-2xl font-semibold text-slate-900 font-sans m-[0px]">
+              Hi, {userName}
+           </span>
         </motion.div>
 
-        <h1 className="text-4xl font-bold text-slate-900 mb-[16px] tracking-tight text-center text-[80px] mt-[10px] mr-[0px] ml-[0px] not-italic font-[Abhaya_Libre_Medium]">
-          Hello, {userName}
+        {/* Big Typewriter Heading */}
+        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-2 tracking-tight font-['Abhaya_Libre'] leading-tight h-[1.2em]">
+          <TypewriterText text="Where should we start?" delay={0.3} />
         </h1>
-
 
         {/* Bottom Search Bar */}
         <form onSubmit={handleSubmit} className="w-full max-w-2xl relative">
-          <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 transition-colors rounded-[32px] p-2 pr-2 border border-slate-200 focus-within:border-slate-300 focus-within:ring-4 focus-within:ring-slate-100 shadow-sm">
+          <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 transition-colors rounded-[32px] p-2 pr-2 border border-slate-200 focus-within:border-slate-300 focus-within:ring-4 focus-within:ring-slate-100 shadow-sm p-[8px]">
             
             {/* Integrated Mode Switcher */}
             <div className="flex bg-white/80 relative p-1 rounded-[24px] border border-slate-200 mr-1 flex-shrink-0">
                 {/* Active Pill Background */}
                 <motion.div 
                   className="absolute top-1 bottom-1 bg-slate-900 rounded-[20px] shadow-sm z-0"
-                  layoutId="activeModeInputHome" // Distinct ID to avoid conflict if both mounted (though unlikely)
+                  layoutId="activeModeInputHome" 
                   initial={false}
                   animate={{ 
                     left: mode === 'study' ? '4px' : 'calc(50% + 2px)',

@@ -330,6 +330,18 @@ export default function App() {
       );
   }
 
+  if (activeView === 'landing') {
+      return (
+        <>
+            <Toaster position="top-center" richColors />
+            <LandingPage 
+              onStart={() => setActiveView('home')} 
+              onLogin={() => setActiveView('home')} 
+            />
+        </>
+      );
+  }
+
   return (
     <div className="flex h-screen bg-white text-slate-800 font-sans overflow-hidden">
       <Toaster position="top-center" richColors />
