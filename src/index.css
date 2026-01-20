@@ -1723,10 +1723,6 @@
     opacity: .8;
   }
 
-  .mix-blend-multiply {
-    mix-blend-mode: multiply;
-  }
-
   .shadow-2xl {
     --tw-shadow: 0 25px 50px -12px var(--tw-shadow-color, #00000040);
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -1792,11 +1788,6 @@
 
   .ring-slate-100 {
     --tw-ring-color: var(--color-slate-100);
-  }
-
-  .contrast-110 {
-    --tw-contrast: contrast(110%);
-    filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, );
   }
 
   .drop-shadow-md {

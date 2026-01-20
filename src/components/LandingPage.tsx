@@ -1,5 +1,8 @@
+import image_cf5b2a7234f5d2501a71b5f67910a68d72e62b4a from 'figma:asset/cf5b2a7234f5d2501a71b5f67910a68d72e62b4a.png';
+import image_cbed58ade570bedc06c7367179625f0aa367c1d0 from 'figma:asset/cbed58ade570bedc06c7367179625f0aa367c1d0.png';
 import React from 'react';
 import { motion } from 'motion/react';
+import gyroImage from "figma:asset/6ab2f056c1c69b4fa1100e6dd76da0ef6afc4ba6.png";
 import { Settings, ArrowRight } from 'lucide-react';
 
 interface LandingPageProps {
@@ -92,19 +95,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) =>
                 <div className="flex-1 flex items-center justify-center w-full min-h-[400px]">
                     <motion.div
                         animate={{ 
-                            rotate: 360,
                             y: [0, -15, 0] // Floating effect
                         }}
                         transition={{ 
-                            rotate: { duration: 30, repeat: Infinity, ease: "linear" },
                             y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
                         }}
                         className="w-full max-w-[450px] aspect-square relative"
                     >
                          <img 
-                           src="https://images.unsplash.com/photo-1597884322847-a5031b9937c3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzaWx2ZXIlMjBtZXRhbCUyMGd5cm9zY29wZSUyMDNkJTIwcmVuZGVyJTIwaXNvbGF0ZWQlMjB3aGl0ZSUyMGJhY2tncm91bmR8ZW58MXx8fHwxNzY4ODM3NjIxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                           src={image_cf5b2a7234f5d2501a71b5f67910a68d72e62b4a}
                            alt="Gyroscope"
-                           className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply filter contrast-110" 
+                           className="w-full h-full object-contain drop-shadow-xl" 
                          />
                     </motion.div>
                 </div>
