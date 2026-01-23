@@ -73,10 +73,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={onNewQuest}
-          className="w-full flex items-center justify-center gap-2 bg-black hover:bg-slate-800 text-white py-[6px] px-[16px] rounded-full font-bold text-sm transition-all shadow-lg shadow-slate-200 text-[18px]"
+          className="w-full flex items-center justify-center gap-2 bg-black hover:bg-slate-800 text-white rounded-full font-bold text-sm transition-all shadow-lg shadow-slate-200 text-[18px] px-[16px] py-[3px]"
         >
           <Plus size={18} strokeWidth={3} />
-          <span className="text-[22px]">新对话</span>
+          <span className="text-[19px]">新对话</span>
         </button>
       </div>
 
@@ -110,27 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Daily Goal Widget */}
-      <div className="px-6 py-6">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Target size={14} /> 今日目标
-        </h3>
-        <div className="bg-slate-50 p-4 rounded-[50px] border border-slate-100">
-          <div className="flex justify-between items-end mb-2">
-            <span className="text-sm font-semibold text-slate-700">
-              今日经验
-            </span>
-            <span className="text-xs font-bold text-slate-400">
-              2/3
-            </span>
-          </div>
-          <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full bg-slate-800 w-2/3 rounded-full" />
-          </div>
-          <p className="text-[10px] text-slate-400 mt-2">
-            今日已完成 2/3 个测验！
-          </p>
-        </div>
-      </div>
+      
 
       {/* User Footer */}
       <div className="p-4 border-t border-slate-100 m-2">
