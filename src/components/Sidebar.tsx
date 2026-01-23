@@ -62,7 +62,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
           <div>
-            <h1 className="font-bold leading-tight tracking-tight font-['Abhaya_Libre'] font-medium text-[40px]">
+            <style>{`
+              @media (max-width: 991px) {
+                .mechhub-title {
+                  font-family: "Courier New, monospace";
+                  font-weight: 600;
+                }
+              }
+            `}</style>
+            <h1 className="font-bold leading-tight tracking-tight font-['Abhaya_Libre'] font-medium text-[40px] mechhub-title">
               MechHub
             </h1>
             <p className="text-[13px] font-bold text-slate-400 tracking-widest uppercase">
