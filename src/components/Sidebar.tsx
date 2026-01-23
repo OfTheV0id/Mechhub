@@ -45,12 +45,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="w-[280px] flex-1 flex flex-col bg-white border-r border-slate-100 flex-shrink-0">
       {/* Header */}
       <div className="px-6 py-6">
+        <style>{`
+          @media (max-width: 991px) {
+            .settings-icon-container {
+              display: flex;
+              flex-direction: column;
+              justify-content: flex-start;
+              align-items: flex-start;
+              padding: 8px;
+            }
+          }
+        `}</style>
         <div
           className="flex items-center gap-3 mb-8 cursor-pointer"
           onClick={() => setActiveView("home")}
         >
-          <div 
-            className="bg-black text-white rounded-lg p-[14px] cursor-pointer hover:opacity-90 transition-all"
+          <div
+            className="bg-black text-white rounded-lg p-[14px] cursor-pointer hover:opacity-90 transition-all settings-icon-container"
             onClick={(e) => {
               e.stopPropagation();
               setActiveView('landing');
@@ -62,12 +73,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
           <div>
-            <h1 className="font-bold leading-tight tracking-tight font-['Abhaya_Libre'] font-medium text-[40px]">
+            <style>{`
+              @media (max-width: 991px) {
+                .mechhub-title {
+                  font-family: "Courier New, monospace";
+                }
+              }
+            `}</style>
+            <h1 className="font-bold leading-tight tracking-tight text-[40px] mechhub-title" style={{ fontFamily: "Courier New, monospace" }}>
               MechHub
             </h1>
-            <p className="text-[13px] font-bold text-slate-400 tracking-widest uppercase">
-              学生版
-            </p>
           </div>
         </div>
 

@@ -49,7 +49,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) =>
                   <div className="bg-black text-white p-2 rounded-xl">
                     <Settings className="animate-[spin_10s_linear_infinite]" size={24} strokeWidth={2.5} />
                   </div>
-                  <span className="text-2xl font-bold tracking-tight font-['Abhaya_Libre'] font-[Abhaya_Libre_Medium] text-[32px]">MechHub</span>
+                  <span className="text-2xl font-bold tracking-tight font-['Courier_New'] text-[32px]" style={{ fontFamily: "Courier New, monospace" }}>MechHub</span>
                 </div>
 
                 {/* Main Text */}
@@ -102,10 +102,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onLogin }) =>
                         }}
                         className="w-full max-w-[450px] aspect-square relative"
                     >
-                         <img 
-                           src={image_cf5b2a7234f5d2501a71b5f67910a68d72e62b4a}
+                         <img
+                           src="https://cdn.builder.io/api/v1/image/assets%2F31b33db0871d4fe191b620f6b8c8dbda%2F5b0b4634fb5e430086e8d0a8803c7279"
                            alt="Gyroscope"
-                           className="w-full h-full object-contain drop-shadow-xl" 
+                           className="w-full h-full object-contain drop-shadow-xl"
                          />
                     </motion.div>
                 </div>
