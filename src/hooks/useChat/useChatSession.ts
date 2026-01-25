@@ -12,7 +12,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(
         null,
     );
-    const [chatMode, setChatMode] = useState<"study" | "boss">("study");
+    const [chatMode, setChatMode] = useState<"study" | "correct">("study");
 
     const fetchChatSessions = async () => {
         if (!userSession) return;

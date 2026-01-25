@@ -1,0 +1,39 @@
+import React from "react";
+import { motion } from "motion/react";
+import { Settings } from "lucide-react";
+
+interface AIAvatarProps {
+    isThinking?: boolean;
+    size?: number;
+    iconSize?: number;
+    className?: string;
+}
+
+export const AIAvatar: React.FC<AIAvatarProps> = ({
+    isThinking = false,
+    size = 40,
+    iconSize = 20,
+    className = "",
+}) => {
+    return (
+        <div
+            className={`bg-white rounded-full flex items-center justify-center border border-slate-100 ${className}`}
+            style={{ width: size, height: size }}
+        >
+            <motion.div
+                animate={isThinking ? { rotate: 360 } : { rotate: 0 }}
+                transition={
+                    isThinking
+                        ? {
+                              duration: 4,
+                              repeat: Infinity,
+                              ease: "linear",
+                          }
+                        : { duration: 0 }
+                }
+            >
+                <Settings size={iconSize} className="text-black" />
+            </motion.div>
+        </div>
+    );
+};

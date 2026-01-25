@@ -1,14 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import {
-    ArrowRight,
-    GraduationCap,
-    Shield,
-    Image as ImageIcon,
-    Settings,
-    CheckCircle,
-    ImagePlus,
-} from "lucide-react";
+import { AIAvatar } from "../../components/AIAvatar";
 
 interface HomeViewProps {
     onStartChat: (message?: string) => void;
@@ -46,6 +38,7 @@ const TypewriterText = ({
     );
 };
 
+import { UnifiedInputBar } from "../../components/UnifiedInputBar";
 import { useHomeView } from "./hooks/useHomeView";
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -67,19 +60,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     transition={{ duration: 0.5 }}
                     className="flex items-center gap-3 mb-4"
                 >
-                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
-                        {/* Spinning Black Gear */}
-                        <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{
-                                duration: 4,
-                                repeat: Infinity,
-                                ease: "linear",
-                            }}
-                        >
-                            <Settings size={20} className="text-black" />
-                        </motion.div>
-                    </div>
+                    <AIAvatar isThinking={true} />
                     {/* Greeting */}
                     <span className="text-2xl font-semibold text-slate-900 font-sans m-[0px]">
                         Hi, {userName}
@@ -98,84 +79,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     </h1>
 
                     {/* Bottom Search Bar */}
-                    <form onSubmit={handleSubmit} className="w-full relative">
-                        <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 transition-colors rounded-[32px] p-2 pr-2 border border-slate-200 focus-within:border-slate-300 focus-within:ring-4 focus-within:ring-slate-100 shadow-sm">
-                            {/* Integrated Mode Switcher */}
-                            <div className="flex bg-white/80 relative p-1 rounded-[24px] border border-slate-200 mr-1 flex-shrink-0">
-                                {/* Active Pill Background */}
-                                <motion.div
-                                    className="absolute top-1 bottom-1 bg-slate-900 rounded-[20px] shadow-sm z-0"
-                                    layoutId="activeModeInputHome"
-                                    initial={false}
-                                    animate={{
-                                        left:
-                                            mode === "study"
-                                                ? "4px"
-                                                : "calc(50% + 2px)",
-                                        width: "calc(50% - 6px)",
-                                    }}
-                                    transition={{
-                                        type: "spring",
-                                        stiffness: 400,
-                                        damping: 30,
-                                    }}
-                                />
-
-                                <button
-                                    type="button"
-                                    onClick={() => setMode("study")}
-                                    className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-[20px] text-xs font-bold transition-colors w-[100px] ${
-                                        mode === "study"
-                                            ? "text-white"
-                                            : "text-slate-500 hover:text-slate-700"
-                                    }`}
-                                >
-                                    <GraduationCap size={14} />
-                                    提问
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setMode("correct")}
-                                    className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-[20px] text-xs font-bold transition-colors w-[100px] ${
-                                        mode === "correct"
-                                            ? "text-white"
-                                            : "text-slate-500 hover:text-slate-700"
-                                    }`}
-                                >
-                                    <CheckCircle size={14} />
-                                    批改
-                                </button>
-                            </div>
-
-                            <input
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                placeholder={
-                                    mode === "correct"
-                                        ? "传入你的过程进行批改..."
-                                        : "问问MECHHUB AI ..."
-                                }
-                                className="flex-1 bg-transparent border-none outline-none py-3 px-2 text-slate-700 placeholder:text-slate-400 text-lg min-w-0"
-                            />
-
-                            <button
-                                type="button"
-                                onClick={handleMockImageUpload}
-                                className="p-3 rounded-full hover:bg-slate-200 text-slate-400 transition-colors"
-                            >
-                                <ImagePlus size={20} />
-                            </button>
-
-                            <button
-                                type="submit"
-                                disabled={!inputValue.trim()}
-                                className="p-3 rounded-full bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md ml-1"
-                            >
-                                <ArrowRight size={20} />
-                            </button>
-                        </div>
-                    </form>
+                    <div className="w-full relative">
+                        <UnifiedInputBar
+                            inputValue={inputValue}
+                            onInputChange={setInputValue}
+                            onSubmit={handleSubmit}
+                            mode={mode}
+                            setMode={setMode}
+                            onUpload={handleMockImageUpload}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

@@ -3,8 +3,8 @@ import { Message } from "../../../types/message";
 
 export const useChatInterface = (
     onSendMessage: (text: string, image?: File) => void,
-    mode: "study" | "boss",
-    setMode: (mode: "study" | "boss") => void,
+    mode: "study" | "correct",
+    setMode: (mode: "study" | "correct") => void,
 ) => {
     const [inputText, setInputText] = useState("");
 
@@ -17,7 +17,7 @@ export const useChatInterface = (
     };
 
     const handleMockImageUpload = () => {
-        if (mode !== "boss") setMode("boss");
+        if (mode !== "correct") setMode("correct");
         onSendMessage("请帮我批改这道静力学习题", new File([""], "mock.jpg"));
     };
 

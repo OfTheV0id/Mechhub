@@ -1,8 +1,8 @@
 import React from "react";
 import { Plus, Settings, MessageSquare, Trash2 } from "lucide-react";
 
-import { ChatSession } from "../../types/session";
-import { UserProfile } from "../../types/user";
+import { ChatSession } from "../types/session";
+import { UserProfile } from "../types/user";
 
 interface SidebarProps {
     activeView: string;

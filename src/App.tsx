@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sidebar } from "./features/layout/Sidebar";
+import { Sidebar } from "./components/Sidebar";
 import { ChatSession } from "./types/session";
 import { ChatInterface } from "./features/chat/ChatView";
 import { AssignmentModal } from "./features/chat/components/AssignmentModal";
@@ -169,6 +169,7 @@ export default function App() {
                         onOpenSubmission={() => setIsSubmissionOpen(true)}
                         mode={chatMode}
                         setMode={setChatMode}
+                        user={userProfile}
                     />
                 )}
 

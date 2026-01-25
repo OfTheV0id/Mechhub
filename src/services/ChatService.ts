@@ -72,14 +72,14 @@ export class ChatService {
 
     static async getAIResponse(
         messages: Message[],
-        mode: "study" | "boss",
+        mode: "study" | "correct",
         image?: File,
     ): Promise<Message> {
         // Stimulate latency
         await new Promise((resolve) => setTimeout(resolve, 1500));
 
         // Mock Logic
-        if (image || mode === "boss") {
+        if (image || mode === "correct") {
             return {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",

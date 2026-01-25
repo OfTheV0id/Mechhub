@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { ChatInput } from "./components/ChatInput";
 import { MessageList } from "./components/MessageList";
 import { Message } from "../../types/message";
+import { UserProfile } from "../../types/user";
 import { useChatInterface } from "./hooks/useChatInterface";
 
 export type { Message };
@@ -11,8 +12,9 @@ interface ChatInterfaceProps {
     onSendMessage: (text: string, image?: File) => void;
     isTyping: boolean;
     onOpenSubmission: () => void;
-    mode: "study" | "boss";
-    setMode: (mode: "study" | "boss") => void;
+    mode: "study" | "correct";
+    setMode: (mode: "study" | "correct") => void;
+    user?: UserProfile;
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -22,6 +24,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     onOpenSubmission,
     mode,
     setMode,
+    user,
 }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { inputText, setInputText, handleSubmit, handleMockImageUpload } =
@@ -43,7 +46,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 messages={messages}
                 isTyping={isTyping}
                 messagesEndRef={messagesEndRef}
+                userName={user?.name}
+                userAvatar={user?.avatar}
             />
+
             <ChatInput
                 inputText={inputText}
                 setInputText={setInputText}

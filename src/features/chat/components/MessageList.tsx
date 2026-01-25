@@ -1,31 +1,35 @@
 import React from "react";
-import {
-    User,
-    Sparkles,
-    CheckCircle2,
-    AlertCircle,
-    Shield,
-} from "lucide-react";
+import { User, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { Message, Annotation } from "../../../types/message";
+import { AIAvatar } from "../../../components/AIAvatar";
 
 interface MessageListProps {
     messages: Message[];
     isTyping: boolean;
     messagesEndRef: React.RefObject<HTMLDivElement | null>;
+    userName?: string;
+    userAvatar?: string;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
     messages,
     isTyping,
     messagesEndRef,
+    userName = "你",
+    userAvatar,
 }) => {
     return (
         <div className="flex-1 overflow-y-auto px-4 md:px-20 py-8 space-y-8 scroll-smooth">
             {messages.map((msg) => (
-                <div key={msg.id} className="w-full max-w-4xl mx-auto">
+                <div key={msg.id} className="w-full">
                     {msg.type === "text" ? (
-                        <TextMessage role={msg.role} content={msg.content} />
+                        <TextMessage
+                            role={msg.role}
+                            content={msg.content}
+                            userName={userName}
+                            userAvatar={userAvatar}
+                        />
                     ) : (
                         <GradingMessage
                             imageUrl={msg.imageUrl}
@@ -47,31 +51,24 @@ export const MessageList: React.FC<MessageListProps> = ({
 const TextMessage = ({
     role,
     content,
+    userName,
+    userAvatar,
 }: {
     role: "user" | "assistant";
     content: string;
+    userName: string;
+    userAvatar?: string;
 }) => (
-    <div className={`flex gap-6 ${role === "user" ? "flex-row-reverse" : ""}`}>
-        <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border shadow-sm ${
-                role === "assistant"
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-slate-700 border-slate-200"
-            }`}
-        >
-            {role === "assistant" ? <Sparkles size={18} /> : <User size={20} />}
-        </div>
+    <div className={`flex gap-4 ${role === "user" ? "flex-row-reverse" : ""}`}>
+        {role === "assistant" && <AIAvatar isThinking={false} />}
 
         <div
-            className={`flex flex-col gap-2 max-w-[80%] ${role === "user" ? "items-end" : "items-start"}`}
+            className={`flex flex-col gap-1 max-w-[90%] ${role === "user" ? "items-end" : "items-start"}`}
         >
-            <div className="font-bold text-xs text-slate-400 uppercase tracking-wider mb-1">
-                {role === "assistant" ? "MechHub AI" : "你"}
-            </div>
             <div
                 className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm ${
                     role === "user"
-                        ? "bg-slate-900 text-white rounded-tr-none"
+                        ? "bg-slate-900 text-white rounded-2xl"
                         : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
                 }`}
             >
@@ -100,9 +97,7 @@ const GradingMessage = ({
 }) => (
     <div className="w-full">
         <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center">
-                <Shield size={14} />
-            </div>
+            <AIAvatar isThinking={false} size={32} iconSize={16} />
             <span className="font-bold text-slate-800">批改结果</span>
         </div>
 
@@ -207,10 +202,8 @@ const AnnotationDetail = ({
 );
 
 const TypingIndicator = () => (
-    <div className="w-full max-w-4xl mx-auto flex gap-6">
-        <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center flex-shrink-0 border border-black">
-            <Sparkles size={18} />
-        </div>
+    <div className="w-full flex gap-6">
+        <AIAvatar isThinking={true} />
         <div className="flex items-center gap-2 py-3 bg-white px-4 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm">
             {[0, 0.2, 0.4].map((delay, i) => (
                 <motion.div
