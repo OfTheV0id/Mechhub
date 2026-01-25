@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from "react";
-import { ChatHeader } from "./components/ChatHeader";
 import { ChatInput } from "./components/ChatInput";
 import { MessageList } from "./components/MessageList";
 import { Message } from "../../types/message";
@@ -40,7 +39,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     return (
         <div className="flex-1 flex flex-col h-full bg-white relative">
-            <ChatHeader />
             <MessageList
                 messages={messages}
                 isTyping={isTyping}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "motion/react";
 import {
     Mail,
@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useAuthPage } from "./hooks/useAuthPage";
 
-// ... existing imports
 interface AuthPageProps {
     onLoginSuccess: () => void;
 }

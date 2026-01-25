@@ -2,8 +2,8 @@ import { useState } from "react";
 
 export const useHomeView = (
     onStartChat: (message?: string) => void,
-    mode: "study" | "boss" = "study",
-    setMode: (mode: "study" | "boss") => void = () => {},
+    mode: "study" | "correct" = "study",
+    setMode: (mode: "study" | "correct") => void = () => {},
 ) => {
     const [inputValue, setInputValue] = useState("");
 
@@ -15,7 +15,7 @@ export const useHomeView = (
     };
 
     const handleMockImageUpload = () => {
-        if (mode !== "boss") setMode("boss");
+        if (mode !== "correct") setMode("correct");
         onStartChat("请帮我批改这道静力学习题");
     };
 

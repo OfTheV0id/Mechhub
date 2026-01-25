@@ -18,7 +18,7 @@ export const useAuthPage = (onLoginSuccess: () => void) => {
                 await AuthService.signIn(email, password);
                 toast.success("欢迎回来！");
                 onLoginSuccess();
-            } else {
+            } else if (mode == "register") {
                 await AuthService.signUp(email, password);
                 toast.success("账户创建成功！正在登录...");
 
