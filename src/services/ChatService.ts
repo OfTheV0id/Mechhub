@@ -1,28 +1,29 @@
 import { Message } from "../types/message";
 import { ChatSession } from "../types/session";
-import { projectId } from "../config/supabase";
+import { supabase } from "../lib/supabase";
 
 export class ChatService {
-    static async fetchChats(token: string): Promise<ChatSession[]> {
-        const response = await fetch(
-            `https://${projectId}.supabase.co/functions/v1/make-server-5abdc916/chats`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            },
-        );
+    static async fetchChats(): Promise<ChatSession[]> {
+        // We rely on RLS to filter chats for the current user.
+        const { data, error } = await supabase
+            .from("chats")
+            .select("*")
+            .order("updated_at", { ascending: false });
 
-        if (!response.ok) {
-            throw new Error("Failed to fetch chats");
+        if (error) {
+            console.error("Error fetching chats:", error);
+            throw new Error(error.message);
         }
 
-        const data = await response.json();
-        return data.chats || [];
+        return (data || []).map((chat: any) => ({
+            id: chat.id,
+            title: chat.title,
+            messages: chat.messages,
+            updatedAt: new Date(chat.updated_at).getTime(),
+        }));
     }
 
     static async saveChat(
-        token: string,
         id: string | null,
         msgs: Message[],
         title?: string,
@@ -31,42 +32,50 @@ export class ChatService {
             title ||
             (msgs.length > 0 ? msgs[0].content.slice(0, 20) : "新对话");
 
-        const response = await fetch(
-            `https://${projectId}.supabase.co/functions/v1/make-server-5abdc916/chats`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    id: id,
-                    title: generatedTitle,
-                    messages: msgs,
-                }),
-            },
-        );
+        // Get current user to ensure we save with correct user_id
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error("User not authenticated");
 
-        if (!response.ok) {
-            throw new Error("Failed to save chat");
+        // If it's a new chat (id is null), generate a UUID.
+        // If it's an existing chat, use the passed id.
+        const chatId = id || crypto.randomUUID();
+        const now = new Date().toISOString();
+
+        const chatData = {
+            id: chatId,
+            user_id: user.id,
+            title: generatedTitle,
+            messages: msgs,
+            updated_at: now,
+        };
+
+        const { data, error } = await supabase
+            .from("chats")
+            .upsert(chatData)
+            .select()
+            .single();
+
+        if (error) {
+            console.error("Error saving chat:", error);
+            throw new Error(error.message);
         }
 
-        return response.json();
+        return {
+            id: data.id,
+            title: data.title,
+            messages: data.messages,
+            updatedAt: new Date(data.updated_at).getTime(),
+        };
     }
 
-    static async deleteChat(token: string, id: string): Promise<void> {
-        const response = await fetch(
-            `https://${projectId}.supabase.co/functions/v1/make-server-5abdc916/chats/${id}`,
-            {
-                method: "DELETE",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            },
-        );
+    static async deleteChat(id: string): Promise<void> {
+        const { error } = await supabase.from("chats").delete().eq("id", id);
 
-        if (!response.ok) {
-            throw new Error("Failed to delete chat");
+        if (error) {
+            console.error("Error deleting chat:", error);
+            throw new Error(error.message);
         }
     }
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { AIAvatar } from "../../components/AIAvatar";
+import { UnifiedInputBar, AIAvatar } from "../../components";
 
 interface HomeViewProps {
     onStartChat: (message?: string) => void;
@@ -38,7 +38,6 @@ const TypewriterText = ({
     );
 };
 
-import { UnifiedInputBar } from "../../components/UnifiedInputBar";
 import { useHomeView } from "./hooks/useHomeView";
 
 export const HomeView: React.FC<HomeViewProps> = ({

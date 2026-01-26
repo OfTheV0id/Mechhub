@@ -1,5 +1,5 @@
 import React from "react";
-import { UnifiedInputBar } from "../../../components/UnifiedInputBar";
+import { UnifiedInputBar } from "../../../components";
 
 interface ChatInputProps {
     inputText: string;

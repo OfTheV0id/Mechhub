@@ -17,9 +17,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
     const fetchChatSessions = async () => {
         if (!userSession) return;
         try {
-            const chats = await ChatService.fetchChats(
-                userSession.access_token,
-            );
+            const chats = await ChatService.fetchChats();
             setChatSessions(chats);
         } catch (error) {
             console.error("Failed to fetch chats", error);
@@ -33,12 +31,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
     ) => {
         if (!userSession) return id;
         try {
-            const savedChat = await ChatService.saveChat(
-                userSession.access_token,
-                id,
-                msgs,
-                title,
-            );
+            const savedChat = await ChatService.saveChat(id, msgs, title);
 
             setChatSessions((prev) => {
                 const filtered = prev.filter((c) => c.id !== savedChat.id);
@@ -60,7 +53,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
     const deleteChatSession = async (id: string) => {
         if (!userSession) return false;
         try {
-            await ChatService.deleteChat(userSession.access_token, id);
+            await ChatService.deleteChat(id);
             setChatSessions((prev) => prev.filter((c) => c.id !== id));
             if (currentSessionId === id) {
                 handleStartNewQuest();

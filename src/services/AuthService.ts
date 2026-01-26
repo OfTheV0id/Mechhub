@@ -1,10 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-import { projectId, publicAnonKey } from "../config/supabase";
-
-const supabase = createClient(
-    `https://${projectId}.supabase.co`,
-    publicAnonKey,
-);
+import { supabase } from "../lib/supabase";
 
 export class AuthService {
     static async signIn(email: string, password: string) {
@@ -21,34 +15,23 @@ export class AuthService {
         password: string,
         name: string = "Student",
     ) {
-        // Calling custom edge function for signup as per original logic
-        const response = await fetch(
-            `https://${projectId}.supabase.co/functions/v1/make-server-5abdc916/signup`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${publicAnonKey}`,
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
                     name,
-                }),
+                },
             },
-        );
+        });
 
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || "注册失败");
-        }
-        return result;
+        if (error) throw error;
+        return data;
     }
 
     static async socialLogin(provider: "google" | "github") {
         const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: provider,
+            provider,
         });
         if (error) throw error;
         return data;
@@ -64,7 +47,7 @@ export class AuthService {
         avatar_url?: string;
     }) {
         const { error } = await supabase.auth.updateUser({
-            data: data,
+            data,
         });
         if (error) throw error;
     }

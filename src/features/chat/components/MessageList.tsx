@@ -2,7 +2,7 @@ import React from "react";
 import { User, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { Message, Annotation } from "../../../types/message";
-import { AIAvatar } from "../../../components/AIAvatar";
+import { AIAvatar } from "../../../components";
 
 interface MessageListProps {
     messages: Message[];

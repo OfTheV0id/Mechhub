@@ -1,16 +1,10 @@
 // This usage of useAuth will be replaced in next step after creating singleton client.
 // For now, I'll update useAuth to use AuthService for actions.
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
-import { projectId, publicAnonKey } from "../../config/supabase";
+import { supabase } from "../../lib/supabase";
 import { toast } from "sonner";
 import { AuthService } from "../../services/AuthService";
 import { UserProfile } from "../../types/user";
-
-const supabase = createClient(
-    `https://${projectId}.supabase.co`,
-    publicAnonKey,
-);
 
 const DEFAULT_USER: UserProfile = {
     name: "张同学",

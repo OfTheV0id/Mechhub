@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar } from "./components";
 import { ChatSession } from "./types/session";
 import { ChatInterface } from "./features/chat/ChatView";
 import { AssignmentModal } from "./features/chat/components/AssignmentModal";
