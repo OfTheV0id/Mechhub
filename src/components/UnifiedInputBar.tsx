@@ -196,8 +196,12 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
         }
     };
 
-    const removeAttachment = (id: string) => {
-        setAttachments((prev) => prev.filter((a) => a.id !== id));
+    const removeImageAttachment = (id: string) => {
+        setImageAttachments((prev) => prev.filter((a) => a.id !== id));
+    };
+
+    const removeFileAttachment = (filename: string) => {
+        setFileAttachments((prev) => prev.filter((a) => a.filename !== filename));
     };
 
     const handleSubmitInternal = (e: React.FormEvent) => {
