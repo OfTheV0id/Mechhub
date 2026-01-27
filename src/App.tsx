@@ -64,9 +64,13 @@ export default function App() {
 
     // Wrapper to switch view when deleting (if needed) or just delete
     const onDeleteSessionWrapper = async (id: string) => {
-        const success = await deleteChatSession(id);
-        if (success) {
+        const result = await deleteChatSession(id);
+        if (result.success) {
             toast.success("对话已删除");
+            // If the current session was deleted, switch to home view
+            if (result.wasCurrentSession) {
+                setActiveView("home");
+            }
         } else {
             toast.error("删除失败");
         }
