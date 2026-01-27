@@ -11,6 +11,7 @@ import { Toaster, toast } from "sonner";
 import { LogOut } from "lucide-react";
 import { useAuth } from "./hooks/useAuth/useAuth";
 import { useChatSession } from "./hooks/useChat/useChatSession";
+import { FileAttachment } from "./types/message";
 
 export default function App() {
     const {
@@ -64,17 +65,21 @@ export default function App() {
 
     // Wrapper to switch view when deleting (if needed) or just delete
     const onDeleteSessionWrapper = async (id: string) => {
-        const success = await deleteChatSession(id);
-        if (success) {
+        const result = await deleteChatSession(id);
+        if (result.success) {
             toast.success("对话已删除");
+            // If the current session was deleted, switch to home view
+            if (result.wasCurrentSession) {
+                setActiveView("home");
+            }
         } else {
             toast.error("删除失败");
         }
     };
 
     // Wrapper to switch view on new message
-    const onSendMessageWrapper = (text: string, imageUrls?: string[]) => {
-        handleSendMessage(text, imageUrls, () => setActiveView("chat"));
+    const onSendMessageWrapper = (text: string, imageUrls?: string[], fileAttachments?: FileAttachment[]) => {
+        handleSendMessage(text, imageUrls, () => setActiveView("chat"), fileAttachments);
     };
 
     const onStartNewQuestWrapper = () => {
@@ -152,10 +157,11 @@ export default function App() {
             <main className="flex-1 flex flex-col h-full relative overflow-hidden">
                 {activeView === "home" && (
                     <HomeView
-                        onStartChat={(msg, imageUrls) =>
+                        onStartChat={(msg, imageUrls, fileAttachments) =>
                             onSendMessageWrapper(
-                                msg || (imageUrls ? "" : "我们开始吧！"),
+                                msg || (imageUrls || fileAttachments ? "" : "我们开始吧！"),
                                 imageUrls,
+                                fileAttachments,
                             )
                         }
                         mode={chatMode}

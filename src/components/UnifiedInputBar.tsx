@@ -4,14 +4,16 @@ import {
     ArrowRight,
     GraduationCap,
     CheckCircle,
-    ImagePlus,
+    Paperclip,
     X,
     Loader2,
+    FileText,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { toast } from "sonner";
+import { FileAttachment } from "../types/message";
 
-interface Attachment {
+interface ImageAttachment {
     id: string;
     file: File;
     previewUrl: string;
@@ -22,13 +24,45 @@ interface Attachment {
 interface UnifiedInputBarProps {
     inputValue: string;
     onInputChange: (value: string) => void;
-    onSubmit: (e: React.FormEvent, attachments?: string[]) => void;
+    onSubmit: (e: React.FormEvent, imageUrls?: string[], fileAttachments?: FileAttachment[]) => void;
     mode: "study" | "correct";
     setMode: (mode: "study" | "correct") => void;
     onUpload?: (file?: File) => void;
     placeholder?: string;
     isTyping?: boolean;
 }
+
+const SUPPORTED_TEXT_FILE_EXTENSIONS = [
+    ".txt", ".py", ".js", ".java", ".cpp", ".c", ".go", ".rs", ".rb", ".php",
+    ".ts", ".tsx", ".jsx", ".sql", ".html", ".css", ".json", ".yaml", ".yml",
+    ".xml", ".md", ".markdown", ".sh", ".bash", ".jsx"
+];
+
+const LANGUAGE_MAP: { [key: string]: string } = {
+    ".py": "python",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".java": "java",
+    ".cpp": "cpp",
+    ".c": "c",
+    ".go": "go",
+    ".rs": "rust",
+    ".rb": "ruby",
+    ".php": "php",
+    ".sql": "sql",
+    ".html": "html",
+    ".css": "css",
+    ".json": "json",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".xml": "xml",
+    ".md": "markdown",
+    ".markdown": "markdown",
+    ".sh": "bash",
+    ".bash": "bash",
+};
 
 export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     inputValue,
@@ -40,108 +74,160 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     isTyping = false,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [imageAttachments, setImageAttachments] = useState<ImageAttachment[]>([]);
+    const [fileAttachments, setFileAttachments] = useState<FileAttachment[]>([]);
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
+    };
+
+    const isTextFile = (filename: string): boolean => {
+        const extension = "." + filename.split(".").pop()?.toLowerCase();
+        return SUPPORTED_TEXT_FILE_EXTENSIONS.includes(extension);
+    };
+
+    const getLanguageFromFilename = (filename: string): string | undefined => {
+        const extension = "." + filename.split(".").pop()?.toLowerCase();
+        return LANGUAGE_MAP[extension];
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files);
 
-            // Generate previews immediately
-            const newAttachments: Attachment[] = newFiles.map((file) => ({
-                id: Math.random().toString(36).substr(2, 9),
-                file,
-                previewUrl: URL.createObjectURL(file), // Local preview
-                uploading: true,
-            }));
+            // Separate files into images and text files
+            const imagesToUpload: ImageAttachment[] = [];
+            const textsToRead: File[] = [];
 
-            setAttachments((prev) => [...prev, ...newAttachments]);
+            for (const file of newFiles) {
+                if (file.type.startsWith("image/")) {
+                    imagesToUpload.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        file,
+                        previewUrl: URL.createObjectURL(file),
+                        uploading: true,
+                    });
+                } else if (isTextFile(file.name)) {
+                    textsToRead.push(file);
+                } else {
+                    toast.error(`不支持的文件类型: ${file.name}`);
+                }
+            }
+
+            // Add image attachments to state and upload them
+            if (imagesToUpload.length > 0) {
+                setImageAttachments((prev) => [...prev, ...imagesToUpload]);
+
+                // Upload images
+                for (const att of imagesToUpload) {
+                    try {
+                        const fileExt = att.file.name.split(".").pop();
+                        const sanitizedFileName = `${Date.now()}_${Math.random().toString(36).substr(2, 5)}.${fileExt}`;
+
+                        console.log(
+                            `[UnifiedInputBar] Uploading image ${sanitizedFileName}, type: ${att.file.type}`,
+                        );
+
+                        const { error: uploadError } = await supabase.storage
+                            .from("chat-images")
+                            .upload(sanitizedFileName, att.file, {
+                                contentType: att.file.type,
+                                upsert: false,
+                            });
+
+                        if (uploadError) {
+                            console.error(
+                                "[UnifiedInputBar] Supabase Upload Error:",
+                                uploadError,
+                            );
+                            throw uploadError;
+                        }
+
+                        const {
+                            data: { publicUrl },
+                        } = supabase.storage
+                            .from("chat-images")
+                            .getPublicUrl(sanitizedFileName);
+
+                        setImageAttachments((prev) =>
+                            prev.map((p) =>
+                                p.id === att.id
+                                    ? { ...p, uploading: false, publicUrl }
+                                    : p,
+                            ),
+                        );
+                    } catch (error: any) {
+                        console.error(
+                            "[UnifiedInputBar] Image upload failed:",
+                            error,
+                        );
+                        toast.error(`图片上传失败: ${error.message || "未知错误"}`);
+                        setImageAttachments((prev) =>
+                            prev.filter((p) => p.id !== att.id),
+                        );
+                    }
+                }
+            }
+
+            // Read text files
+            if (textsToRead.length > 0) {
+                for (const file of textsToRead) {
+                    try {
+                        const content = await file.text();
+                        const language = getLanguageFromFilename(file.name);
+
+                        const newFileAttachment: FileAttachment = {
+                            filename: file.name,
+                            content,
+                            language,
+                        };
+
+                        setFileAttachments((prev) => [...prev, newFileAttachment]);
+                        console.log(`[UnifiedInputBar] Read text file: ${file.name}`);
+                    } catch (error: any) {
+                        console.error("[UnifiedInputBar] Failed to read file:", error);
+                        toast.error(`读取文件失败: ${file.name}`);
+                    }
+                }
+            }
 
             // Clear input so same file can be selected again if needed
             if (fileInputRef.current) fileInputRef.current.value = "";
-
-            // Upload each file
-            for (const att of newAttachments) {
-                try {
-                    // Sanitize filename to avoid encoding issues
-                    const fileExt = att.file.name.split(".").pop();
-                    const sanitizedFileName = `${Date.now()}_${Math.random().toString(36).substr(2, 5)}.${fileExt}`;
-
-                    console.log(
-                        `[UnifiedInputBar] Uploading ${sanitizedFileName}, type: ${att.file.type}`,
-                    );
-
-                    const { error: uploadError } = await supabase.storage
-                        .from("chat-images")
-                        .upload(sanitizedFileName, att.file, {
-                            contentType: att.file.type,
-                            upsert: false,
-                        });
-
-                    if (uploadError) {
-                        console.error(
-                            "[UnifiedInputBar] Supabase Upload Error:",
-                            uploadError,
-                        );
-                        throw uploadError;
-                    }
-
-                    const {
-                        data: { publicUrl },
-                    } = supabase.storage
-                        .from("chat-images")
-                        .getPublicUrl(sanitizedFileName);
-
-                    setAttachments((prev) =>
-                        prev.map((p) =>
-                            p.id === att.id
-                                ? { ...p, uploading: false, publicUrl }
-                                : p,
-                        ),
-                    );
-                } catch (error: any) {
-                    console.error(
-                        "[UnifiedInputBar] Upload failed exception:",
-                        error,
-                    );
-                    toast.error(`上传失败: ${error.message || "未知错误"}`);
-                    setAttachments((prev) =>
-                        prev.filter((p) => p.id !== att.id),
-                    );
-                }
-            }
         }
     };
 
-    const removeAttachment = (id: string) => {
-        setAttachments((prev) => prev.filter((a) => a.id !== id));
+    const removeImageAttachment = (id: string) => {
+        setImageAttachments((prev) => prev.filter((a) => a.id !== id));
+    };
+
+    const removeFileAttachment = (filename: string) => {
+        setFileAttachments((prev) => prev.filter((a) => a.filename !== filename));
     };
 
     const handleSubmitInternal = (e: React.FormEvent) => {
         e.preventDefault();
 
         // Wait for uploads? Actually we should disable send if uploading.
-        if (attachments.some((a) => a.uploading)) {
+        if (imageAttachments.some((a) => a.uploading)) {
             toast.warning("请等待图片上传完成");
             return;
         }
 
-        const imageUrls = attachments
+        const imageUrls = imageAttachments
             .map((a) => a.publicUrl)
             .filter((url): url is string => !!url);
 
         console.log("[UnifiedInputBar] Submitting imageUrls:", imageUrls);
+        console.log("[UnifiedInputBar] Submitting fileAttachments:", fileAttachments);
 
-        if (inputValue.trim() || imageUrls.length > 0) {
-            onSubmit(e, imageUrls);
-            setAttachments([]); // Clear attachments after send
+        if (inputValue.trim() || imageUrls.length > 0 || fileAttachments.length > 0) {
+            onSubmit(e, imageUrls.length > 0 ? imageUrls : undefined, fileAttachments.length > 0 ? fileAttachments : undefined);
+            setImageAttachments([]); // Clear attachments after send
+            setFileAttachments([]);
         }
     };
 
-    const isUploading = attachments.some((a) => a.uploading);
+    const isUploading = imageAttachments.some((a) => a.uploading);
 
     return (
         <form onSubmit={handleSubmitInternal} className="w-full relative">
@@ -149,16 +235,17 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
-                accept="image/*"
-                multiple // Support multiple files
+                accept="image/*,.txt,.py,.js,.java,.cpp,.c,.go,.rs,.rb,.php,.ts,.tsx,.jsx,.sql,.html,.css,.json,.yaml,.yml,.xml,.md,.markdown,.sh,.bash"
+                multiple
                 onChange={handleFileChange}
             />
 
             {/* Attachments Preview Area */}
             <AnimatePresence>
-                {attachments.length > 0 && (
+                {(imageAttachments.length > 0 || fileAttachments.length > 0) && (
                     <div className="flex gap-2 mb-2 px-2 overflow-x-auto pb-2">
-                        {attachments.map((att) => (
+                        {/* Image Attachments */}
+                        {imageAttachments.map((att) => (
                             <motion.div
                                 key={att.id}
                                 initial={{ opacity: 0, scale: 0.8 }}
@@ -179,12 +266,35 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                                 {!att.uploading && (
                                     <button
                                         type="button"
-                                        onClick={() => removeAttachment(att.id)}
+                                        onClick={() => removeImageAttachment(att.id)}
                                         className="absolute top-0.5 right-0.5 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
                                         <X size={12} />
                                     </button>
                                 )}
+                            </motion.div>
+                        ))}
+
+                        {/* File Attachments */}
+                        {fileAttachments.map((att) => (
+                            <motion.div
+                                key={att.filename}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="relative px-3 py-2 rounded-lg bg-slate-100 border border-slate-200 shadow-sm shrink-0 group flex items-center gap-2"
+                            >
+                                <FileText size={14} className="text-slate-600" />
+                                <span className="text-xs text-slate-700 truncate max-w-[80px]">
+                                    {att.filename}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => removeFileAttachment(att.filename)}
+                                    className="ml-1 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X size={12} />
+                                </button>
                             </motion.div>
                         ))}
                     </div>
@@ -256,15 +366,16 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                     type="button"
                     onClick={handleUploadClick}
                     className="p-3 rounded-full hover:bg-slate-200 text-slate-400 transition-colors"
+                    title="上传文件（图片或文本）"
                 >
-                    <ImagePlus size={20} />
+                    <Paperclip size={20} />
                 </button>
 
                 <button
                     type="button"
                     onClick={(e) => handleSubmitInternal(e)}
                     disabled={
-                        (!inputValue.trim() && attachments.length === 0) ||
+                        (!inputValue.trim() && imageAttachments.length === 0 && fileAttachments.length === 0) ||
                         isUploading ||
                         isTyping
                     }

@@ -1,10 +1,11 @@
 import React from "react";
 import { UnifiedInputBar } from "../../../components";
+import { FileAttachment } from "../../../types/message";
 
 interface ChatInputProps {
     inputText: string;
     setInputText: (text: string) => void;
-    onSubmit: (e: React.FormEvent, attachments?: string[]) => void;
+    onSubmit: (e: React.FormEvent, imageUrls?: string[], fileAttachments?: FileAttachment[]) => void;
     mode: "study" | "correct";
     setMode: (mode: "study" | "correct") => void;
     onUpload: (file?: File) => void;

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { ChatInput } from "./components/ChatInput";
 import { MessageList } from "./components/MessageList";
-import { Message } from "../../types/message";
+import { Message, FileAttachment } from "../../types/message";
 import { UserProfile } from "../../types/user";
 import { useChatInterface } from "./hooks/useChatInterface";
 
@@ -9,7 +9,7 @@ export type { Message };
 
 interface ChatInterfaceProps {
     messages: Message[];
-    onSendMessage: (text: string, imageUrls?: string[]) => void;
+    onSendMessage: (text: string, imageUrls?: string[], fileAttachments?: FileAttachment[]) => void;
     isTyping: boolean;
     onOpenSubmission: () => void;
     mode: "study" | "correct";

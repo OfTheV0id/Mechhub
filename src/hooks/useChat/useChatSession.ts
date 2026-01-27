@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChatSession } from "../../types/session";
-import { Message } from "../../types/message";
+import { Message, FileAttachment } from "../../types/message";
 import { ChatService } from "../../services/ChatService";
 import { AIService } from "../../services/ai/AIService";
 
@@ -52,18 +52,19 @@ export const useChatSession = (supabase: any, userSession: any) => {
     };
 
     const deleteChatSession = async (id: string) => {
-        if (!userSession) return false;
+        if (!userSession) return { success: false, wasCurrentSession: false };
         try {
             await ChatService.deleteChat(id);
+            const wasCurrentSession = currentSessionId === id;
             setChatSessions((prev) => prev.filter((c) => c.id !== id));
-            if (currentSessionId === id) {
+            if (wasCurrentSession) {
                 handleStartNewQuest();
             }
-            return true;
+            return { success: true, wasCurrentSession };
         } catch (error) {
             console.error("Failed to delete chat", error);
         }
-        return false;
+        return { success: false, wasCurrentSession: false };
     };
 
     const handleSelectSession = (id: string) => {
@@ -86,10 +87,12 @@ export const useChatSession = (supabase: any, userSession: any) => {
         text: string,
         imageUrls?: string[],
         switchToChatView?: () => void,
+        fileAttachments?: FileAttachment[],
     ) => {
         console.log("[useChatSession] handleSendMessage received:", {
             text,
             imageUrls,
+            fileAttachments,
         });
         if (switchToChatView) switchToChatView();
 
@@ -102,6 +105,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
             imageUrl:
                 imageUrls && imageUrls.length > 0 ? imageUrls[0] : undefined,
             imageUrls: imageUrls,
+            fileAttachments: fileAttachments,
         };
 
         const updatedMessages = [...messages, newMessage];
@@ -122,6 +126,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
                 messages: updatedMessages,
                 mode: chatMode,
                 imageUrls,
+                fileAttachments,
             });
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
