@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar } from "./components";
 import { ChatSession } from "./types/session";
 import { ChatInterface } from "./features/chat/ChatView";
 import { AssignmentModal } from "./features/chat/components/AssignmentModal";
@@ -73,8 +73,8 @@ export default function App() {
     };
 
     // Wrapper to switch view on new message
-    const onSendMessageWrapper = (text: string, image?: File) => {
-        handleSendMessage(text, image, () => setActiveView("chat"));
+    const onSendMessageWrapper = (text: string, imageUrls?: string[]) => {
+        handleSendMessage(text, imageUrls, () => setActiveView("chat"));
     };
 
     const onStartNewQuestWrapper = () => {
@@ -152,8 +152,11 @@ export default function App() {
             <main className="flex-1 flex flex-col h-full relative overflow-hidden">
                 {activeView === "home" && (
                     <HomeView
-                        onStartChat={(msg) =>
-                            onSendMessageWrapper(msg || "我们开始吧！")
+                        onStartChat={(msg, imageUrls) =>
+                            onSendMessageWrapper(
+                                msg || (imageUrls ? "" : "我们开始吧！"),
+                                imageUrls,
+                            )
                         }
                         mode={chatMode}
                         setMode={setChatMode}

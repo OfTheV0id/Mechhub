@@ -1,8 +1,8 @@
-import React from "react";
-import { User, CheckCircle2, AlertCircle } from "lucide-react";
-import { motion } from "motion/react";
+import React, { useState } from "react";
+import { User, CheckCircle2, AlertCircle, X, ZoomIn } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { Message, Annotation } from "../../../types/message";
-import { AIAvatar } from "../../../components/AIAvatar";
+import { AIAvatar } from "../../../components";
 
 interface MessageListProps {
     messages: Message[];
@@ -19,6 +19,8 @@ export const MessageList: React.FC<MessageListProps> = ({
     userName = "你",
     userAvatar,
 }) => {
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+
     return (
         <div className="flex-1 overflow-y-auto px-4 md:px-20 py-8 space-y-8 scroll-smooth">
             {messages.map((msg) => (
@@ -29,12 +31,16 @@ export const MessageList: React.FC<MessageListProps> = ({
                             content={msg.content}
                             userName={userName}
                             userAvatar={userAvatar}
+                            imageUrl={msg.imageUrl}
+                            imageUrls={msg.imageUrls}
+                            onImageClick={(url) => setPreviewImage(url)}
                         />
                     ) : (
                         <GradingMessage
                             imageUrl={msg.imageUrl}
                             annotations={msg.annotations}
                             score={msg.score}
+                            onImageClick={(url) => setPreviewImage(url)}
                         />
                     )}
                 </div>
@@ -42,58 +48,147 @@ export const MessageList: React.FC<MessageListProps> = ({
 
             {isTyping && <TypingIndicator />}
             <div ref={messagesEndRef} className="h-4" />
+
+            {/* Image Preview Modal */}
+            <AnimatePresence>
+                {previewImage && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
+                        onClick={() => setPreviewImage(null)}
+                    >
+                        {/* Close button fixed to top-right of screen */}
+                        <button
+                            onClick={() => setPreviewImage(null)}
+                            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors z-50 rounded-full hover:bg-white/10"
+                        >
+                            <X size={32} />
+                        </button>
+
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative max-w-full max-h-full flex items-center justify-center"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <img
+                                src={previewImage}
+                                alt="Full preview"
+                                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
 
 // Sub-components for better readability
 
+import { MarkdownRenderer } from "../../../components/MarkdownRenderer";
+
 const TextMessage = ({
     role,
     content,
     userName,
     userAvatar,
+    imageUrl,
+    imageUrls,
+    onImageClick,
 }: {
     role: "user" | "assistant";
     content: string;
     userName: string;
     userAvatar?: string;
-}) => (
-    <div className={`flex gap-4 ${role === "user" ? "flex-row-reverse" : ""}`}>
-        {role === "assistant" && <AIAvatar isThinking={false} />}
+    imageUrl?: string;
+    imageUrls?: string[];
+    onImageClick: (url: string) => void;
+}) => {
+    // Collect all valid images into a single array
+    const displayImages =
+        imageUrls && imageUrls.length > 0
+            ? imageUrls
+            : imageUrl
+              ? [imageUrl]
+              : [];
 
+    return (
         <div
-            className={`flex flex-col gap-1 max-w-[90%] ${role === "user" ? "items-end" : "items-start"}`}
+            className={`flex gap-4 ${role === "user" ? "flex-row-reverse" : ""}`}
         >
+            {role === "assistant" && <AIAvatar isThinking={false} />}
+
             <div
-                className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm ${
-                    role === "user"
-                        ? "bg-slate-900 text-white rounded-2xl"
-                        : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
-                }`}
+                className={`flex flex-col gap-1 max-w-[90%] ${role === "user" ? "items-end" : "items-start"}`}
             >
-                {content}
-            </div>
-            {/* Math Formula Example (Static for now) */}
-            {content.includes("period formula") && (
-                <div className="my-2 p-6 bg-slate-50 rounded-xl flex justify-center border border-slate-100">
-                    <span className="text-2xl font-serif italic">
-                        T ≈ 2π√(L/g)
-                    </span>
+                {displayImages.length > 0 && (
+                    <div
+                        className={`mb-2 flex flex-wrap gap-2 ${role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                        {displayImages.map((url, idx) => (
+                            <div
+                                key={idx}
+                                className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in group transition-transform hover:scale-[1.02]"
+                                onClick={() => onImageClick(url)}
+                                style={{ width: "120px", height: "120px" }} // Fixed thumbnail size
+                            >
+                                <img
+                                    src={url}
+                                    alt={`Attachment ${idx + 1}`}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                    <ZoomIn
+                                        className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md"
+                                        size={20}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div
+                    className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-hidden ${
+                        role === "user"
+                            ? "bg-slate-900 text-white rounded-2xl rounded-tr-sm"
+                            : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
+                    }`}
+                >
+                    {role === "user" ? (
+                        content
+                    ) : (
+                        <MarkdownRenderer content={content} />
+                    )}
                 </div>
-            )}
+                {/* Math Formula Example (Static for now) */}
+                {content.includes("period formula") && (
+                    <div className="my-2 p-6 bg-slate-50 rounded-xl flex justify-center border border-slate-100">
+                        <span className="text-2xl font-serif italic">
+                            T ≈ 2π√(L/g)
+                        </span>
+                    </div>
+                )}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const GradingMessage = ({
     imageUrl,
     annotations,
     score,
+    onImageClick,
 }: {
     imageUrl?: string;
     annotations?: Annotation[];
     score?: number;
+    onImageClick?: (url: string) => void;
 }) => (
     <div className="w-full">
         <div className="flex items-center gap-2 mb-4">
@@ -102,7 +197,10 @@ const GradingMessage = ({
         </div>
 
         <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col lg:flex-row gap-8">
-            <div className="flex-1 relative rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 min-h-[400px]">
+            <div
+                className="flex-1 relative rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 min-h-[400px] cursor-zoom-in"
+                onClick={() => imageUrl && onImageClick?.(imageUrl)}
+            >
                 <img
                     src={imageUrl}
                     alt="Homework"

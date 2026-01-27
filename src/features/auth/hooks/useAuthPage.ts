@@ -4,6 +4,7 @@ import { AuthService } from "../../../services/AuthService";
 
 export const useAuthPage = (onLoginSuccess: () => void) => {
     const [mode, setMode] = useState<"signin" | "register">("signin");
+    const [isVerificationPending, setIsVerificationPending] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -20,11 +21,8 @@ export const useAuthPage = (onLoginSuccess: () => void) => {
                 onLoginSuccess();
             } else if (mode == "register") {
                 await AuthService.signUp(email, password);
-                toast.success("账户创建成功！正在登录...");
-
-                // Auto login after signup
-                await AuthService.signIn(email, password);
-                onLoginSuccess();
+                setIsVerificationPending(true);
+                toast.success("账户创建成功！请检查您的邮箱完成验证。");
             }
         } catch (error: any) {
             toast.error(error.message || "认证失败");
@@ -53,5 +51,7 @@ export const useAuthPage = (onLoginSuccess: () => void) => {
         setShowPassword,
         handleSubmit,
         handleSocialLogin,
+        isVerificationPending,
+        setIsVerificationPending,
     };
 };

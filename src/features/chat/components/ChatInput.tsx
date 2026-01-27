@@ -1,13 +1,13 @@
 import React from "react";
-import { UnifiedInputBar } from "../../../components/UnifiedInputBar";
+import { UnifiedInputBar } from "../../../components";
 
 interface ChatInputProps {
     inputText: string;
     setInputText: (text: string) => void;
-    onSubmit: (e: React.FormEvent) => void;
+    onSubmit: (e: React.FormEvent, attachments?: string[]) => void;
     mode: "study" | "correct";
     setMode: (mode: "study" | "correct") => void;
-    onUpload: () => void;
+    onUpload: (file?: File) => void;
     isTyping: boolean;
 }
 

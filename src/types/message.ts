@@ -13,7 +13,8 @@ export interface Message {
     role: "user" | "assistant";
     type: "text" | "grading";
     content: string;
-    imageUrl?: string;
+    imageUrl?: string; // Keep for backward compatibility
+    imageUrls?: string[]; // New field for multiple images
     annotations?: Annotation[];
     score?: number;
 }

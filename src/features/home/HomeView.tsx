@@ -1,9 +1,9 @@
 import React from "react";
 import { motion } from "motion/react";
-import { AIAvatar } from "../../components/AIAvatar";
+import { UnifiedInputBar, AIAvatar } from "../../components";
 
 interface HomeViewProps {
-    onStartChat: (message?: string) => void;
+    onStartChat: (message?: string, imageUrls?: string[]) => void;
     mode?: "study" | "correct";
     setMode?: (mode: "study" | "correct") => void;
     userName?: string;
@@ -38,7 +38,6 @@ const TypewriterText = ({
     );
 };
 
-import { UnifiedInputBar } from "../../components/UnifiedInputBar";
 import { useHomeView } from "./hooks/useHomeView";
 
 export const HomeView: React.FC<HomeViewProps> = ({
