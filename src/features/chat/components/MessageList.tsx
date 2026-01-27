@@ -35,6 +35,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                             userAvatar={userAvatar}
                             imageUrl={msg.imageUrl}
                             imageUrls={msg.imageUrls}
+                            fileAttachments={msg.fileAttachments}
                             onImageClick={(url) => setPreviewImage(url)}
                         />
                     ) : (
