@@ -349,10 +349,10 @@ const FileAttachmentPreview = ({
             >
                 <div className="flex items-center gap-2">
                     <span className="text-lg">📄</span>
-                    <span className={`font-bold ${
+                    <span className={`font-bold px-2.5 py-1 rounded ${
                         role === "user"
-                            ? "text-white"
-                            : "text-slate-900"
+                            ? "bg-white/20 text-white"
+                            : "bg-slate-200 text-slate-900"
                     } max-w-[200px] truncate`}>
                         {file.filename}
                     </span>
@@ -361,7 +361,7 @@ const FileAttachmentPreview = ({
                             className={`text-xs px-2 py-0.5 rounded font-semibold ${
                                 role === "user"
                                     ? "bg-slate-600 text-slate-100"
-                                    : "bg-slate-200 text-slate-700"
+                                    : "bg-slate-300 text-slate-800"
                             }`}
                         >
                             {file.language}
