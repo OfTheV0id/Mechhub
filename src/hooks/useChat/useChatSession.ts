@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChatSession } from "../../types/session";
-import { Message } from "../../types/message";
+import { Message, FileAttachment } from "../../types/message";
 import { ChatService } from "../../services/ChatService";
 import { AIService } from "../../services/ai/AIService";
 
