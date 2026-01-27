@@ -374,7 +374,7 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                     type="button"
                     onClick={(e) => handleSubmitInternal(e)}
                     disabled={
-                        (!inputValue.trim() && attachments.length === 0) ||
+                        (!inputValue.trim() && imageAttachments.length === 0 && fileAttachments.length === 0) ||
                         isUploading ||
                         isTyping
                     }
