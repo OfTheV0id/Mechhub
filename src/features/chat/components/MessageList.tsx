@@ -317,6 +317,108 @@ const AnnotationDetail = ({
     </div>
 );
 
+const FileAttachmentPreview = ({
+    file,
+    role,
+}: {
+    file: FileAttachment;
+    role: "user" | "assistant";
+}) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    // Truncate to first 30 lines
+    const lines = file.content.split("\n");
+    const isTruncated = lines.length > 30;
+    const displayContent = isTruncated ? lines.slice(0, 30).join("\n") : file.content;
+
+    return (
+        <div
+            className={`border rounded-lg overflow-hidden shadow-sm ${
+                role === "user"
+                    ? "bg-slate-800 border-slate-700"
+                    : "bg-slate-50 border-slate-200"
+            }`}
+        >
+            {/* File Header */}
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className={`w-full px-4 py-3 flex items-center justify-between ${
+                    role === "user"
+                        ? "bg-slate-700 hover:bg-slate-600 text-white"
+                        : "bg-slate-100 hover:bg-slate-150 text-slate-700"
+                } transition-colors`}
+            >
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                    <span>📄</span>
+                    <span>{file.filename}</span>
+                    {file.language && (
+                        <span
+                            className={`text-xs px-2 py-0.5 rounded ${
+                                role === "user"
+                                    ? "bg-slate-600 text-slate-100"
+                                    : "bg-slate-200 text-slate-700"
+                            }`}
+                        >
+                            {file.language}
+                        </span>
+                    )}
+                </div>
+                <ChevronDown
+                    size={18}
+                    className={`transition-transform ${
+                        isExpanded ? "rotate-180" : ""
+                    }`}
+                />
+            </button>
+
+            {/* File Content (Expandable) */}
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <div
+                            className={`max-h-96 overflow-auto ${
+                                role === "user" ? "bg-slate-800" : "bg-white"
+                            }`}
+                        >
+                            <SyntaxHighlighter
+                                language={file.language || "text"}
+                                style={vscDarkPlus}
+                                customStyle={{
+                                    margin: 0,
+                                    padding: "1rem",
+                                    backgroundColor:
+                                        role === "user" ? "#1e293b" : "white",
+                                }}
+                                showLineNumbers={true}
+                                lineNumberStyle={{
+                                    color: role === "user" ? "#64748b" : "#cbd5e1",
+                                }}
+                            >
+                                {displayContent}
+                            </SyntaxHighlighter>
+                            {isTruncated && (
+                                <div
+                                    className={`px-4 py-2 text-center text-xs ${
+                                        role === "user"
+                                            ? "bg-slate-700 text-slate-300"
+                                            : "bg-slate-50 text-slate-500"
+                                    }`}
+                                >
+                                    ... 显示了前 30 行，共 {lines.length} 行
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
 const TypingIndicator = () => (
     <div className="w-full flex gap-6">
         <AIAvatar isThinking={true} />
