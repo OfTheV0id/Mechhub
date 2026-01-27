@@ -158,6 +158,19 @@ const TextMessage = ({
                     </div>
                 )}
 
+                {/* File Attachments */}
+                {fileAttachments && fileAttachments.length > 0 && (
+                    <div className="mb-2 space-y-2">
+                        {fileAttachments.map((file) => (
+                            <FileAttachmentPreview
+                                key={file.filename}
+                                file={file}
+                                role={role}
+                            />
+                        ))}
+                    </div>
+                )}
+
                 <div
                     className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-hidden ${
                         role === "user"
