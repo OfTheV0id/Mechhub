@@ -208,24 +208,26 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
         e.preventDefault();
 
         // Wait for uploads? Actually we should disable send if uploading.
-        if (attachments.some((a) => a.uploading)) {
+        if (imageAttachments.some((a) => a.uploading)) {
             toast.warning("请等待图片上传完成");
             return;
         }
 
-        const imageUrls = attachments
+        const imageUrls = imageAttachments
             .map((a) => a.publicUrl)
             .filter((url): url is string => !!url);
 
         console.log("[UnifiedInputBar] Submitting imageUrls:", imageUrls);
+        console.log("[UnifiedInputBar] Submitting fileAttachments:", fileAttachments);
 
-        if (inputValue.trim() || imageUrls.length > 0) {
-            onSubmit(e, imageUrls);
-            setAttachments([]); // Clear attachments after send
+        if (inputValue.trim() || imageUrls.length > 0 || fileAttachments.length > 0) {
+            onSubmit(e, imageUrls.length > 0 ? imageUrls : undefined, fileAttachments.length > 0 ? fileAttachments : undefined);
+            setImageAttachments([]); // Clear attachments after send
+            setFileAttachments([]);
         }
     };
 
-    const isUploading = attachments.some((a) => a.uploading);
+    const isUploading = imageAttachments.some((a) => a.uploading);
 
     return (
         <form onSubmit={handleSubmitInternal} className="w-full relative">
