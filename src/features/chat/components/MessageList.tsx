@@ -101,6 +101,7 @@ const TextMessage = ({
     userAvatar,
     imageUrl,
     imageUrls,
+    fileAttachments,
     onImageClick,
 }: {
     role: "user" | "assistant";
@@ -109,6 +110,7 @@ const TextMessage = ({
     userAvatar?: string;
     imageUrl?: string;
     imageUrls?: string[];
+    fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
 }) => {
     // Collect all valid images into a single array
