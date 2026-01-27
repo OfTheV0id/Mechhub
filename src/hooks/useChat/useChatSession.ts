@@ -87,10 +87,12 @@ export const useChatSession = (supabase: any, userSession: any) => {
         text: string,
         imageUrls?: string[],
         switchToChatView?: () => void,
+        fileAttachments?: FileAttachment[],
     ) => {
         console.log("[useChatSession] handleSendMessage received:", {
             text,
             imageUrls,
+            fileAttachments,
         });
         if (switchToChatView) switchToChatView();
 
@@ -103,6 +105,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
             imageUrl:
                 imageUrls && imageUrls.length > 0 ? imageUrls[0] : undefined,
             imageUrls: imageUrls,
+            fileAttachments: fileAttachments,
         };
 
         const updatedMessages = [...messages, newMessage];
@@ -123,6 +126,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
                 messages: updatedMessages,
                 mode: chatMode,
                 imageUrls,
+                fileAttachments,
             });
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
