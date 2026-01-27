@@ -81,73 +81,118 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
         fileInputRef.current?.click();
     };
 
+    const isTextFile = (filename: string): boolean => {
+        const extension = "." + filename.split(".").pop()?.toLowerCase();
+        return SUPPORTED_TEXT_FILE_EXTENSIONS.includes(extension);
+    };
+
+    const getLanguageFromFilename = (filename: string): string | undefined => {
+        const extension = "." + filename.split(".").pop()?.toLowerCase();
+        return LANGUAGE_MAP[extension];
+    };
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files);
 
-            // Generate previews immediately
-            const newAttachments: Attachment[] = newFiles.map((file) => ({
-                id: Math.random().toString(36).substr(2, 9),
-                file,
-                previewUrl: URL.createObjectURL(file), // Local preview
-                uploading: true,
-            }));
+            // Separate files into images and text files
+            const imagesToUpload: ImageAttachment[] = [];
+            const textsToRead: File[] = [];
 
-            setAttachments((prev) => [...prev, ...newAttachments]);
+            for (const file of newFiles) {
+                if (file.type.startsWith("image/")) {
+                    imagesToUpload.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        file,
+                        previewUrl: URL.createObjectURL(file),
+                        uploading: true,
+                    });
+                } else if (isTextFile(file.name)) {
+                    textsToRead.push(file);
+                } else {
+                    toast.error(`不支持的文件类型: ${file.name}`);
+                }
+            }
+
+            // Add image attachments to state and upload them
+            if (imagesToUpload.length > 0) {
+                setImageAttachments((prev) => [...prev, ...imagesToUpload]);
+
+                // Upload images
+                for (const att of imagesToUpload) {
+                    try {
+                        const fileExt = att.file.name.split(".").pop();
+                        const sanitizedFileName = `${Date.now()}_${Math.random().toString(36).substr(2, 5)}.${fileExt}`;
+
+                        console.log(
+                            `[UnifiedInputBar] Uploading image ${sanitizedFileName}, type: ${att.file.type}`,
+                        );
+
+                        const { error: uploadError } = await supabase.storage
+                            .from("chat-images")
+                            .upload(sanitizedFileName, att.file, {
+                                contentType: att.file.type,
+                                upsert: false,
+                            });
+
+                        if (uploadError) {
+                            console.error(
+                                "[UnifiedInputBar] Supabase Upload Error:",
+                                uploadError,
+                            );
+                            throw uploadError;
+                        }
+
+                        const {
+                            data: { publicUrl },
+                        } = supabase.storage
+                            .from("chat-images")
+                            .getPublicUrl(sanitizedFileName);
+
+                        setImageAttachments((prev) =>
+                            prev.map((p) =>
+                                p.id === att.id
+                                    ? { ...p, uploading: false, publicUrl }
+                                    : p,
+                            ),
+                        );
+                    } catch (error: any) {
+                        console.error(
+                            "[UnifiedInputBar] Image upload failed:",
+                            error,
+                        );
+                        toast.error(`图片上传失败: ${error.message || "未知错误"}`);
+                        setImageAttachments((prev) =>
+                            prev.filter((p) => p.id !== att.id),
+                        );
+                    }
+                }
+            }
+
+            // Read text files
+            if (textsToRead.length > 0) {
+                for (const file of textsToRead) {
+                    try {
+                        const content = await file.text();
+                        const language = getLanguageFromFilename(file.name);
+
+                        const newFileAttachment: FileAttachment = {
+                            filename: file.name,
+                            content,
+                            language,
+                        };
+
+                        setFileAttachments((prev) => [...prev, newFileAttachment]);
+                        console.log(`[UnifiedInputBar] Read text file: ${file.name}`);
+                    } catch (error: any) {
+                        console.error("[UnifiedInputBar] Failed to read file:", error);
+                        toast.error(`读取文件失败: ${file.name}`);
+                    }
+                }
+            }
 
             // Clear input so same file can be selected again if needed
             if (fileInputRef.current) fileInputRef.current.value = "";
-
-            // Upload each file
-            for (const att of newAttachments) {
-                try {
-                    // Sanitize filename to avoid encoding issues
-                    const fileExt = att.file.name.split(".").pop();
-                    const sanitizedFileName = `${Date.now()}_${Math.random().toString(36).substr(2, 5)}.${fileExt}`;
-
-                    console.log(
-                        `[UnifiedInputBar] Uploading ${sanitizedFileName}, type: ${att.file.type}`,
-                    );
-
-                    const { error: uploadError } = await supabase.storage
-                        .from("chat-images")
-                        .upload(sanitizedFileName, att.file, {
-                            contentType: att.file.type,
-                            upsert: false,
-                        });
-
-                    if (uploadError) {
-                        console.error(
-                            "[UnifiedInputBar] Supabase Upload Error:",
-                            uploadError,
-                        );
-                        throw uploadError;
-                    }
-
-                    const {
-                        data: { publicUrl },
-                    } = supabase.storage
-                        .from("chat-images")
-                        .getPublicUrl(sanitizedFileName);
-
-                    setAttachments((prev) =>
-                        prev.map((p) =>
-                            p.id === att.id
-                                ? { ...p, uploading: false, publicUrl }
-                                : p,
-                        ),
-                    );
-                } catch (error: any) {
-                    console.error(
-                        "[UnifiedInputBar] Upload failed exception:",
-                        error,
-                    );
-                    toast.error(`上传失败: ${error.message || "未知错误"}`);
-                    setAttachments((prev) =>
-                        prev.filter((p) => p.id !== att.id),
-                    );
-                }
-            }
         }
     };
 
