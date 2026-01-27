@@ -157,10 +157,11 @@ export default function App() {
             <main className="flex-1 flex flex-col h-full relative overflow-hidden">
                 {activeView === "home" && (
                     <HomeView
-                        onStartChat={(msg, imageUrls) =>
+                        onStartChat={(msg, imageUrls, fileAttachments) =>
                             onSendMessageWrapper(
-                                msg || (imageUrls ? "" : "我们开始吧！"),
+                                msg || (imageUrls || fileAttachments ? "" : "我们开始吧！"),
                                 imageUrls,
+                                fileAttachments,
                             )
                         }
                         mode={chatMode}
