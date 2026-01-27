@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { User, CheckCircle2, AlertCircle, X, ZoomIn, ChevronDown } from "lucide-react";
+import { User, CheckCircle2, AlertCircle, X, ZoomIn, ChevronDown, Copy, Check } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Message, Annotation, FileAttachment } from "../../../types/message";
 import { AIAvatar } from "../../../components";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { toast } from "sonner";
 
 interface MessageListProps {
     messages: Message[];
