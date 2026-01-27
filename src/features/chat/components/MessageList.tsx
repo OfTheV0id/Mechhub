@@ -347,12 +347,18 @@ const FileAttachmentPreview = ({
                         : "bg-slate-100 hover:bg-slate-150 text-slate-700"
                 } transition-colors`}
             >
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                    <span>📄</span>
-                    <span>{file.filename}</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-lg">📄</span>
+                    <span className={`font-bold ${
+                        role === "user"
+                            ? "text-white"
+                            : "text-slate-900"
+                    } max-w-[200px] truncate`}>
+                        {file.filename}
+                    </span>
                     {file.language && (
                         <span
-                            className={`text-xs px-2 py-0.5 rounded ${
+                            className={`text-xs px-2 py-0.5 rounded font-semibold ${
                                 role === "user"
                                     ? "bg-slate-600 text-slate-100"
                                     : "bg-slate-200 text-slate-700"
