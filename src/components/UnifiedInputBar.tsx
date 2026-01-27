@@ -366,8 +366,9 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                     type="button"
                     onClick={handleUploadClick}
                     className="p-3 rounded-full hover:bg-slate-200 text-slate-400 transition-colors"
+                    title="上传文件（图片或文本）"
                 >
-                    <ImagePlus size={20} />
+                    <Paperclip size={20} />
                 </button>
 
                 <button
