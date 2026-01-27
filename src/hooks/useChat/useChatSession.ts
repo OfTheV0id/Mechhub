@@ -52,18 +52,19 @@ export const useChatSession = (supabase: any, userSession: any) => {
     };
 
     const deleteChatSession = async (id: string) => {
-        if (!userSession) return false;
+        if (!userSession) return { success: false, wasCurrentSession: false };
         try {
             await ChatService.deleteChat(id);
+            const wasCurrentSession = currentSessionId === id;
             setChatSessions((prev) => prev.filter((c) => c.id !== id));
-            if (currentSessionId === id) {
+            if (wasCurrentSession) {
                 handleStartNewQuest();
             }
-            return true;
+            return { success: true, wasCurrentSession };
         } catch (error) {
             console.error("Failed to delete chat", error);
         }
-        return false;
+        return { success: false, wasCurrentSession: false };
     };
 
     const handleSelectSession = (id: string) => {
