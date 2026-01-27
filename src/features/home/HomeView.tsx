@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { UnifiedInputBar, AIAvatar } from "../../components";
 
 interface HomeViewProps {
-    onStartChat: (message?: string) => void;
+    onStartChat: (message?: string, imageUrls?: string[]) => void;
     mode?: "study" | "correct";
     setMode?: (mode: "study" | "correct") => void;
     userName?: string;

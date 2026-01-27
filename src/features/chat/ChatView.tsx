@@ -9,7 +9,7 @@ export type { Message };
 
 interface ChatInterfaceProps {
     messages: Message[];
-    onSendMessage: (text: string, image?: File) => void;
+    onSendMessage: (text: string, imageUrls?: string[]) => void;
     isTyping: boolean;
     onOpenSubmission: () => void;
     mode: "study" | "correct";

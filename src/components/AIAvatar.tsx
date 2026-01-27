@@ -17,7 +17,7 @@ export const AIAvatar: React.FC<AIAvatarProps> = ({
 }) => {
     return (
         <div
-            className={`bg-white rounded-full flex items-center justify-center border border-slate-100 ${className}`}
+            className={`flex items-center justify-center ${className}`}
             style={{ width: size, height: size }}
         >
             <motion.div

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChatSession } from "../../types/session";
 import { Message } from "../../types/message";
 import { ChatService } from "../../services/ChatService";
+import { AIService } from "../../services/ai/AIService";
 
 const INITIAL_MESSAGES: Message[] = [];
 
@@ -83,9 +84,13 @@ export const useChatSession = (supabase: any, userSession: any) => {
 
     const handleSendMessage = async (
         text: string,
-        image?: File,
+        imageUrls?: string[],
         switchToChatView?: () => void,
     ) => {
+        console.log("[useChatSession] handleSendMessage received:", {
+            text,
+            imageUrls,
+        });
         if (switchToChatView) switchToChatView();
 
         const newMessage: Message = {
@@ -93,6 +98,10 @@ export const useChatSession = (supabase: any, userSession: any) => {
             role: "user",
             type: "text",
             content: text,
+            // Keep first image in legacy field if needed, or just rely on imageUrls
+            imageUrl:
+                imageUrls && imageUrls.length > 0 ? imageUrls[0] : undefined,
+            imageUrls: imageUrls,
         };
 
         const updatedMessages = [...messages, newMessage];
@@ -109,11 +118,17 @@ export const useChatSession = (supabase: any, userSession: any) => {
         }
 
         try {
-            const aiResponse = await ChatService.getAIResponse(
-                updatedMessages,
-                chatMode,
-                image,
-            );
+            const response = await AIService.getResponse({
+                messages: updatedMessages,
+                mode: chatMode,
+                imageUrls,
+            });
+            const aiResponse: Message = {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                type: "text",
+                content: response.content,
+            };
             setIsTyping(false);
 
             const finalMessages = [...updatedMessages, aiResponse];
