@@ -1,8 +1,8 @@
 import React from "react";
-import { Plus, Settings, MessageSquare, Trash2 } from "lucide-react";
-
+import { Plus, Settings, MessageSquare } from "lucide-react";
 import { ChatSession } from "../types/session";
 import { UserProfile } from "../types/user";
+import { MissionItem } from "./sidebar/MissionItem";
 
 interface SidebarProps {
     activeView: string;
@@ -131,37 +131,3 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
     );
 };
-
-const MissionItem = ({
-    label,
-    icon: Icon,
-    active,
-    onClick,
-    onDelete,
-}: {
-    label: string;
-    icon: any;
-    active: boolean;
-    onClick: () => void;
-    onDelete?: (e: React.MouseEvent) => void;
-}) => (
-    <button
-        onClick={onClick}
-        className={`w-full group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors relative ${
-            active
-                ? "bg-slate-100 text-slate-900"
-                : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-        }`}
-    >
-        <Icon size={16} />
-        <span className="truncate flex-1 text-left">{label}</span>
-        {onDelete && (
-            <div
-                onClick={onDelete}
-                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-200 rounded-md transition-all text-slate-400 hover:text-red-500"
-            >
-                <Trash2 size={14} />
-            </div>
-        )}
-    </button>
-);

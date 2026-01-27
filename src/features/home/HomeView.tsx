@@ -2,9 +2,14 @@ import React from "react";
 import { motion } from "motion/react";
 import { UnifiedInputBar, AIAvatar } from "../../components";
 import { FileAttachment } from "../../types/message";
+import { useHomeView } from "./hooks/useHomeView";
 
 interface HomeViewProps {
-    onStartChat: (message?: string, imageUrls?: string[], fileAttachments?: FileAttachment[]) => void;
+    onStartChat: (
+        message?: string,
+        imageUrls?: string[],
+        fileAttachments?: FileAttachment[],
+    ) => void;
     mode?: "study" | "correct";
     setMode?: (mode: "study" | "correct") => void;
     userName?: string;
@@ -38,8 +43,6 @@ const TypewriterText = ({
         </span>
     );
 };
-
-import { useHomeView } from "./hooks/useHomeView";
 
 export const HomeView: React.FC<HomeViewProps> = ({
     onStartChat,
