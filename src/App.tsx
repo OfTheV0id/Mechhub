@@ -11,6 +11,7 @@ import { Toaster, toast } from "sonner";
 import { LogOut } from "lucide-react";
 import { useAuth } from "./hooks/useAuth/useAuth";
 import { useChatSession } from "./hooks/useChat/useChatSession";
+import { FileAttachment } from "./types/message";
 
 export default function App() {
     const {
