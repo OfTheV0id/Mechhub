@@ -185,18 +185,35 @@ const TextMessage = ({
                     </div>
                 )}
 
-                <div
-                    className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-hidden ${
-                        role === "user"
-                            ? "bg-slate-900 text-white rounded-2xl rounded-tr-sm"
-                            : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
-                    }`}
-                >
-                    {role === "user" ? (
-                        content
-                    ) : (
-                        <MarkdownRenderer content={content} />
-                    )}
+                <div className="flex items-start gap-2 group">
+                    <div
+                        className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-hidden flex-1 ${
+                            role === "user"
+                                ? "bg-slate-900 text-white rounded-2xl rounded-tr-sm"
+                                : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
+                        }`}
+                    >
+                        {role === "user" ? (
+                            content
+                        ) : (
+                            <MarkdownRenderer content={content} />
+                        )}
+                    </div>
+                    <button
+                        onClick={handleCopyText}
+                        className={`p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100 shrink-0 ${
+                            role === "user"
+                                ? "hover:bg-slate-700 text-slate-400 hover:text-white"
+                                : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                        }`}
+                        title="复制文本"
+                    >
+                        {isCopied ? (
+                            <Check size={18} className="text-green-500" />
+                        ) : (
+                            <Copy size={18} />
+                        )}
+                    </button>
                 </div>
                 {/* Math Formula Example (Static for now) */}
                 {content.includes("period formula") && (
