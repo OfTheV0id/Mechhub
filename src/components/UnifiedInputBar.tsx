@@ -32,6 +32,38 @@ interface UnifiedInputBarProps {
     isTyping?: boolean;
 }
 
+const SUPPORTED_TEXT_FILE_EXTENSIONS = [
+    ".txt", ".py", ".js", ".java", ".cpp", ".c", ".go", ".rs", ".rb", ".php",
+    ".ts", ".tsx", ".jsx", ".sql", ".html", ".css", ".json", ".yaml", ".yml",
+    ".xml", ".md", ".markdown", ".sh", ".bash", ".jsx"
+];
+
+const LANGUAGE_MAP: { [key: string]: string } = {
+    ".py": "python",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".java": "java",
+    ".cpp": "cpp",
+    ".c": "c",
+    ".go": "go",
+    ".rs": "rust",
+    ".rb": "ruby",
+    ".php": "php",
+    ".sql": "sql",
+    ".html": "html",
+    ".css": "css",
+    ".json": "json",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".xml": "xml",
+    ".md": "markdown",
+    ".markdown": "markdown",
+    ".sh": "bash",
+    ".bash": "bash",
+};
+
 export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     inputValue,
     onInputChange,
@@ -42,7 +74,8 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     isTyping = false,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [imageAttachments, setImageAttachments] = useState<ImageAttachment[]>([]);
+    const [fileAttachments, setFileAttachments] = useState<FileAttachment[]>([]);
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
