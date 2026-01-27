@@ -5,26 +5,15 @@ export class AIService {
     static async getResponse(
         request: AICompletionRequest,
     ): Promise<AICompletionResponse> {
-        const { messages, mode, fileAttachments } = request;
+        const { messages, mode } = request;
 
         const apiMessages = messages.map((m) => {
             if (
                 m.role === "user" &&
-                (m.imageUrl || (m.imageUrls && m.imageUrls.length > 0) || (m.fileAttachments && m.fileAttachments.length > 0))
+                (m.imageUrl || (m.imageUrls && m.imageUrls.length > 0))
             ) {
-                let textContent = m.content || " ";
-
-                // Append file content to message text
-                if (m.fileAttachments && m.fileAttachments.length > 0) {
-                    const fileContents = m.fileAttachments.map((file) => {
-                        const language = file.language || "text";
-                        return `\n\n**File: ${file.filename}**\n\`\`\`${language}\n${file.content}\n\`\`\``;
-                    }).join("");
-                    textContent += fileContents;
-                }
-
                 const contentParts: any[] = [
-                    { type: "text", text: textContent },
+                    { type: "text", text: m.content || " " },
                 ];
 
                 // Handle multiple images if present
@@ -48,22 +37,6 @@ export class AIService {
                     content: contentParts,
                 };
             }
-
-            // Handle messages with only file attachments (no images)
-            if (m.role === "user" && m.fileAttachments && m.fileAttachments.length > 0) {
-                let textContent = m.content || " ";
-                const fileContents = m.fileAttachments.map((file) => {
-                    const language = file.language || "text";
-                    return `\n\n**File: ${file.filename}**\n\`\`\`${language}\n${file.content}\n\`\`\``;
-                }).join("");
-                textContent += fileContents;
-
-                return {
-                    role: m.role,
-                    content: textContent,
-                };
-            }
-
             return {
                 role: m.role,
                 content: m.content,

@@ -1,10 +1,9 @@
 import React from "react";
 import { motion } from "motion/react";
 import { UnifiedInputBar, AIAvatar } from "../../components";
-import { FileAttachment } from "../../types/message";
 
 interface HomeViewProps {
-    onStartChat: (message?: string, imageUrls?: string[], fileAttachments?: FileAttachment[]) => void;
+    onStartChat: (message?: string, imageUrls?: string[]) => void;
     mode?: "study" | "correct";
     setMode?: (mode: "study" | "correct") => void;
     userName?: string;

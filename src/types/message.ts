@@ -8,12 +8,6 @@ export interface Annotation {
     type: "correct" | "incorrect" | "info";
 }
 
-export interface FileAttachment {
-    filename: string;
-    content: string;
-    language?: string;
-}
-
 export interface Message {
     id: string;
     role: "user" | "assistant";
@@ -21,7 +15,6 @@ export interface Message {
     content: string;
     imageUrl?: string; // Keep for backward compatibility
     imageUrls?: string[]; // New field for multiple images
-    fileAttachments?: FileAttachment[]; // File attachments with content
     annotations?: Annotation[];
     score?: number;
 }
