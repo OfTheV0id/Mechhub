@@ -114,6 +114,8 @@ const TextMessage = ({
     fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
 }) => {
+    const [isCopied, setIsCopied] = useState(false);
+
     // Collect all valid images into a single array
     const displayImages =
         imageUrls && imageUrls.length > 0
@@ -121,6 +123,17 @@ const TextMessage = ({
             : imageUrl
               ? [imageUrl]
               : [];
+
+    const handleCopyText = async () => {
+        try {
+            await navigator.clipboard.writeText(content);
+            setIsCopied(true);
+            toast.success("已复制到剪贴板");
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (error) {
+            toast.error("复制失败");
+        }
+    };
 
     return (
         <div
