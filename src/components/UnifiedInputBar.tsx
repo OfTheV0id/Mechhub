@@ -235,16 +235,17 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
-                accept="image/*"
-                multiple // Support multiple files
+                accept="image/*,.txt,.py,.js,.java,.cpp,.c,.go,.rs,.rb,.php,.ts,.tsx,.jsx,.sql,.html,.css,.json,.yaml,.yml,.xml,.md,.markdown,.sh,.bash"
+                multiple
                 onChange={handleFileChange}
             />
 
             {/* Attachments Preview Area */}
             <AnimatePresence>
-                {attachments.length > 0 && (
+                {(imageAttachments.length > 0 || fileAttachments.length > 0) && (
                     <div className="flex gap-2 mb-2 px-2 overflow-x-auto pb-2">
-                        {attachments.map((att) => (
+                        {/* Image Attachments */}
+                        {imageAttachments.map((att) => (
                             <motion.div
                                 key={att.id}
                                 initial={{ opacity: 0, scale: 0.8 }}
@@ -265,12 +266,35 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                                 {!att.uploading && (
                                     <button
                                         type="button"
-                                        onClick={() => removeAttachment(att.id)}
+                                        onClick={() => removeImageAttachment(att.id)}
                                         className="absolute top-0.5 right-0.5 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
                                         <X size={12} />
                                     </button>
                                 )}
+                            </motion.div>
+                        ))}
+
+                        {/* File Attachments */}
+                        {fileAttachments.map((att) => (
+                            <motion.div
+                                key={att.filename}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="relative px-3 py-2 rounded-lg bg-slate-100 border border-slate-200 shadow-sm shrink-0 group flex items-center gap-2"
+                            >
+                                <FileText size={14} className="text-slate-600" />
+                                <span className="text-xs text-slate-700 truncate max-w-[80px]">
+                                    {att.filename}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => removeFileAttachment(att.filename)}
+                                    className="ml-1 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X size={12} />
+                                </button>
                             </motion.div>
                         ))}
                     </div>
