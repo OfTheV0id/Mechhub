@@ -7,11 +7,13 @@ import {
     ImagePlus,
     X,
     Loader2,
+    FileText,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { toast } from "sonner";
+import { FileAttachment } from "../types/message";
 
-interface Attachment {
+interface ImageAttachment {
     id: string;
     file: File;
     previewUrl: string;
@@ -22,7 +24,7 @@ interface Attachment {
 interface UnifiedInputBarProps {
     inputValue: string;
     onInputChange: (value: string) => void;
-    onSubmit: (e: React.FormEvent, attachments?: string[]) => void;
+    onSubmit: (e: React.FormEvent, imageUrls?: string[], fileAttachments?: FileAttachment[]) => void;
     mode: "study" | "correct";
     setMode: (mode: "study" | "correct") => void;
     onUpload?: (file?: File) => void;
