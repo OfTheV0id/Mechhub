@@ -4,7 +4,7 @@ import {
     ArrowRight,
     GraduationCap,
     CheckCircle,
-    ImagePlus,
+    Paperclip,
     X,
     Loader2,
     FileText,
