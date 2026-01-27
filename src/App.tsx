@@ -78,8 +78,8 @@ export default function App() {
     };
 
     // Wrapper to switch view on new message
-    const onSendMessageWrapper = (text: string, imageUrls?: string[]) => {
-        handleSendMessage(text, imageUrls, () => setActiveView("chat"));
+    const onSendMessageWrapper = (text: string, imageUrls?: string[], fileAttachments?: FileAttachment[]) => {
+        handleSendMessage(text, imageUrls, () => setActiveView("chat"), fileAttachments);
     };
 
     const onStartNewQuestWrapper = () => {
