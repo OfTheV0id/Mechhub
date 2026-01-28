@@ -1,14 +1,14 @@
-import { Message, FileAttachment } from "../../types/message";
+import { Message, FileAttachment, GradingResult } from "../../types/message";
 
 export interface AICompletionRequest {
     messages: Message[];
     mode: "study" | "correct";
-    imageUrl?: string; // Legacy
-    imageUrls?: string[]; // New
-    fileAttachments?: FileAttachment[]; // File attachments with content
+    imageUrl?: string;
+    imageUrls?: string[];
+    fileAttachments?: FileAttachment[];
 }
 
 export interface AICompletionResponse {
     content: string;
-    // Future extension: tokenUsage, modelName, etc.
+    gradingResult?: GradingResult; // Structured grading for correct mode
 }
