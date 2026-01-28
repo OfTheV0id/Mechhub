@@ -4,13 +4,21 @@ import { supabase } from "../../../lib/supabase";
 import { toast } from "sonner";
 
 export const useChatInterface = (
-    onSendMessage: (text: string, imageUrls?: string[], fileAttachments?: FileAttachment[]) => void,
+    onSendMessage: (
+        text: string,
+        imageUrls?: string[],
+        fileAttachments?: FileAttachment[],
+    ) => void,
     mode: "study" | "correct",
     setMode: (mode: "study" | "correct") => void,
 ) => {
     const [inputText, setInputText] = useState("");
 
-    const handleSubmit = (e: React.FormEvent, imageUrls?: string[], fileAttachments?: FileAttachment[]) => {
+    const handleSubmit = (
+        e: React.FormEvent,
+        imageUrls?: string[],
+        fileAttachments?: FileAttachment[],
+    ) => {
         e.preventDefault();
         console.log(
             "[useChatInterface] handleSubmit imageUrls:",
@@ -18,11 +26,11 @@ export const useChatInterface = (
             "fileAttachments:",
             fileAttachments,
         );
-        if (inputText.trim() || (imageUrls && imageUrls.length > 0) || (fileAttachments && fileAttachments.length > 0)) {
-            // Auto switch to correct mode if attachments are present and not already in correct mode
-            if ((imageUrls && imageUrls.length > 0 || fileAttachments && fileAttachments.length > 0) && mode !== "correct") {
-                setMode("correct");
-            }
+        if (
+            inputText.trim() ||
+            (imageUrls && imageUrls.length > 0) ||
+            (fileAttachments && fileAttachments.length > 0)
+        ) {
             onSendMessage(inputText, imageUrls, fileAttachments);
             setInputText("");
         }

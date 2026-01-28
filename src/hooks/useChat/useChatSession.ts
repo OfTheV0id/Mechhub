@@ -131,8 +131,9 @@ export const useChatSession = (supabase: any, userSession: any) => {
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
-                type: "text",
+                type: response.gradingResult ? "grading" : "text",
                 content: response.content,
+                gradingResult: response.gradingResult,
             };
             setIsTyping(false);
 

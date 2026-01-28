@@ -24,7 +24,11 @@ interface ImageAttachment {
 interface UnifiedInputBarProps {
     inputValue: string;
     onInputChange: (value: string) => void;
-    onSubmit: (e: React.FormEvent, imageUrls?: string[], fileAttachments?: FileAttachment[]) => void;
+    onSubmit: (
+        e: React.FormEvent,
+        imageUrls?: string[],
+        fileAttachments?: FileAttachment[],
+    ) => void;
     mode: "study" | "correct";
     setMode: (mode: "study" | "correct") => void;
     onUpload?: (file?: File) => void;
@@ -33,9 +37,31 @@ interface UnifiedInputBarProps {
 }
 
 const SUPPORTED_TEXT_FILE_EXTENSIONS = [
-    ".txt", ".py", ".js", ".java", ".cpp", ".c", ".go", ".rs", ".rb", ".php",
-    ".ts", ".tsx", ".jsx", ".sql", ".html", ".css", ".json", ".yaml", ".yml",
-    ".xml", ".md", ".markdown", ".sh", ".bash", ".jsx"
+    ".txt",
+    ".py",
+    ".js",
+    ".java",
+    ".cpp",
+    ".c",
+    ".go",
+    ".rs",
+    ".rb",
+    ".php",
+    ".ts",
+    ".tsx",
+    ".jsx",
+    ".sql",
+    ".html",
+    ".css",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".xml",
+    ".md",
+    ".markdown",
+    ".sh",
+    ".bash",
+    ".jsx",
 ];
 
 const LANGUAGE_MAP: { [key: string]: string } = {
@@ -74,8 +100,12 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     isTyping = false,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [imageAttachments, setImageAttachments] = useState<ImageAttachment[]>([]);
-    const [fileAttachments, setFileAttachments] = useState<FileAttachment[]>([]);
+    const [imageAttachments, setImageAttachments] = useState<ImageAttachment[]>(
+        [],
+    );
+    const [fileAttachments, setFileAttachments] = useState<FileAttachment[]>(
+        [],
+    );
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
@@ -161,7 +191,9 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                             "[UnifiedInputBar] Image upload failed:",
                             error,
                         );
-                        toast.error(`图片上传失败: ${error.message || "未知错误"}`);
+                        toast.error(
+                            `图片上传失败: ${error.message || "未知错误"}`,
+                        );
                         setImageAttachments((prev) =>
                             prev.filter((p) => p.id !== att.id),
                         );
@@ -182,10 +214,18 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                             language,
                         };
 
-                        setFileAttachments((prev) => [...prev, newFileAttachment]);
-                        console.log(`[UnifiedInputBar] Read text file: ${file.name}`);
+                        setFileAttachments((prev) => [
+                            ...prev,
+                            newFileAttachment,
+                        ]);
+                        console.log(
+                            `[UnifiedInputBar] Read text file: ${file.name}`,
+                        );
                     } catch (error: any) {
-                        console.error("[UnifiedInputBar] Failed to read file:", error);
+                        console.error(
+                            "[UnifiedInputBar] Failed to read file:",
+                            error,
+                        );
                         toast.error(`读取文件失败: ${file.name}`);
                     }
                 }
@@ -201,13 +241,15 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     };
 
     const removeFileAttachment = (filename: string) => {
-        setFileAttachments((prev) => prev.filter((a) => a.filename !== filename));
+        setFileAttachments((prev) =>
+            prev.filter((a) => a.filename !== filename),
+        );
     };
 
     const handleSubmitInternal = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Wait for uploads? Actually we should disable send if uploading.
+        // Wait for uploads to complete
         if (imageAttachments.some((a) => a.uploading)) {
             toast.warning("请等待图片上传完成");
             return;
@@ -217,11 +259,28 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
             .map((a) => a.publicUrl)
             .filter((url): url is string => !!url);
 
-        console.log("[UnifiedInputBar] Submitting imageUrls:", imageUrls);
-        console.log("[UnifiedInputBar] Submitting fileAttachments:", fileAttachments);
+        // Validate: grading mode requires at least one image
+        if (mode === "correct" && imageUrls.length === 0) {
+            toast.warning("批改模式需要至少上传一张照片");
+            return;
+        }
 
-        if (inputValue.trim() || imageUrls.length > 0 || fileAttachments.length > 0) {
-            onSubmit(e, imageUrls.length > 0 ? imageUrls : undefined, fileAttachments.length > 0 ? fileAttachments : undefined);
+        console.log("[UnifiedInputBar] Submitting imageUrls:", imageUrls);
+        console.log(
+            "[UnifiedInputBar] Submitting fileAttachments:",
+            fileAttachments,
+        );
+
+        if (
+            inputValue.trim() ||
+            imageUrls.length > 0 ||
+            fileAttachments.length > 0
+        ) {
+            onSubmit(
+                e,
+                imageUrls.length > 0 ? imageUrls : undefined,
+                fileAttachments.length > 0 ? fileAttachments : undefined,
+            );
             setImageAttachments([]); // Clear attachments after send
             setFileAttachments([]);
         }
@@ -242,7 +301,8 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
 
             {/* Attachments Preview Area */}
             <AnimatePresence>
-                {(imageAttachments.length > 0 || fileAttachments.length > 0) && (
+                {(imageAttachments.length > 0 ||
+                    fileAttachments.length > 0) && (
                     <div className="flex gap-2 mb-2 px-2 overflow-x-auto pb-2">
                         {/* Image Attachments */}
                         {imageAttachments.map((att) => (
@@ -266,7 +326,9 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                                 {!att.uploading && (
                                     <button
                                         type="button"
-                                        onClick={() => removeImageAttachment(att.id)}
+                                        onClick={() =>
+                                            removeImageAttachment(att.id)
+                                        }
                                         className="absolute top-0.5 right-0.5 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
                                         <X size={12} />
@@ -284,13 +346,18 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                                 exit={{ opacity: 0, scale: 0.8 }}
                                 className="relative px-3 py-2 rounded-lg bg-slate-100 border border-slate-200 shadow-sm shrink-0 group flex items-center gap-2"
                             >
-                                <FileText size={14} className="text-slate-600" />
+                                <FileText
+                                    size={14}
+                                    className="text-slate-600"
+                                />
                                 <span className="text-xs text-slate-700 truncate max-w-[80px]">
                                     {att.filename}
                                 </span>
                                 <button
                                     type="button"
-                                    onClick={() => removeFileAttachment(att.filename)}
+                                    onClick={() =>
+                                        removeFileAttachment(att.filename)
+                                    }
                                     className="ml-1 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                     <X size={12} />
@@ -375,7 +442,9 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                     type="button"
                     onClick={(e) => handleSubmitInternal(e)}
                     disabled={
-                        (!inputValue.trim() && imageAttachments.length === 0 && fileAttachments.length === 0) ||
+                        (!inputValue.trim() &&
+                            imageAttachments.length === 0 &&
+                            fileAttachments.length === 0) ||
                         isUploading ||
                         isTyping
                     }
