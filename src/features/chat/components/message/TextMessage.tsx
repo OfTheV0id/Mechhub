@@ -115,60 +115,43 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                 role === "user" ? "justify-end" : "justify-start"
                             }`}
                         >
-                            <div className="relative">
-                                <button
-                                    onClick={handleCopyText}
-                                    className={`px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                                        role === "user"
-                                            ? `${
-                                                  isCopied
-                                                      ? "bg-slate-800 text-green-400"
-                                                      : "bg-slate-950/0 text-slate-400 hover:bg-slate-800/50 hover:text-white"
-                                              } focus:ring-slate-600 focus:ring-offset-slate-900`
-                                            : `${
-                                                  isCopied
-                                                      ? "bg-slate-100/50 text-green-600"
-                                                      : "bg-white/0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
-                                              } focus:ring-slate-300 focus:ring-offset-white`
-                                    }`}
-                                    aria-label={
-                                        isCopied
-                                            ? "已复制到剪贴板"
-                                            : "复制文本内容"
-                                    }
-                                    title={
-                                        isCopied
-                                            ? "已复制到剪贴板"
-                                            : "复制文本"
-                                    }
-                                    aria-pressed={isCopied}
-                                >
-                                    {isCopied ? (
-                                        <>
-                                            <Check size={14} />
-                                            <span>已复制</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Copy size={14} />
-                                            <span>复制</span>
-                                        </>
-                                    )}
-                                </button>
-
-                                {/* Success feedback tooltip */}
-                                {showFeedback && (
-                                    <div
-                                        className={`absolute ${
-                                            role === "user"
-                                                ? "right-0 bottom-full"
-                                                : "left-0 bottom-full"
-                                        } mb-2 px-2 py-1 bg-green-500 text-white text-xs rounded-md whitespace-nowrap animate-in fade-in slide-in-from-bottom-1 duration-200 pointer-events-none`}
-                                    >
-                                        已复制到剪贴板
-                                    </div>
+                            <button
+                                onClick={handleCopyText}
+                                className={`px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                                    role === "user"
+                                        ? `${
+                                              isCopied
+                                                  ? "bg-slate-800 text-green-400"
+                                                  : "bg-slate-950/0 text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                                          } focus:ring-slate-600 focus:ring-offset-slate-900`
+                                        : `${
+                                              isCopied
+                                                  ? "bg-slate-100/50 text-green-600"
+                                                  : "bg-white/0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                          } focus:ring-slate-300 focus:ring-offset-white`
+                                }`}
+                                aria-label={
+                                    isCopied
+                                        ? "已复制到剪贴板"
+                                        : "复制文本内容"
+                                }
+                                title={
+                                    isCopied ? "已复制到剪贴板" : "复制文本"
+                                }
+                                aria-pressed={isCopied}
+                            >
+                                {isCopied ? (
+                                    <>
+                                        <Check size={14} />
+                                        <span>已复制</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy size={14} />
+                                        <span>复制</span>
+                                    </>
                                 )}
-                            </div>
+                            </button>
                         </div>
                     </div>
                 )}
