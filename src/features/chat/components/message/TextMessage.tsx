@@ -23,7 +23,6 @@ export const TextMessage: React.FC<TextMessageProps> = ({
     onImageClick,
 }) => {
     const [isCopied, setIsCopied] = useState(false);
-    const [showFeedback, setShowFeedback] = useState(false);
 
     // Collect all valid images into a single array
     const displayImages = imageUrls && imageUrls.length > 0 ? imageUrls : [];
@@ -32,12 +31,10 @@ export const TextMessage: React.FC<TextMessageProps> = ({
         try {
             await navigator.clipboard.writeText(content);
             setIsCopied(true);
-            setShowFeedback(true);
             toast.success("已复制到剪贴板");
 
             // Reset button state after animation
             setTimeout(() => {
-                setShowFeedback(false);
                 setIsCopied(false);
             }, 2000);
         } catch (error) {
