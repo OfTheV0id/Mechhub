@@ -113,23 +113,29 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                         >
                             <button
                                 onClick={handleCopyText}
-                                className={`px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1 text-xs font-medium ${
+                                className={`px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                                     role === "user"
-                                        ? "hover:bg-slate-800 text-slate-400 hover:text-white"
-                                        : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                                        ? `${
+                                              isCopied
+                                                  ? "bg-slate-800 text-green-400"
+                                                  : "bg-slate-950/0 text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                                          } focus:ring-slate-600 focus:ring-offset-slate-900`
+                                        : `${
+                                              isCopied
+                                                  ? "bg-slate-100/50 text-green-600"
+                                                  : "bg-white/0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                          } focus:ring-slate-300 focus:ring-offset-white`
                                 }`}
-                                aria-label="复制文本"
-                                title="复制文本"
+                                aria-label={
+                                    isCopied ? "已复制到剪贴板" : "复制文本内容"
+                                }
+                                title={isCopied ? "已复制到剪贴板" : "复制文本"}
+                                aria-pressed={isCopied}
                             >
                                 {isCopied ? (
                                     <>
-                                        <Check
-                                            size={14}
-                                            className="text-green-500"
-                                        />
-                                        <span className="text-green-500">
-                                            已复制
-                                        </span>
+                                        <Check size={14} />
+                                        <span>已复制</span>
                                     </>
                                 ) : (
                                     <>
