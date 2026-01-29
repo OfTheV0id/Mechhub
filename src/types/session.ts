@@ -5,4 +5,5 @@ export interface ChatSession {
     title: string;
     updatedAt: number;
     messages?: Message[];
+    isGeneratingTitle?: boolean;
 }

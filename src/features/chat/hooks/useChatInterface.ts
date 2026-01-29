@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Message, FileAttachment } from "../../../types/message";
-import { supabase } from "../../../lib/supabase";
-import { toast } from "sonner";
 
 export const useChatInterface = (
     onSendMessage: (
@@ -36,15 +34,9 @@ export const useChatInterface = (
         }
     };
 
-    // Deprecated: Internal file handling in UnifiedInputBar
-    const handleImageUpload = (file?: File) => {
-        console.warn("handleImageUpload deprecated");
-    };
-
     return {
         inputText,
         setInputText,
         handleSubmit,
-        handleMockImageUpload: handleImageUpload,
     };
 };

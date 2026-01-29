@@ -1,4 +1,8 @@
-import { AICompletionRequest, AICompletionResponse } from "./types";
+import {
+    AICompletionRequest,
+    AICompletionResponse,
+    Message,
+} from "../../types/message";
 import { supabase } from "../../lib/supabase";
 
 export class AIService {
@@ -10,8 +14,7 @@ export class AIService {
         const apiMessages = messages.map((m) => {
             if (
                 m.role === "user" &&
-                (m.imageUrl ||
-                    (m.imageUrls && m.imageUrls.length > 0) ||
+                ((m.imageUrls && m.imageUrls.length > 0) ||
                     (m.fileAttachments && m.fileAttachments.length > 0))
             ) {
                 let textContent = m.content || " ";
@@ -38,12 +41,6 @@ export class AIService {
                             type: "image_url",
                             image_url: { url },
                         });
-                    });
-                } else if (m.imageUrl) {
-                    // Fallback to single image legacy field
-                    contentParts.push({
-                        type: "image_url",
-                        image_url: { url: m.imageUrl },
                     });
                 }
 
@@ -87,9 +84,7 @@ export class AIService {
         const latestUserMessage = messages
             .filter((m) => m.role === "user")
             .pop();
-        const userImageUrls =
-            latestUserMessage?.imageUrls ||
-            (latestUserMessage?.imageUrl ? [latestUserMessage.imageUrl] : []);
+        const userImageUrls = latestUserMessage?.imageUrls || [];
 
         if (mode === "correct") {
             systemPrompt = `你是一个严格的作业批改助手。用户上传了${userImageUrls.length}张作业图片。
@@ -97,12 +92,10 @@ export class AIService {
 请仔细分析每张图片中的解题过程，按照以下JSON格式返回批改结果（只返回JSON，不要其他内容）：
 
 {
-  "overallScore": 85,
   "summary": "整体解题思路正确，但在第二步计算中有小错误",
-  "images": [
+  "imageGradingResult": [
     {
       "imageUrl": "对应的图片URL",
-      "score": 85,
       "steps": [
         {
           "stepNumber": 1,
@@ -152,21 +145,49 @@ export class AIService {
 
         // For grading mode, try to parse JSON response
         if (mode === "correct") {
+            console.log(
+                "[AIService] Grading mode - userImageUrls:",
+                userImageUrls,
+            );
             try {
                 // Extract JSON from response (in case there's extra text)
                 const jsonMatch = aiReply.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                     const gradingResult = JSON.parse(jsonMatch[0]);
+                    console.log(
+                        "[AIService] Parsed gradingResult:",
+                        gradingResult,
+                    );
+
                     // Inject actual imageUrls into the result
-                    if (gradingResult.images && userImageUrls.length > 0) {
-                        gradingResult.images.forEach(
-                            (img: any, idx: number) => {
-                                if (idx < userImageUrls.length) {
-                                    img.imageUrl = userImageUrls[idx];
-                                }
-                            },
+                    if (
+                        gradingResult.imageGradingResult &&
+                        Array.isArray(gradingResult.imageGradingResult)
+                    ) {
+                        gradingResult.imageGradingResult =
+                            gradingResult.imageGradingResult.map(
+                                (img: any, idx: number) => ({
+                                    ...img,
+                                    imageUrl:
+                                        idx < userImageUrls.length
+                                            ? userImageUrls[idx]
+                                            : img.imageUrl,
+                                }),
+                            );
+                    } else if (userImageUrls.length > 0) {
+                        // If AI didn't return proper images array, create one with user images
+                        gradingResult.imageGradingResult = userImageUrls.map(
+                            (url, idx) => ({
+                                imageUrl: url,
+                                steps: gradingResult.steps || [],
+                            }),
                         );
                     }
+
+                    console.log(
+                        "[AIService] Final gradingResult with imageUrls:",
+                        gradingResult,
+                    );
                     return {
                         content: aiReply,
                         gradingResult,
@@ -181,5 +202,150 @@ export class AIService {
         return {
             content: aiReply,
         };
+    }
+
+    /**
+     * Generate a concise title for a chat session based on messages
+     * @param messages - Array of messages to analyze
+     * @returns Generated title (5-30 characters)
+     */
+    static async generateTitle(messages: Message[]): Promise<string> {
+        console.log("[AIService.generateTitle] Starting title generation...");
+
+        // Only use first 2 messages (user question + AI answer) for title generation
+        const recentMessages = messages.slice(0, 2);
+
+        if (recentMessages.length === 0) {
+            console.log(
+                "[AIService.generateTitle] No messages, returning default",
+            );
+            return "新对话";
+        }
+
+        // Get first user message
+        const firstMessage = recentMessages[0];
+
+        // Create smart fallback title
+        let fallbackTitle = "新对话";
+        if (firstMessage.content && firstMessage.content.trim()) {
+            // Has text content
+            fallbackTitle = firstMessage.content.slice(0, 15);
+        } else if (
+            firstMessage.imageUrls &&
+            firstMessage.imageUrls.length > 0
+        ) {
+            // Only has images
+            fallbackTitle = "图片讨论";
+        } else if (
+            firstMessage.fileAttachments &&
+            firstMessage.fileAttachments.length > 0
+        ) {
+            // Only has file attachments
+            fallbackTitle = "文件讨论";
+        }
+
+        console.log("[AIService.generateTitle] Fallback title:", fallbackTitle);
+
+        // Get AI response if available
+        const aiResponse = recentMessages[1];
+
+        // Prepare messages for title generation
+        const titleMessages: { role: string; content: string }[] = [];
+
+        // Add user message (with context about images/files if no text)
+        if (firstMessage.content && firstMessage.content.trim()) {
+            titleMessages.push({
+                role: firstMessage.role,
+                content: firstMessage.content,
+            });
+        } else if (
+            firstMessage.imageUrls &&
+            firstMessage.imageUrls.length > 0
+        ) {
+            // User sent images without text
+            titleMessages.push({
+                role: "user",
+                content: "用户上传了图片进行讨论",
+            });
+        } else if (
+            firstMessage.fileAttachments &&
+            firstMessage.fileAttachments.length > 0
+        ) {
+            titleMessages.push({
+                role: "user",
+                content: "用户上传了文件进行讨论",
+            });
+        }
+
+        // Add AI response if available
+        if (aiResponse?.content && aiResponse.content.trim()) {
+            titleMessages.push({
+                role: aiResponse.role,
+                content: aiResponse.content,
+            });
+        }
+
+        // If still no messages with text, return fallback
+        if (titleMessages.length === 0) {
+            console.log(
+                "[AIService.generateTitle] No content to generate title from",
+            );
+            return fallbackTitle;
+        }
+
+        try {
+            console.log("[AIService.generateTitle] Calling Edge Function...");
+            console.log(
+                "[AIService.generateTitle] Title messages:",
+                titleMessages,
+            );
+
+            const { data, error } = await supabase.functions.invoke(
+                "chat-response",
+                {
+                    body: {
+                        messages: [
+                            {
+                                role: "system",
+                                content:
+                                    "请用5-10个字总结下面对话的主题。只返回标题文本，不要其他内容。",
+                            },
+                            ...titleMessages,
+                        ],
+                    },
+                },
+            );
+
+            console.log("[AIService.generateTitle] Edge Function response:", {
+                data,
+                error,
+            });
+
+            if (error) {
+                console.error(
+                    "[AIService.generateTitle] Edge Function error:",
+                    error,
+                );
+                return fallbackTitle;
+            }
+
+            if (!data?.reply) {
+                console.warn(
+                    "[AIService.generateTitle] No reply in data:",
+                    data,
+                );
+                return fallbackTitle;
+            }
+
+            const generatedTitle = data.reply.trim().slice(0, 30);
+            console.log(
+                "[AIService.generateTitle] Generated title:",
+                generatedTitle,
+            );
+            return generatedTitle;
+        } catch (error) {
+            console.error("[AIService.generateTitle] Exception:", error);
+            return fallbackTitle;
+        }
     }
 }

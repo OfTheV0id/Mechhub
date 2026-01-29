@@ -1,4 +1,6 @@
 import { supabase } from "../lib/supabase";
+import type { Session } from "@supabase/supabase-js";
+import { UserProfile } from "../types/user";
 
 export class AuthService {
     static async signIn(email: string, password: string) {
@@ -50,5 +52,24 @@ export class AuthService {
             data,
         });
         if (error) throw error;
+    }
+
+    /**
+     * Parse user profile from session metadata with fallback to default values
+     */
+    static parseUserProfile(
+        session: Session | null,
+        defaultUser: UserProfile,
+    ): UserProfile {
+        if (!session?.user?.user_metadata) {
+            return defaultUser;
+        }
+
+        const { name, avatar_url, role } = session.user.user_metadata;
+        return {
+            name: name || defaultUser.name,
+            avatar: avatar_url || defaultUser.avatar,
+            role: role || defaultUser.role,
+        };
     }
 }

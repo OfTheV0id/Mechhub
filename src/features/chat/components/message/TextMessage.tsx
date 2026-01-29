@@ -9,9 +9,6 @@ import { FileAttachmentPreview } from "./FileAttachmentPreview";
 interface TextMessageProps {
     role: "user" | "assistant";
     content: string;
-    userName: string;
-    userAvatar?: string;
-    imageUrl?: string;
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
@@ -20,9 +17,7 @@ interface TextMessageProps {
 export const TextMessage: React.FC<TextMessageProps> = ({
     role,
     content,
-    userName,
-    userAvatar,
-    imageUrl,
+
     imageUrls,
     fileAttachments,
     onImageClick,
@@ -30,12 +25,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
     const [isCopied, setIsCopied] = useState(false);
 
     // Collect all valid images into a single array
-    const displayImages =
-        imageUrls && imageUrls.length > 0
-            ? imageUrls
-            : imageUrl
-              ? [imageUrl]
-              : [];
+    const displayImages = imageUrls && imageUrls.length > 0 ? imageUrls : [];
 
     const handleCopyText = async () => {
         try {
@@ -100,9 +90,11 @@ export const TextMessage: React.FC<TextMessageProps> = ({
 
                 {/* Only show message bubble if there is text content */}
                 {content && content.trim() && (
-                    <div className="flex items-start gap-2 group">
+                    <div
+                        className={`group relative ${role === "user" ? "flex-row-reverse" : ""}`}
+                    >
                         <div
-                            className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-hidden flex-1 ${
+                            className={`text-base leading-relaxed p-4 pb-8 rounded-2xl shadow-sm overflow-hidden ${
                                 role === "user"
                                     ? "bg-slate-900 text-white rounded-2xl rounded-tr-sm"
                                     : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
@@ -113,22 +105,34 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                             ) : (
                                 <MarkdownRenderer content={content} />
                             )}
+
+                            <button
+                                onClick={handleCopyText}
+                                className={`absolute bottom-2 left-2 p-1.5 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 flex items-center gap-1 text-xs ${
+                                    role === "user"
+                                        ? "hover:bg-slate-800 text-slate-400 hover:text-white"
+                                        : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                                }`}
+                                title="复制文本"
+                            >
+                                {isCopied ? (
+                                    <>
+                                        <Check
+                                            size={14}
+                                            className="text-green-500"
+                                        />
+                                        <span className="text-green-500 font-medium">
+                                            已复制
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy size={14} />
+                                        <span>复制</span>
+                                    </>
+                                )}
+                            </button>
                         </div>
-                        <button
-                            onClick={handleCopyText}
-                            className={`p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100 shrink-0 ${
-                                role === "user"
-                                    ? "hover:bg-slate-700 text-slate-400 hover:text-white"
-                                    : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
-                            }`}
-                            title="复制文本"
-                        >
-                            {isCopied ? (
-                                <Check size={18} className="text-green-500" />
-                            ) : (
-                                <Copy size={18} />
-                            )}
-                        </button>
                     </div>
                 )}
                 {/* Math Formula Example (Static for now) */}

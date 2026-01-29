@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "./components";
-import { ChatSession } from "./types/session";
 import { ChatInterface } from "./features/chat/ChatView";
-import { AssignmentModal } from "./features/chat/components/AssignmentModal";
 import { HomeView } from "./features/home/HomeView";
 import { ProfileView } from "./features/profile/ProfileView";
 import { AuthPage } from "./features/auth/AuthPage";
@@ -22,7 +20,6 @@ export default function App() {
         userProfile,
         handleUpdateProfile,
         handleSignOut,
-        supabase,
     } = useAuth();
     const {
         messages,
@@ -36,10 +33,11 @@ export default function App() {
         handleSelectSession,
         handleStartNewQuest,
         handleSendMessage,
-    } = useChatSession(supabase, session);
+        handleRenameSession,
+        handleStopGeneration,
+    } = useChatSession(session);
 
     const [activeView, setActiveView] = useState("home"); // 'home', 'chat', 'profile'
-    const [isSubmissionOpen, setIsSubmissionOpen] = useState(false);
 
     // Initial fetch when session becomes available
     useEffect(() => {
@@ -47,14 +45,6 @@ export default function App() {
             fetchChatSessions();
         }
     }, [session]);
-
-    const handleSubmitAssignment = (assignmentId: string) => {
-        toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: "正在提交任务...",
-            success: "任务提交成功！",
-            error: "提交失败",
-        });
-    };
 
     // Wrapper to switch view when selecting a session
     const onSelectSessionWrapper = (id: string) => {
@@ -78,8 +68,17 @@ export default function App() {
     };
 
     // Wrapper to switch view on new message
-    const onSendMessageWrapper = (text: string, imageUrls?: string[], fileAttachments?: FileAttachment[]) => {
-        handleSendMessage(text, imageUrls, () => setActiveView("chat"), fileAttachments);
+    const onSendMessageWrapper = (
+        text: string,
+        imageUrls?: string[],
+        fileAttachments?: FileAttachment[],
+    ) => {
+        handleSendMessage(
+            text,
+            imageUrls,
+            () => setActiveView("chat"),
+            fileAttachments,
+        );
     };
 
     const onStartNewQuestWrapper = () => {
@@ -142,6 +141,7 @@ export default function App() {
                     currentSessionId={currentSessionId}
                     onSelectSession={onSelectSessionWrapper}
                     onDeleteSession={onDeleteSessionWrapper}
+                    onRenameSession={handleRenameSession}
                 />
                 <div className="mt-auto p-4 border-r border-slate-100 bg-white">
                     <button
@@ -159,7 +159,10 @@ export default function App() {
                     <HomeView
                         onStartChat={(msg, imageUrls, fileAttachments) =>
                             onSendMessageWrapper(
-                                msg || (imageUrls || fileAttachments ? "" : "我们开始吧！"),
+                                msg ||
+                                    (imageUrls || fileAttachments
+                                        ? ""
+                                        : "我们开始吧！"),
                                 imageUrls,
                                 fileAttachments,
                             )
@@ -175,7 +178,7 @@ export default function App() {
                         messages={messages}
                         onSendMessage={onSendMessageWrapper}
                         isTyping={isTyping}
-                        onOpenSubmission={() => setIsSubmissionOpen(true)}
+                        onStop={handleStopGeneration}
                         mode={chatMode}
                         setMode={setChatMode}
                         user={userProfile}
@@ -189,12 +192,6 @@ export default function App() {
                     />
                 )}
             </main>
-
-            <AssignmentModal
-                isOpen={isSubmissionOpen}
-                onClose={() => setIsSubmissionOpen(false)}
-                onSubmit={handleSubmitAssignment}
-            />
         </div>
     );
 }

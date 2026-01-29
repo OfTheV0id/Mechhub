@@ -50,8 +50,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
     setMode = () => {},
     userName = "同学",
 }) => {
-    const { inputValue, setInputValue, handleSubmit, handleMockImageUpload } =
-        useHomeView(onStartChat, mode, setMode);
+    const { inputValue, setInputValue, handleSubmit } = useHomeView(
+        onStartChat,
+        mode,
+        setMode,
+    );
 
     return (
         <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-white relative">
@@ -89,7 +92,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                             onSubmit={handleSubmit}
                             mode={mode}
                             setMode={setMode}
-                            onUpload={handleMockImageUpload}
                         />
                     </div>
                 </div>

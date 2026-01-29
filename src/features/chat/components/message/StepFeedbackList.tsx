@@ -1,63 +1,76 @@
 import React from "react";
 import { GradingStep } from "../../../../types/message";
-import { CheckCircle, XCircle, Lightbulb } from "lucide-react";
+import { motion } from "motion/react";
+import { CheckCircle2, XCircle, Lightbulb } from "lucide-react";
 
 interface StepFeedbackListProps {
     steps: GradingStep[];
     activeStepIndex: number | null;
-    onStepClick: (index: number) => void;
+    onSelectStep: (index: number) => void;
+    stepRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
 }
 
 export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
     steps,
     activeStepIndex,
-    onStepClick,
+    onSelectStep,
+    stepRefs,
 }) => {
     return (
-        <div className="p-4">
-            <h4 className="font-bold text-lg text-slate-800 mb-4">
-                步骤批改详情
+        <div className="p-6 bg-slate-50 h-full">
+            <h4 className="font-bold text-lg text-slate-800 mb-5">
+                AI Feedback Breakdown
             </h4>
-            <div className="space-y-3">
+
+            <div className="space-y-4">
                 {steps.map((step, idx) => (
-                    <div
+                    <motion.div
                         key={step.stepNumber}
-                        onClick={() => onStepClick(idx)}
-                        className={`p-3 rounded-xl cursor-pointer transition-all ${
+                        ref={(el) => {
+                            if (el) stepRefs.current.set(idx, el);
+                        }}
+                        onClick={() => onSelectStep(idx)}
+                        animate={{
+                            scale: activeStepIndex === idx ? 1.02 : 1,
+                        }}
+                        transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 20,
+                        }}
+                        className={`bg-white rounded-xl p-4 cursor-pointer border-2 transition-colors ${
                             activeStepIndex === idx
-                                ? step.isCorrect
-                                    ? "bg-green-50 border-2 border-green-200"
-                                    : "bg-red-50 border-2 border-red-200"
-                                : "bg-slate-50 border-2 border-transparent hover:border-slate-200"
+                                ? "border-slate-800 shadow-lg"
+                                : "border-transparent hover:border-slate-200"
                         }`}
                     >
-                        {/* Step Header */}
+                        {/* 标题行 */}
                         <div className="flex items-center gap-2 mb-2">
                             {step.isCorrect ? (
-                                <CheckCircle className="w-5 h-5 text-green-500" />
+                                <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                             ) : (
-                                <XCircle className="w-5 h-5 text-red-500" />
+                                <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                             )}
-                            <span className="font-semibold text-slate-800">
-                                步骤 {step.stepNumber}: {step.stepTitle}
+                            <span className="font-bold text-slate-800">
+                                Step {step.stepNumber}: {step.stepTitle}
                             </span>
                         </div>
 
-                        {/* Comment */}
-                        <p className="text-sm text-slate-600 ml-7 mb-2">
+                        {/* 评语 */}
+                        <p className="text-sm text-slate-600 leading-relaxed pl-7">
                             {step.comment}
                         </p>
 
-                        {/* Suggestion (if present and incorrect) */}
-                        {!step.isCorrect && step.suggestion && (
-                            <div className="ml-7 flex items-start gap-2 p-2 bg-amber-50 rounded-lg">
+                        {/* 建议（如果有） */}
+                        {step.suggestion && (
+                            <div className="mt-3 ml-7 flex items-start gap-2 p-3 bg-amber-50 rounded-lg border border-amber-100">
                                 <Lightbulb className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                                <p className="text-xs text-amber-700">
+                                <p className="text-xs text-amber-700 leading-relaxed">
                                     {step.suggestion}
                                 </p>
                             </div>
                         )}
-                    </div>
+                    </motion.div>
                 ))}
             </div>
         </div>

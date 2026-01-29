@@ -1,25 +1,15 @@
-export interface Annotation {
-    id: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    comment: string;
-    type: "correct" | "incorrect" | "info";
+// BoundingBox for annotation overlay (percentage-based, 0-100)
+export interface BoundingBox {
+    x: number; // left position %
+    y: number; // top position %
+    width: number; // width %
+    height: number; // height %
 }
 
 export interface FileAttachment {
     filename: string;
     content: string;
     language?: string;
-}
-
-// Bounding box for annotation overlay (percentage-based, 0-100)
-export interface BoundingBox {
-    x: number; // left position %
-    y: number; // top position %
-    width: number; // width %
-    height: number; // height %
 }
 
 // Single grading step with location on image
@@ -35,15 +25,12 @@ export interface GradingStep {
 // Grading result for a single image
 export interface ImageGradingResult {
     imageUrl: string;
-    score: number;
     steps: GradingStep[];
 }
 
-// Full grading response
 export interface GradingResult {
-    overallScore: number;
     summary: string;
-    images: ImageGradingResult[];
+    imageGradingResult: ImageGradingResult[];
 }
 
 export interface Message {
@@ -51,10 +38,19 @@ export interface Message {
     role: "user" | "assistant";
     type: "text" | "grading";
     content: string;
-    imageUrl?: string;
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
-    annotations?: Annotation[];
-    score?: number;
-    gradingResult?: GradingResult; // Structured grading response
+    gradingResult?: GradingResult;
+}
+
+export interface AICompletionRequest {
+    messages: Message[];
+    mode: "study" | "correct";
+    imageUrls?: string[];
+    fileAttachments?: FileAttachment[];
+}
+
+export interface AICompletionResponse {
+    content: string;
+    gradingResult?: GradingResult;
 }

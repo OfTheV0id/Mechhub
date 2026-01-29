@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Settings, MessageSquare } from "lucide-react";
 import { ChatSession } from "../types/session";
 import { UserProfile } from "../types/user";
 import { MissionItem } from "./sidebar/MissionItem";
+
+const MIN_SIDEBAR_WIDTH = 240;
+const MAX_SIDEBAR_WIDTH = 500;
+const DEFAULT_SIDEBAR_WIDTH = 280;
 
 interface SidebarProps {
     activeView: string;
@@ -13,6 +17,7 @@ interface SidebarProps {
     currentSessionId?: string | null;
     onSelectSession?: (id: string) => void;
     onDeleteSession?: (id: string) => void;
+    onRenameSession?: (id: string, newTitle: string) => Promise<boolean>;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -28,17 +33,73 @@ export const Sidebar: React.FC<SidebarProps> = ({
     currentSessionId,
     onSelectSession,
     onDeleteSession,
+    onRenameSession,
 }) => {
+    // Sidebar width state
+    const [sidebarWidth, setSidebarWidth] = useState(() => {
+        const saved = localStorage.getItem("sidebarWidth");
+        return saved ? parseInt(saved, 10) : DEFAULT_SIDEBAR_WIDTH;
+    });
+    const [isResizing, setIsResizing] = useState(false);
+
+    // Handle mouse move for resizing
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isResizing) return;
+
+            const newWidth = e.clientX;
+            if (
+                newWidth >= MIN_SIDEBAR_WIDTH &&
+                newWidth <= MAX_SIDEBAR_WIDTH
+            ) {
+                setSidebarWidth(newWidth);
+                localStorage.setItem("sidebarWidth", newWidth.toString());
+            }
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+        };
+
+        if (isResizing) {
+            document.addEventListener("mousemove", handleMouseMove);
+            document.addEventListener("mouseup", handleMouseUp);
+            document.body.style.cursor = "ew-resize";
+            document.body.style.userSelect = "none";
+        }
+
+        return () => {
+            document.removeEventListener("mousemove", handleMouseMove);
+            document.removeEventListener("mouseup", handleMouseUp);
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+        };
+    }, [isResizing]);
+
     return (
-        <div className="w-[280px] flex-1 flex flex-col bg-white border-r border-slate-100 flex-shrink-0">
+        <div
+            className="flex-1 flex flex-col bg-white border-r border-slate-200 flex-shrink-0 relative"
+            style={{ width: `${sidebarWidth}px` }}
+        >
+            {/* Resize Handle - wider drag area with visible line */}
+            <div
+                className="absolute top-0 right-0 w-3 h-full z-50 flex items-center justify-center"
+                style={{ cursor: "ew-resize" }}
+                onMouseDown={() => setIsResizing(true)}
+                title="拖拽调整侧边栏宽度"
+            >
+                {/* Visible indicator line */}
+                <div className="w-[2px] h-full bg-slate-400 hover:bg-blue-500 transition-colors"></div>
+            </div>
+
             {/* Header */}
-            <div className="px-6 py-6">
+            <div className="px-4 py-6">
                 <div
-                    className="flex items-center gap-3 mb-8 cursor-pointer"
+                    className="flex items-center gap-3 mb-8 cursor-pointer flex-wrap"
                     onClick={() => setActiveView("home")}
                 >
                     <div
-                        className="bg-black text-white rounded-lg p-[14px] cursor-pointer hover:opacity-90 transition-all max-[991px]:flex max-[991px]:flex-col max-[991px]:justify-start max-[991px]:items-start max-[991px]:p-2"
+                        className="bg-black text-white rounded-lg p-[14px] cursor-pointer hover:opacity-90 transition-all flex-shrink-0"
                         onClick={(e) => {
                             e.stopPropagation();
                             setActiveView("landing");
@@ -49,9 +110,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             className="animate-[spin_10s_linear_infinite]"
                         />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-shrink">
                         <h1
-                            className="font-bold leading-tight tracking-tight text-[40px] max-[991px]:font-['Courier_New',monospace]"
+                            className="font-bold leading-tight tracking-tight text-[32px] whitespace-nowrap overflow-hidden text-ellipsis"
                             style={{ fontFamily: "Courier New, monospace" }}
                         >
                             MechHub
@@ -96,6 +157,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                     e.stopPropagation();
                                     onDeleteSession?.(session.id);
                                 }}
+                                onRename={
+                                    onRenameSession
+                                        ? (newTitle) =>
+                                              onRenameSession(
+                                                  session.id,
+                                                  newTitle,
+                                              )
+                                        : undefined
+                                }
+                                isGeneratingTitle={session.isGeneratingTitle}
                             />
                         ))
                     )}

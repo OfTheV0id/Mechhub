@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Message } from "../../../types/message";
 import {
     TextMessage,
-    GradingMessage,
     GradingResultView,
     TypingIndicator,
     ImagePreviewModal,
@@ -20,8 +19,6 @@ export const MessageList: React.FC<MessageListProps> = ({
     messages,
     isTyping,
     messagesEndRef,
-    userName = "你",
-    userAvatar,
 }) => {
     const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -36,26 +33,11 @@ export const MessageList: React.FC<MessageListProps> = ({
             );
         }
 
-        // Legacy grading message type
-        if (msg.type === "grading") {
-            return (
-                <GradingMessage
-                    imageUrl={msg.imageUrl}
-                    annotations={msg.annotations}
-                    score={msg.score}
-                    onImageClick={(url) => setPreviewImage(url)}
-                />
-            );
-        }
-
         // Default text message
         return (
             <TextMessage
                 role={msg.role}
                 content={msg.content}
-                userName={userName}
-                userAvatar={userAvatar}
-                imageUrl={msg.imageUrl}
                 imageUrls={msg.imageUrls}
                 fileAttachments={msg.fileAttachments}
                 onImageClick={(url) => setPreviewImage(url)}
