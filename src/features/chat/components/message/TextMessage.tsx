@@ -90,11 +90,9 @@ export const TextMessage: React.FC<TextMessageProps> = ({
 
                 {/* Only show message bubble if there is text content */}
                 {content && content.trim() && (
-                    <div
-                        className={`group relative ${role === "user" ? "flex-row-reverse" : ""}`}
-                    >
+                    <div className="group flex flex-col gap-2">
                         <div
-                            className={`text-base leading-relaxed p-4 pb-8 rounded-2xl shadow-sm overflow-hidden ${
+                            className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-hidden ${
                                 role === "user"
                                     ? "bg-slate-900 text-white rounded-2xl rounded-tr-sm"
                                     : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
@@ -105,14 +103,22 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                             ) : (
                                 <MarkdownRenderer content={content} />
                             )}
+                        </div>
 
+                        {/* Toolbar with copy button positioned below bubble */}
+                        <div
+                            className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${
+                                role === "user" ? "justify-end" : "justify-start"
+                            }`}
+                        >
                             <button
                                 onClick={handleCopyText}
-                                className={`absolute bottom-2 left-2 p-1.5 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 flex items-center gap-1 text-xs ${
+                                className={`px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1 text-xs font-medium ${
                                     role === "user"
                                         ? "hover:bg-slate-800 text-slate-400 hover:text-white"
                                         : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
                                 }`}
+                                aria-label="复制文本"
                                 title="复制文本"
                             >
                                 {isCopied ? (
@@ -121,7 +127,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                             size={14}
                                             className="text-green-500"
                                         />
-                                        <span className="text-green-500 font-medium">
+                                        <span className="text-green-500">
                                             已复制
                                         </span>
                                     </>
