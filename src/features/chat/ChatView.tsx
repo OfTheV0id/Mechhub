@@ -9,9 +9,14 @@ export type { Message };
 
 interface ChatInterfaceProps {
     messages: Message[];
-    onSendMessage: (text: string, imageUrls?: string[], fileAttachments?: FileAttachment[]) => void;
+    onSendMessage: (
+        text: string,
+        imageUrls?: string[],
+        fileAttachments?: FileAttachment[],
+    ) => void;
+    onStop?: () => void;
     isTyping: boolean;
-    onOpenSubmission: () => void;
+
     mode: "study" | "correct";
     setMode: (mode: "study" | "correct") => void;
     user?: UserProfile;
@@ -20,15 +25,18 @@ interface ChatInterfaceProps {
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     messages,
     onSendMessage,
+    onStop,
     isTyping,
-    onOpenSubmission,
     mode,
     setMode,
     user,
 }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { inputText, setInputText, handleSubmit, handleMockImageUpload } =
-        useChatInterface(onSendMessage, mode, setMode);
+    const { inputText, setInputText, handleSubmit } = useChatInterface(
+        onSendMessage,
+        mode,
+        setMode,
+    );
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({
@@ -56,8 +64,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 onSubmit={handleSubmit}
                 mode={mode}
                 setMode={setMode}
-                onUpload={handleMockImageUpload}
                 isTyping={isTyping}
+                onStop={onStop}
             />
         </div>
     );

@@ -26,12 +26,8 @@ export class ChatService {
     static async saveChat(
         id: string | null,
         msgs: Message[],
-        title?: string,
+        title: string,
     ): Promise<ChatSession> {
-        const generatedTitle =
-            title ||
-            (msgs.length > 0 ? msgs[0].content.slice(0, 20) : "新对话");
-
         // Get current user to ensure we save with correct user_id
         const {
             data: { user },
@@ -46,7 +42,7 @@ export class ChatService {
         const chatData = {
             id: chatId,
             user_id: user.id,
-            title: generatedTitle,
+            title: title,
             messages: msgs,
             updated_at: now,
         };
@@ -68,6 +64,21 @@ export class ChatService {
             messages: data.messages,
             updatedAt: new Date(data.updated_at).getTime(),
         };
+    }
+
+    static async updateChatTitle(
+        chatId: string,
+        newTitle: string,
+    ): Promise<void> {
+        const { error } = await supabase
+            .from("chats")
+            .update({ title: newTitle, updated_at: new Date().toISOString() })
+            .eq("id", chatId);
+
+        if (error) {
+            console.error("Error updating chat title:", error);
+            throw new Error(error.message);
+        }
     }
 
     static async deleteChat(id: string): Promise<void> {

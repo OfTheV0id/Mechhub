@@ -8,6 +8,7 @@ import {
     X,
     Loader2,
     FileText,
+    Square,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { toast } from "sonner";
@@ -31,9 +32,10 @@ interface UnifiedInputBarProps {
     ) => void;
     mode: "study" | "correct";
     setMode: (mode: "study" | "correct") => void;
-    onUpload?: (file?: File) => void;
+
     placeholder?: string;
     isTyping?: boolean;
+    onStop?: () => void;
 }
 
 const SUPPORTED_TEXT_FILE_EXTENSIONS = [
@@ -98,6 +100,7 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     setMode,
     placeholder,
     isTyping = false,
+    onStop,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imageAttachments, setImageAttachments] = useState<ImageAttachment[]>(
@@ -287,6 +290,7 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     };
 
     const isUploading = imageAttachments.some((a) => a.uploading);
+    const showStopButton = isTyping && !!onStop;
 
     return (
         <form onSubmit={handleSubmitInternal} className="w-full relative">
@@ -329,9 +333,9 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                                         onClick={() =>
                                             removeImageAttachment(att.id)
                                         }
-                                        className="absolute top-0.5 right-0.5 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="absolute top-1 right-1 bg-white text-slate-700 rounded-full p-1 shadow-sm border border-slate-200 hover:bg-slate-100 transition-colors z-10"
                                     >
-                                        <X size={12} />
+                                        <X size={14} />
                                     </button>
                                 )}
                             </motion.div>
@@ -358,9 +362,9 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                                     onClick={() =>
                                         removeFileAttachment(att.filename)
                                     }
-                                    className="ml-1 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="ml-1 text-slate-400 hover:text-slate-600 opacity-100 transition-opacity p-0.5 hover:bg-slate-200 rounded"
                                 >
-                                    <X size={12} />
+                                    <X size={14} />
                                 </button>
                             </motion.div>
                         ))}
@@ -412,16 +416,27 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                     </button>
                 </div>
 
-                <input
-                    type="text"
+                <textarea
+                    ref={(el) => {
+                        // ref for auto-height
+                        if (el) {
+                            el.style.height = "auto"; // Reset height to calculate scrollHeight
+                            el.style.height =
+                                Math.min(el.scrollHeight, 200) + "px"; // Set height up to 200px
+                        }
+                    }}
                     value={inputValue}
                     onChange={(e) => onInputChange(e.target.value)}
                     placeholder={
                         placeholder ||
                         (mode === "correct" ? "上传你的解答." : "提出你的疑问.")
                     }
-                    className="flex-1 bg-transparent border-none outline-none py-3 px-2 text-slate-700 placeholder:text-slate-400 text-lg min-w-0"
+                    rows={1}
+                    className="flex-1 bg-transparent border-none outline-none py-3 px-2 text-slate-700 placeholder:text-slate-400 text-lg min-w-0 resize-none max-h-[200px] overflow-y-auto self-center"
                     onKeyDown={(e) => {
+                        // Check if IME is composing
+                        if (e.nativeEvent.isComposing) return;
+
                         if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();
                             handleSubmitInternal(e);
@@ -440,18 +455,32 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
 
                 <button
                     type="button"
-                    onClick={(e) => handleSubmitInternal(e)}
+                    onClick={(e) => {
+                        if (showStopButton && onStop) {
+                            onStop();
+                        } else {
+                            handleSubmitInternal(e);
+                        }
+                    }}
                     disabled={
-                        (!inputValue.trim() &&
+                        !showStopButton &&
+                        ((!inputValue.trim() &&
                             imageAttachments.length === 0 &&
                             fileAttachments.length === 0) ||
-                        isUploading ||
-                        isTyping
+                            isUploading ||
+                            isTyping)
                     }
-                    className="p-3 rounded-full bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md ml-1"
+                    className={`p-3 rounded-full transition-all shadow-md ml-1 flex items-center justify-center ${
+                        showStopButton
+                            ? "bg-red-500 hover:bg-red-600 text-white"
+                            : "bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    }`}
+                    title={showStopButton ? "停止生成" : "发送消息"}
                 >
                     {isUploading ? (
                         <Loader2 size={20} className="animate-spin" />
+                    ) : showStopButton ? (
+                        <Square size={16} fill="currentColor" />
                     ) : (
                         <ArrowRight size={20} />
                     )}

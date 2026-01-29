@@ -14,17 +14,27 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
     onImageClick,
 }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const hasMultipleImages = gradingResult.images.length > 1;
+
+    // Debug logging
+    console.log("[GradingResultView] gradingResult:", gradingResult);
+    console.log(
+        "[GradingResultView] images:",
+        gradingResult.imageGradingResult,
+    );
+
+    const images = gradingResult.imageGradingResult || [];
+    const hasMultipleImages = images.length > 1;
+    const currentImage = images[currentImageIndex];
 
     const goToPrev = () => {
         setCurrentImageIndex((prev) =>
-            prev > 0 ? prev - 1 : gradingResult.images.length - 1,
+            prev > 0 ? prev - 1 : images.length - 1,
         );
     };
 
     const goToNext = () => {
         setCurrentImageIndex((prev) =>
-            prev < gradingResult.images.length - 1 ? prev + 1 : 0,
+            prev < images.length - 1 ? prev + 1 : 0,
         );
     };
 
@@ -38,17 +48,6 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
 
             {/* Summary Card */}
             <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-6 mb-4 text-white">
-                <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-slate-300">
-                        总体评分
-                    </span>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold">
-                            {gradingResult.overallScore}
-                        </span>
-                        <span className="text-slate-400">/ 100</span>
-                    </div>
-                </div>
                 <p className="text-slate-300 text-sm leading-relaxed">
                     {gradingResult.summary}
                 </p>
@@ -64,8 +63,7 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
                         <ChevronLeft size={20} />
                     </button>
                     <span className="text-sm text-slate-600">
-                        图片 {currentImageIndex + 1} /{" "}
-                        {gradingResult.images.length}
+                        图片 {currentImageIndex + 1} / {images.length}
                     </span>
                     <button
                         onClick={goToNext}
@@ -77,11 +75,18 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
             )}
 
             {/* Current Image Grading Panel */}
-            {gradingResult.images[currentImageIndex] && (
+            {currentImage ? (
                 <ImageGradingPanel
-                    imageGrading={gradingResult.images[currentImageIndex]}
+                    imageGrading={currentImage}
                     onImageClick={onImageClick}
                 />
+            ) : (
+                <div className="bg-slate-100 rounded-2xl p-8 text-center text-slate-500">
+                    <p>未找到图片数据</p>
+                    <p className="text-xs mt-2">
+                        images: {JSON.stringify(images)}
+                    </p>
+                </div>
             )}
         </div>
     );

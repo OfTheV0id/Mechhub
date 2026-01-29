@@ -1,32 +1,39 @@
 import React from "react";
 import { GradingStep } from "../../../../types/message";
-import { CheckCircle, XCircle } from "lucide-react";
+import { motion } from "motion/react";
 
 interface StepAnnotationBoxProps {
     step: GradingStep;
     isActive: boolean;
-    onClick: (e: React.MouseEvent) => void;
+    onSelect: () => void;
+    isCompact?: boolean;
 }
 
 export const StepAnnotationBox: React.FC<StepAnnotationBoxProps> = ({
     step,
     isActive,
-    onClick,
+    onSelect,
+    isCompact = false,
 }) => {
-    const boxColor = step.isCorrect
-        ? "border-green-500 bg-green-500/10"
-        : "border-red-500 bg-red-500/10";
+    const labelText = step.isCorrect
+        ? `Step ${step.stepNumber}: Correct`
+        : `Step ${step.stepNumber}: ${step.stepTitle}`;
 
-    const activeColor = step.isCorrect
-        ? "border-green-500 bg-green-500/30"
-        : "border-red-500 bg-red-500/30";
+    // Colors
+    const correctColor = "#22c55e"; // green-500
+    const incorrectColor = "#ef4444"; // red-500
+    const activeColor = "#1e293b"; // slate-800
+    const baseColor = step.isCorrect ? correctColor : incorrectColor;
 
     return (
-        <div
-            onClick={onClick}
-            className={`absolute border-2 rounded-lg cursor-pointer transition-all ${
-                isActive ? activeColor : boxColor
-            } hover:${activeColor}`}
+        <motion.div
+            className="absolute cursor-pointer z-10"
+            onClick={(e) => {
+                e.stopPropagation(); // 阻止触发图片预览
+                onSelect();
+            }}
+            animate={{ scale: isActive ? 1.02 : 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
             style={{
                 left: `${step.bbox.x}%`,
                 top: `${step.bbox.y}%`,
@@ -34,30 +41,36 @@ export const StepAnnotationBox: React.FC<StepAnnotationBoxProps> = ({
                 height: `${step.bbox.height}%`,
             }}
         >
-            {/* Step Number Badge */}
-            <div
-                className={`absolute -top-3 -left-3 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md ${
-                    step.isCorrect ? "bg-green-500" : "bg-red-500"
-                }`}
-            >
-                {step.stepNumber}
-            </div>
+            {/* 边框 */}
+            <motion.div
+                className="w-full h-full rounded-xl border-2"
+                animate={{
+                    borderColor: isActive ? activeColor : baseColor,
+                    backgroundColor: isActive
+                        ? `${activeColor}10` // 10% opacity
+                        : `${baseColor}10`,
+                    boxShadow: isActive
+                        ? `0 0 0 4px ${activeColor}20` // 20% opacity
+                        : "none",
+                }}
+                transition={{ duration: 0.2 }}
+            />
 
-            {/* Step Title (shown when active) */}
-            {isActive && (
-                <div
-                    className={`absolute -bottom-8 left-0 px-2 py-1 rounded text-xs font-medium text-white whitespace-nowrap shadow-md ${
-                        step.isCorrect ? "bg-green-600" : "bg-red-600"
-                    }`}
+            {/* 标签 - Compact模式下不显示 */}
+            {!isCompact && (
+                <motion.div
+                    className="absolute left-1/2 -bottom-5 px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap text-xs font-semibold z-10"
+                    style={{ transform: "translateX(-50%)" }}
+                    animate={{
+                        backgroundColor: isActive ? activeColor : "#ffffff",
+                        color: isActive ? "#ffffff" : "#475569",
+                        borderColor: isActive ? activeColor : "#e2e8f0",
+                    }}
+                    transition={{ duration: 0.2 }}
                 >
-                    {step.isCorrect ? (
-                        <CheckCircle className="inline w-3 h-3 mr-1" />
-                    ) : (
-                        <XCircle className="inline w-3 h-3 mr-1" />
-                    )}
-                    {step.stepTitle}
-                </div>
+                    {labelText}
+                </motion.div>
             )}
-        </div>
+        </motion.div>
     );
 };

@@ -27,15 +27,9 @@ export const useHomeView = (
         }
     };
 
-    const handleMockImageUpload = (file?: File) => {
-        // Legacy handler kept for interface compatibility
-        // Real upload is handled by UnifiedInputBar
-    };
-
     return {
         inputValue,
         setInputValue,
         handleSubmit,
-        handleMockImageUpload,
     };
 };

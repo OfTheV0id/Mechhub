@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { ChatSession } from "../../types/session";
 import { Message, FileAttachment } from "../../types/message";
 import { ChatService } from "../../services/ChatService";
@@ -6,7 +7,7 @@ import { AIService } from "../../services/ai/AIService";
 
 const INITIAL_MESSAGES: Message[] = [];
 
-export const useChatSession = (supabase: any, userSession: any) => {
+export const useChatSession = (session: Session | null) => {
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
     const [isTyping, setIsTyping] = useState(false);
     const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
@@ -14,9 +15,18 @@ export const useChatSession = (supabase: any, userSession: any) => {
         null,
     );
     const [chatMode, setChatMode] = useState<"study" | "correct">("study");
+    const [generatingSessionId, setGeneratingSessionId] = useState<
+        string | null
+    >(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const currentSessionIdRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        currentSessionIdRef.current = currentSessionId;
+    }, [currentSessionId]);
 
     const fetchChatSessions = async () => {
-        if (!userSession) return;
+        if (!session) return;
         try {
             const chats = await ChatService.fetchChats();
             setChatSessions(chats);
@@ -28,9 +38,9 @@ export const useChatSession = (supabase: any, userSession: any) => {
     const saveChatSession = async (
         id: string | null,
         msgs: Message[],
-        title?: string,
+        title: string,
     ) => {
-        if (!userSession) return id;
+        if (!session) return id;
         try {
             const savedChat = await ChatService.saveChat(id, msgs, title);
 
@@ -41,8 +51,9 @@ export const useChatSession = (supabase: any, userSession: any) => {
                 );
             });
 
-            if (!id) {
-                setCurrentSessionId(savedChat.id);
+            if (!id && !currentSessionId) {
+                // If it was a new chat and we haven't switched away, update current ID
+                // Note: logic handled in handleSendMessage better, but safe here too
             }
             return savedChat.id;
         } catch (error) {
@@ -52,7 +63,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
     };
 
     const deleteChatSession = async (id: string) => {
-        if (!userSession) return { success: false, wasCurrentSession: false };
+        if (!session) return { success: false, wasCurrentSession: false };
         try {
             await ChatService.deleteChat(id);
             const wasCurrentSession = currentSessionId === id;
@@ -83,6 +94,15 @@ export const useChatSession = (supabase: any, userSession: any) => {
         setChatMode("study");
     };
 
+    const handleStopGeneration = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
+        setIsTyping(false);
+        setGeneratingSessionId(null);
+    };
+
     const handleSendMessage = async (
         text: string,
         imageUrls?: string[],
@@ -101,9 +121,6 @@ export const useChatSession = (supabase: any, userSession: any) => {
             role: "user",
             type: "text",
             content: text,
-            // Keep first image in legacy field if needed, or just rely on imageUrls
-            imageUrl:
-                imageUrls && imageUrls.length > 0 ? imageUrls[0] : undefined,
             imageUrls: imageUrls,
             fileAttachments: fileAttachments,
         };
@@ -112,22 +129,44 @@ export const useChatSession = (supabase: any, userSession: any) => {
         setMessages(updatedMessages);
         setIsTyping(true);
 
+        // Generate temporary title for new chat
+        let chatTitle = text.slice(0, 15) || "新对话";
+        const isNewChat = !currentSessionId;
+
         const activeId = await saveChatSession(
             currentSessionId,
             updatedMessages,
+            chatTitle,
         );
 
-        if (!currentSessionId && activeId) {
-            setCurrentSessionId(activeId);
+        // Set generating ID
+        if (activeId) {
+            setGeneratingSessionId(activeId);
+            if (!currentSessionId) setCurrentSessionId(activeId);
+        }
+
+        // Set title generating status for new chats
+        if (isNewChat && activeId) {
+            setChatSessions((prev) =>
+                prev.map((chat) =>
+                    chat.id === activeId
+                        ? { ...chat, isGeneratingTitle: true }
+                        : chat,
+                ),
+            );
         }
 
         try {
+            // Create new AbortController
+            abortControllerRef.current = new AbortController();
+
             const response = await AIService.getResponse({
                 messages: updatedMessages,
                 mode: chatMode,
                 imageUrls,
                 fileAttachments,
             });
+
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
@@ -135,20 +174,95 @@ export const useChatSession = (supabase: any, userSession: any) => {
                 content: response.content,
                 gradingResult: response.gradingResult,
             };
+
             setIsTyping(false);
+            setGeneratingSessionId(null);
+            abortControllerRef.current = null;
 
             const finalMessages = [...updatedMessages, aiResponse];
-            setMessages(finalMessages);
-            saveChatSession(activeId || currentSessionId, finalMessages);
+
+            // Only update messages if we are still on the same session
+            if (activeId === currentSessionIdRef.current) {
+                setMessages(finalMessages);
+            }
+
+            // Generate AI title for new chats
+            if (isNewChat) {
+                try {
+                    const aiGeneratedTitle =
+                        await AIService.generateTitle(finalMessages);
+                    await saveChatSession(
+                        activeId || currentSessionId,
+                        finalMessages,
+                        aiGeneratedTitle,
+                    );
+
+                    // Clear generating title status
+                    setChatSessions((prev) =>
+                        prev.map((chat) =>
+                            chat.id === (activeId || currentSessionId)
+                                ? { ...chat, isGeneratingTitle: false }
+                                : chat,
+                        ),
+                    );
+                } catch (titleError) {
+                    console.error("Failed to generate AI title:", titleError);
+                    // Save with temporary title if AI generation fails
+                    await saveChatSession(
+                        activeId || currentSessionId,
+                        finalMessages,
+                        chatTitle,
+                    );
+
+                    // Clear generating title status on error
+                    setChatSessions((prev) =>
+                        prev.map((chat) =>
+                            chat.id === (activeId || currentSessionId)
+                                ? { ...chat, isGeneratingTitle: false }
+                                : chat,
+                        ),
+                    );
+                }
+            } else {
+                // Preserve existing title for ongoing chats
+                const existingChat = chatSessions.find(
+                    (c) => c.id === (activeId || activeId), // activeId is reliable here
+                );
+                await saveChatSession(
+                    activeId || currentSessionId,
+                    finalMessages,
+                    existingChat?.title || chatTitle,
+                );
+            }
         } catch (error) {
             console.error("AI response failed", error);
             setIsTyping(false);
+            setGeneratingSessionId(null);
+            abortControllerRef.current = null;
+        }
+    };
+
+    const handleRenameSession = async (id: string, newTitle: string) => {
+        try {
+            await ChatService.updateChatTitle(id, newTitle);
+
+            // Update local state
+            setChatSessions((prev) =>
+                prev.map((chat) =>
+                    chat.id === id ? { ...chat, title: newTitle } : chat,
+                ),
+            );
+
+            return true;
+        } catch (error) {
+            console.error("Failed to rename chat", error);
+            return false;
         }
     };
 
     return {
         messages,
-        isTyping,
+        isTyping: isTyping && currentSessionId === generatingSessionId,
         chatSessions,
         currentSessionId,
         chatMode,
@@ -159,5 +273,7 @@ export const useChatSession = (supabase: any, userSession: any) => {
         handleSelectSession,
         handleStartNewQuest,
         handleSendMessage,
+        handleRenameSession,
+        handleStopGeneration,
     };
 };
