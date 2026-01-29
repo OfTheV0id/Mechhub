@@ -112,7 +112,9 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                         {/* Toolbar with copy button positioned below bubble */}
                         <div
                             className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 relative ${
-                                role === "user" ? "justify-end" : "justify-start"
+                                role === "user"
+                                    ? "justify-end"
+                                    : "justify-start"
                             }`}
                         >
                             <button
@@ -131,13 +133,9 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                           } focus:ring-slate-300 focus:ring-offset-white`
                                 }`}
                                 aria-label={
-                                    isCopied
-                                        ? "已复制到剪贴板"
-                                        : "复制文本内容"
+                                    isCopied ? "已复制到剪贴板" : "复制文本内容"
                                 }
-                                title={
-                                    isCopied ? "已复制到剪贴板" : "复制文本"
-                                }
+                                title={isCopied ? "已复制到剪贴板" : "复制文本"}
                                 aria-pressed={isCopied}
                             >
                                 {isCopied ? (
