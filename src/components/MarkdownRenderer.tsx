@@ -15,7 +15,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     content,
 }) => {
     return (
-        <div className="w-full max-w-full overflow-x-hidden flow-root leading-normal">
+        <div className="w-full max-w-full overflow-visible flow-root leading-normal">
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex]}
@@ -23,15 +23,18 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                     code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || "");
                         return !inline && match ? (
-                            <div className="rounded-lg overflow-hidden my-2 shadow-sm border border-slate-700/50">
+                            <div className="rounded-lg overflow-x-auto my-2 shadow-sm border border-slate-700/50 max-w-full">
                                 <SyntaxHighlighter
                                     style={oneDark}
                                     language={match[1]}
                                     PreTag="div"
+                                    wrapLongLines={false}
                                     customStyle={{
                                         margin: 0,
                                         borderRadius: 0,
                                         background: "#1e293b", // slate-900 like
+                                        width: "fit-content",
+                                        minWidth: "100%",
                                     }}
                                     {...props}
                                 >

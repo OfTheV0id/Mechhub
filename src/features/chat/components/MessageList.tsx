@@ -7,21 +7,47 @@ import {
     ImagePreviewModal,
 } from "./message";
 
+// You can replace this URL with any MP3 link you like!
+// Recommended: Try https://www.soundjay.com/buttons/sounds/button-3.mp3 for a 'click' sound
+const NOTIFICATION_SOUND_URL =
+    "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
+
 interface MessageListProps {
     messages: Message[];
     isTyping: boolean;
     messagesEndRef: React.RefObject<HTMLDivElement | null>;
     userName?: string;
     userAvatar?: string;
+    sessionId?: string | null; // Track session switches
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
     messages,
     isTyping,
     messagesEndRef,
+    sessionId,
 }) => {
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const contentRef = useRef<HTMLDivElement>(null);
+    const prevSessionIdRef = useRef<string | null>(sessionId || null);
+
+    // Force scroll to bottom when switching to a different session (entering a conversation)
+    useEffect(() => {
+        if (sessionId && sessionId !== prevSessionIdRef.current) {
+            // Session switched - user clicked into a conversation
+            prevSessionIdRef.current = sessionId;
+
+            // Use setTimeout to ensure DOM has updated with new messages
+            setTimeout(() => {
+                if (messagesEndRef.current) {
+                    messagesEndRef.current.scrollIntoView({
+                        behavior: "auto",
+                        block: "end",
+                    });
+                }
+            }, 0);
+        }
+    }, [sessionId, messagesEndRef]);
 
     // Auto-scroll to bottom when height changes (KaTeX rendering, images, etc.)
     // BUT only if user is already at the bottom
@@ -36,11 +62,14 @@ export const MessageList: React.FC<MessageListProps> = ({
                 scrollContainer.scrollHeight -
                     scrollContainer.scrollTop -
                     scrollContainer.clientHeight <
-                100; // 100px threshold
+                150; //  threshold - strieter to avoid fighting user scroll
 
             if (isAtBottom && messagesEndRef.current) {
                 // User is at bottom: scroll to show new content
-                messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+                messagesEndRef.current.scrollIntoView({
+                    behavior: "auto",
+                    block: "nearest",
+                });
             }
             // If user is scrolled up, do nothing - let them read in peace
         });
@@ -50,7 +79,11 @@ export const MessageList: React.FC<MessageListProps> = ({
         return () => observer.disconnect();
     }, [messages]);
 
-    const renderMessage = (msg: Message) => {
+    const renderMessage = (msg: Message, index: number) => {
+        const isLastMessage = index === messages.length - 1;
+        const isGenerating =
+            isTyping && isLastMessage && msg.role === "assistant";
+
         if (msg.gradingResult) {
             return (
                 <GradingResultView
@@ -66,24 +99,87 @@ export const MessageList: React.FC<MessageListProps> = ({
                 imageUrls={msg.imageUrls}
                 fileAttachments={msg.fileAttachments}
                 onImageClick={(url) => setPreviewImage(url)}
+                isGenerating={isGenerating}
             />
         );
+    };
+
+    const [showNewMessageToast, setShowNewMessageToast] = useState(false);
+    const prevIsTypingRef = useRef(isTyping);
+
+    // Sound effect
+    const playNotificationSound = () => {
+        try {
+            // Simple "ding" sound
+            const audio = new Audio(NOTIFICATION_SOUND_URL);
+            audio.volume = 0.5;
+            audio.play().catch((e) => console.log("Audio play failed", e));
+        } catch (e) {
+            console.error("Audio error", e);
+        }
+    };
+
+    // Check scroll position and manage toast visibility
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const target = e.currentTarget;
+        const isAtBottom =
+            target.scrollHeight - target.scrollTop - target.clientHeight < 70;
+
+        if (isAtBottom) {
+            setShowNewMessageToast(false);
+        }
+    };
+
+    // Detect generation finish
+    useEffect(() => {
+        const wasTyping = prevIsTypingRef.current;
+        const isNowTyping = isTyping;
+        prevIsTypingRef.current = isNowTyping;
+
+        // If generation finished (true -> false)
+        if (wasTyping && !isNowTyping) {
+            const scrollContainer = contentRef.current?.parentElement;
+            if (!scrollContainer) return;
+
+            // Check if user is scrolled up
+            const isAtBottom =
+                scrollContainer.scrollHeight -
+                    scrollContainer.scrollTop -
+                    scrollContainer.clientHeight <
+                70;
+
+            if (!isAtBottom) {
+                // User is looking at history -> Show notification
+                setShowNewMessageToast(true);
+                playNotificationSound();
+            }
+        }
+    }, [isTyping]);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        setShowNewMessageToast(false);
     };
 
     return (
         <div
             className="flex-1 overflow-y-auto px-4 md:px-20 py-8 space-y-8 min-h-0 overflow-x-hidden"
             style={{ overflowAnchor: "none" }}
+            onScroll={handleScroll}
         >
             <div ref={contentRef} className="space-y-8">
-                {messages.map((msg) => (
+                {messages.map((msg, index) => (
                     <div key={msg.id} className="w-full">
-                        {renderMessage(msg)}
+                        {renderMessage(msg, index)}
                     </div>
                 ))}
             </div>
 
-            {isTyping && <TypingIndicator />}
+            {isTyping &&
+                (!messages.length ||
+                    messages[messages.length - 1].role !== "assistant") && (
+                    <TypingIndicator />
+                )}
 
             <div ref={messagesEndRef} className="h-4" />
 
@@ -91,6 +187,16 @@ export const MessageList: React.FC<MessageListProps> = ({
                 previewImage={previewImage}
                 onClose={() => setPreviewImage(null)}
             />
+
+            {/* New Message Toast - Testing: Always visible */}
+            <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100]">
+                <button
+                    onClick={scrollToBottom}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full shadow-lg hover:bg-slate-800 transition-all cursor-pointer"
+                >
+                    <span>⬇️ 新消息 (测试)</span>
+                </button>
+            </div>
         </div>
     );
 };

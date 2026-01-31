@@ -41,6 +41,7 @@ export interface Message {
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
     gradingResult?: GradingResult;
+    createdAt?: string;
 }
 
 export interface AICompletionRequest {
@@ -53,4 +54,11 @@ export interface AICompletionRequest {
 export interface AICompletionResponse {
     content: string;
     gradingResult?: GradingResult;
+}
+
+// Callback for streaming content updates
+export type StreamCallback = (chunk: string) => void;
+
+export interface AIStreamRequest extends AICompletionRequest {
+    onChunk: StreamCallback;
 }

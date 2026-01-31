@@ -41,7 +41,7 @@ serve(async (req) => {
         }
 
         // 3. Process Request
-        const { messages } = await req.json();
+        const { messages, stream = false } = await req.json();
 
         const response = await fetch(
             "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
@@ -54,7 +54,7 @@ serve(async (req) => {
                 body: JSON.stringify({
                     model: "qwen3-vl-plus",
                     messages: messages,
-                    stream: false,
+                    stream: stream,
                 }),
             },
         );
@@ -67,6 +67,77 @@ serve(async (req) => {
             );
         }
 
+        // Handle streaming response
+        if (stream) {
+            const encoder = new TextEncoder();
+            const readable = new ReadableStream({
+                async start(controller) {
+                    try {
+                        const reader = response.body?.getReader();
+                        if (!reader) {
+                            throw new Error("No response body");
+                        }
+
+                        const decoder = new TextDecoder();
+                        let buffer = "";
+
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+
+                            buffer += decoder.decode(value, { stream: true });
+                            const lines = buffer.split("\n");
+                            buffer = lines.pop() || "";
+
+                            for (const line of lines) {
+                                const trimmed = line.trim();
+                                if (!trimmed || trimmed === "data: [DONE]") {
+                                    continue;
+                                }
+
+                                if (trimmed.startsWith("data: ")) {
+                                    try {
+                                        const jsonStr = trimmed.slice(6);
+                                        const data = JSON.parse(jsonStr);
+                                        const content =
+                                            data.choices[0]?.delta?.content;
+
+                                        if (content) {
+                                            controller.enqueue(
+                                                encoder.encode(
+                                                    `data: ${JSON.stringify({ content })}\n\n`,
+                                                ),
+                                            );
+                                        }
+                                    } catch (e) {
+                                        console.error(
+                                            "Error parsing SSE data:",
+                                            e,
+                                        );
+                                    }
+                                }
+                            }
+                        }
+
+                        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                        controller.close();
+                    } catch (error) {
+                        controller.error(error);
+                    }
+                },
+            });
+
+            return new Response(readable, {
+                headers: {
+                    ...corsHeaders,
+                    "Content-Type": "text/event-stream",
+                    "Cache-Control": "no-cache",
+                    Connection: "keep-alive",
+                },
+            });
+        }
+
+        // Handle non-streaming response
         const data = await response.json();
         const reply = data.choices[0].message.content;
 

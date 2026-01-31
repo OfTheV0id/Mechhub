@@ -20,6 +20,7 @@ export const useChatSession = (session: Session | null) => {
     >(null);
     const abortControllerRef = useRef<AbortController | null>(null);
     const currentSessionIdRef = useRef<string | null>(null);
+    const isSubmittingRef = useRef(false);
 
     useEffect(() => {
         currentSessionIdRef.current = currentSessionId;
@@ -98,9 +99,10 @@ export const useChatSession = (session: Session | null) => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
+            setIsTyping(false);
+            setGeneratingSessionId(null);
+            isSubmittingRef.current = false;
         }
-        setIsTyping(false);
-        setGeneratingSessionId(null);
     };
 
     const handleSendMessage = async (
@@ -109,12 +111,26 @@ export const useChatSession = (session: Session | null) => {
         switchToChatView?: () => void,
         fileAttachments?: FileAttachment[],
     ) => {
+        if (
+            !text.trim() &&
+            (!imageUrls || imageUrls.length === 0) &&
+            (!fileAttachments || fileAttachments.length === 0)
+        )
+            return;
+
+        // Prevent duplicate submissions
+        if (isSubmittingRef.current) return;
+
         console.log("[useChatSession] handleSendMessage received:", {
             text,
             imageUrls,
             fileAttachments,
         });
+
         if (switchToChatView) switchToChatView();
+
+        isSubmittingRef.current = true;
+        setIsTyping(true);
 
         const newMessage: Message = {
             id: Date.now().toString(),
@@ -123,26 +139,52 @@ export const useChatSession = (session: Session | null) => {
             content: text,
             imageUrls: imageUrls,
             fileAttachments: fileAttachments,
+            createdAt: new Date().toISOString(),
         };
 
-        const updatedMessages = [...messages, newMessage];
-        setMessages(updatedMessages);
-        setIsTyping(true);
+        // Update messages with functional update
+        setMessages((prev) => [...prev, newMessage]);
 
         // Generate temporary title for new chat
         let chatTitle = text.slice(0, 15) || "新对话";
-        const isNewChat = !currentSessionId;
 
-        const activeId = await saveChatSession(
-            currentSessionId,
-            updatedMessages,
-            chatTitle,
-        );
+        let activeId = currentSessionId;
+        const isNewChat = !activeId;
+
+        if (isNewChat) {
+            // If it's a new chat, save it to get an ID
+            activeId = await saveChatSession(
+                null,
+                [newMessage], // Only the first message for initial save
+                chatTitle,
+            );
+            if (activeId) {
+                setCurrentSessionId(activeId);
+            } else {
+                console.error("Failed to get activeId for new chat.");
+                setIsTyping(false);
+                isSubmittingRef.current = false;
+                return;
+            }
+        } else {
+            // For existing chats, save the new user message
+            if (activeId) {
+                const existingChat = chatSessions.find(
+                    (c) => c.id === activeId,
+                );
+                const currentTitle = existingChat?.title || chatTitle;
+
+                await saveChatSession(
+                    activeId,
+                    [...messages, newMessage],
+                    currentTitle,
+                );
+            }
+        }
 
         // Set generating ID
         if (activeId) {
             setGeneratingSessionId(activeId);
-            if (!currentSessionId) setCurrentSessionId(activeId);
         }
 
         // Set title generating status for new chats
@@ -160,37 +202,115 @@ export const useChatSession = (session: Session | null) => {
             // Create new AbortController
             abortControllerRef.current = new AbortController();
 
-            const response = await AIService.getResponse({
-                messages: updatedMessages,
-                mode: chatMode,
-                imageUrls,
-                fileAttachments,
-            });
+            let aiResponse: Message;
 
-            const aiResponse: Message = {
-                id: (Date.now() + 1).toString(),
-                role: "assistant",
-                type: response.gradingResult ? "grading" : "text",
-                content: response.content,
-                gradingResult: response.gradingResult,
-            };
+            // Use streaming for study mode, non-streaming for correct mode
+            if (chatMode === "study") {
+                // Create a temporary streaming message
+                const streamingMessageId = (Date.now() + 1).toString();
+                const streamingMessage: Message = {
+                    id: streamingMessageId,
+                    role: "assistant",
+                    type: "text",
+                    content: "",
+                    createdAt: new Date().toISOString(),
+                };
+
+                // Add streaming message to display using functional update
+                setMessages((prev) => [...prev, streamingMessage]);
+
+                let streamedContent = "";
+
+                // We need to pass the updated messages to the API
+                const currentMessagesWithUser = [...messages, newMessage];
+
+                const response = await AIService.getResponseStream(
+                    {
+                        messages: currentMessagesWithUser,
+                        mode: chatMode,
+                        imageUrls,
+                        fileAttachments,
+                    },
+                    (chunk) => {
+                        // Update streaming message content
+                        streamedContent += chunk;
+                        if (activeId === currentSessionIdRef.current) {
+                            setMessages((prevMessages) => {
+                                // Find the index of the streaming message
+                                const index = prevMessages.findIndex(
+                                    (m) => m.id === streamingMessageId,
+                                );
+                                if (index !== -1) {
+                                    const newMessages = [...prevMessages];
+                                    newMessages[index] = {
+                                        ...newMessages[index],
+                                        content: streamedContent,
+                                    };
+                                    return newMessages;
+                                }
+                                return prevMessages;
+                            });
+                        }
+                    },
+                    abortControllerRef.current.signal,
+                );
+
+                aiResponse = {
+                    id: streamingMessageId,
+                    role: "assistant",
+                    type: "text",
+                    content: response.content,
+                    createdAt: new Date().toISOString(),
+                };
+            } else {
+                // Use non-streaming for correct mode
+                const currentMessagesWithUser = [...messages, newMessage];
+                const response = await AIService.getResponse({
+                    messages: currentMessagesWithUser,
+                    mode: chatMode,
+                    imageUrls,
+                    fileAttachments,
+                });
+
+                aiResponse = {
+                    id: (Date.now() + 1).toString(),
+                    role: "assistant",
+                    type: response.gradingResult ? "grading" : "text",
+                    content: response.content,
+                    gradingResult: response.gradingResult,
+                    createdAt: new Date().toISOString(),
+                };
+            }
 
             setIsTyping(false);
             setGeneratingSessionId(null);
             abortControllerRef.current = null;
+            isSubmittingRef.current = false;
 
-            const finalMessages = [...updatedMessages, aiResponse];
-
-            // Only update messages if we are still on the same session
+            // Update with final response using functional update
             if (activeId === currentSessionIdRef.current) {
-                setMessages(finalMessages);
+                setMessages((prev) => {
+                    if (chatMode === "study") {
+                        // For streaming, replace the placeholder
+                        return prev.map((m) =>
+                            m.id === aiResponse.id ? aiResponse : m,
+                        );
+                    } else {
+                        // For non-streaming, append
+                        return [...prev, aiResponse];
+                    }
+                });
             }
+
+            // Define finalMessages here for use in title generation
+            const finalMessages = [...messages, newMessage, aiResponse];
 
             // Generate AI title for new chats
             if (isNewChat) {
                 try {
                     const aiGeneratedTitle =
                         await AIService.generateTitle(finalMessages);
+
                     await saveChatSession(
                         activeId || currentSessionId,
                         finalMessages,
@@ -226,7 +346,7 @@ export const useChatSession = (session: Session | null) => {
             } else {
                 // Preserve existing title for ongoing chats
                 const existingChat = chatSessions.find(
-                    (c) => c.id === (activeId || activeId), // activeId is reliable here
+                    (c) => c.id === (activeId || currentSessionId),
                 );
                 await saveChatSession(
                     activeId || currentSessionId,
@@ -239,6 +359,7 @@ export const useChatSession = (session: Session | null) => {
             setIsTyping(false);
             setGeneratingSessionId(null);
             abortControllerRef.current = null;
+            isSubmittingRef.current = false;
         }
     };
 

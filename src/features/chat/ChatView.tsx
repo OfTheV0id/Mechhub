@@ -20,6 +20,7 @@ interface ChatInterfaceProps {
     mode: "study" | "correct";
     setMode: (mode: "study" | "correct") => void;
     user?: UserProfile;
+    sessionId?: string | null; // For detecting session switches
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -30,6 +31,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     mode,
     setMode,
     user,
+    sessionId,
 }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { inputText, setInputText, handleSubmit } = useChatInterface(
@@ -42,13 +44,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     // to correctly handle dynamic content (KaTeX, Images) resizing.
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-white relative min-h-0">
+        <div className="absolute inset-0 flex flex-col bg-white z-0">
             <MessageList
                 messages={messages}
                 isTyping={isTyping}
                 messagesEndRef={messagesEndRef}
                 userName={user?.name}
                 userAvatar={user?.avatar}
+                sessionId={sessionId}
             />
 
             <ChatInput
