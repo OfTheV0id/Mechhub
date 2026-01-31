@@ -182,6 +182,7 @@ export default function App() {
                         mode={chatMode}
                         setMode={setChatMode}
                         user={userProfile}
+                        sessionId={currentSessionId}
                     />
                 )}
 

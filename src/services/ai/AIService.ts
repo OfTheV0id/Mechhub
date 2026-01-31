@@ -3,7 +3,7 @@ import {
     AICompletionResponse,
     Message,
 } from "../../types/message";
-import { supabase } from "../../lib/supabase";
+import { supabase, supabaseUrl, publicAnonKey } from "../../lib/supabase";
 
 export class AIService {
     static async getResponse(
@@ -218,6 +218,192 @@ export class AIService {
 
         return {
             content: aiReply,
+        };
+    }
+
+    /**
+     * Get AI response with streaming support
+     * @param request - AI completion request with stream callback
+     * @param abortSignal - Optional abort signal to cancel the stream
+     * @returns Promise with final content
+     */
+    static async getResponseStream(
+        request: AICompletionRequest,
+        onChunk: (chunk: string) => void,
+        abortSignal?: AbortSignal,
+    ): Promise<AICompletionResponse> {
+        const { messages, mode, fileAttachments } = request;
+
+        const apiMessages = messages.map((m) => {
+            if (
+                m.role === "user" &&
+                ((m.imageUrls && m.imageUrls.length > 0) ||
+                    (m.fileAttachments && m.fileAttachments.length > 0))
+            ) {
+                let textContent = m.content || " ";
+
+                // Append file content to message text
+                if (m.fileAttachments && m.fileAttachments.length > 0) {
+                    const fileContents = m.fileAttachments
+                        .map((file) => {
+                            const language = file.language || "text";
+                            return `\n\n**File: ${file.filename}**\n\`\`\`${language}\n${file.content}\n\`\`\``;
+                        })
+                        .join("");
+                    textContent += fileContents;
+                }
+
+                const contentParts: any[] = [
+                    { type: "text", text: textContent },
+                ];
+
+                // Handle multiple images if present
+                if (m.imageUrls && m.imageUrls.length > 0) {
+                    m.imageUrls.forEach((url) => {
+                        contentParts.push({
+                            type: "image_url",
+                            image_url: { url },
+                        });
+                    });
+                }
+
+                return {
+                    role: m.role,
+                    content: contentParts,
+                };
+            }
+
+            // Handle messages with only file attachments (no images)
+            if (
+                m.role === "user" &&
+                m.fileAttachments &&
+                m.fileAttachments.length > 0
+            ) {
+                let textContent = m.content || " ";
+                const fileContents = m.fileAttachments
+                    .map((file) => {
+                        const language = file.language || "text";
+                        return `\n\n**File: ${file.filename}**\n\`\`\`${language}\n${file.content}\n\`\`\``;
+                    })
+                    .join("");
+                textContent += fileContents;
+
+                return {
+                    role: m.role,
+                    content: textContent,
+                };
+            }
+
+            return {
+                role: m.role,
+                content: m.content,
+            };
+        });
+
+        let systemPrompt = `你是一个精通理论力学的AI助教。你的目标是引导学生思考,而不是直接给出答案。
+
+## 格式要求
+- 使用 Markdown 格式回复
+- 数学公式必须使用 LaTeX 语法:
+  - 行内公式: 使用单个 $ 包围,例如 $E = mc^2$
+  - 独立公式块: 使用双 $$ 包围,例如:
+    $$
+    F = ma
+    $$
+- 不要使用括号 ( ) 或方括号 [ ] 包围数学公式
+- 数学符号使用 LaTeX 命令,例如 \\cdot, \\times, \\frac{}{}, \\sum, \\int 等`;
+
+        const payloadMessages = [
+            { role: "system", content: systemPrompt },
+            ...apiMessages,
+        ];
+
+        // 检查认证状态
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session) {
+            throw new Error("未登录,请刷新页面重新登录");
+        }
+
+        // 使用 fetch 直接调用 Edge Function,启用流式
+        const response = await fetch(
+            `${supabaseUrl}/functions/v1/chat-response`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.access_token}`,
+                    apikey: publicAnonKey,
+                },
+                body: JSON.stringify({
+                    messages: payloadMessages,
+                    stream: true, // 启用流式
+                }),
+                signal: abortSignal,
+            },
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("AI Service Stream Error:", errorText);
+            throw new Error("AI 服务暂时不可用,请稍后再试。");
+        }
+
+        if (!response.body) {
+            throw new Error("No response body");
+        }
+
+        // 处理 SSE 流
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let fullContent = "";
+
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || "";
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || trimmed === "data: [DONE]") {
+                        continue;
+                    }
+
+                    if (trimmed.startsWith("data: ")) {
+                        try {
+                            const jsonStr = trimmed.slice(6);
+                            const data = JSON.parse(jsonStr);
+                            const content = data.content;
+
+                            if (content) {
+                                fullContent += content;
+                                onChunk(content);
+                            }
+                        } catch (e) {
+                            console.error("Error parsing SSE data:", e);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            if (error instanceof Error && error.name === "AbortError") {
+                console.log("Stream aborted by user");
+                return {
+                    content: fullContent || "生成已停止",
+                };
+            }
+            throw error;
+        }
+
+        return {
+            content: fullContent,
         };
     }
 

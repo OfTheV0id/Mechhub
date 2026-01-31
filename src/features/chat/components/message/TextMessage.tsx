@@ -12,6 +12,7 @@ interface TextMessageProps {
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
+    isGenerating?: boolean;
 }
 
 export const TextMessage: React.FC<TextMessageProps> = ({
@@ -21,6 +22,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
     imageUrls,
     fileAttachments,
     onImageClick,
+    isGenerating = false,
 }) => {
     const [isCopied, setIsCopied] = useState(false);
 
@@ -46,10 +48,10 @@ export const TextMessage: React.FC<TextMessageProps> = ({
         <div
             className={`flex gap-4 ${role === "user" ? "flex-row-reverse" : ""}`}
         >
-            {role === "assistant" && <AIAvatar isThinking={false} />}
+            {role === "assistant" && <AIAvatar isThinking={isGenerating} />}
 
             <div
-                className={`flex flex-col gap-1 max-w-[90%] ${role === "user" ? "items-end" : "items-start"}`}
+                className={`flex flex-col gap-1 max-w-[90%] min-w-0 ${role === "user" ? "items-end" : "items-start"}`}
             >
                 {displayImages.length > 0 && (
                     <div
@@ -96,7 +98,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                 {content && content.trim() && (
                     <div className="group flex flex-col gap-2">
                         <div
-                            className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-hidden ${
+                            className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-hidden min-w-0 ${
                                 role === "user"
                                     ? "bg-slate-900 text-white rounded-2xl rounded-tr-sm"
                                     : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
