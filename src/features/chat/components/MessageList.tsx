@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Message } from "../../../types/message";
 import {
     TextMessage,
@@ -21,9 +21,36 @@ export const MessageList: React.FC<MessageListProps> = ({
     messagesEndRef,
 }) => {
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll to bottom when height changes (KaTeX rendering, images, etc.)
+    // BUT only if user is already at the bottom
+    useEffect(() => {
+        const scrollContainer = contentRef.current?.parentElement;
+        const contentEl = contentRef.current;
+        if (!scrollContainer || !contentEl) return;
+
+        const observer = new ResizeObserver(() => {
+            // Check if user is currently scrolled to (or very near) the bottom
+            const isAtBottom =
+                scrollContainer.scrollHeight -
+                    scrollContainer.scrollTop -
+                    scrollContainer.clientHeight <
+                100; // 100px threshold
+
+            if (isAtBottom && messagesEndRef.current) {
+                // User is at bottom: scroll to show new content
+                messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+            }
+            // If user is scrolled up, do nothing - let them read in peace
+        });
+
+        observer.observe(contentEl);
+
+        return () => observer.disconnect();
+    }, [messages]);
 
     const renderMessage = (msg: Message) => {
-        // Check for structured grading result first
         if (msg.gradingResult) {
             return (
                 <GradingResultView
@@ -32,8 +59,6 @@ export const MessageList: React.FC<MessageListProps> = ({
                 />
             );
         }
-
-        // Default text message
         return (
             <TextMessage
                 role={msg.role}
@@ -46,14 +71,20 @@ export const MessageList: React.FC<MessageListProps> = ({
     };
 
     return (
-        <div className="flex-1 overflow-y-auto px-4 md:px-20 py-8 space-y-8 scroll-smooth">
-            {messages.map((msg) => (
-                <div key={msg.id} className="w-full">
-                    {renderMessage(msg)}
-                </div>
-            ))}
+        <div
+            className="flex-1 overflow-y-auto px-4 md:px-20 py-8 space-y-8 min-h-0 overflow-x-hidden"
+            style={{ overflowAnchor: "none" }}
+        >
+            <div ref={contentRef} className="space-y-8">
+                {messages.map((msg) => (
+                    <div key={msg.id} className="w-full">
+                        {renderMessage(msg)}
+                    </div>
+                ))}
+            </div>
 
             {isTyping && <TypingIndicator />}
+
             <div ref={messagesEndRef} className="h-4" />
 
             <ImagePreviewModal
