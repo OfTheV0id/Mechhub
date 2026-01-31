@@ -28,7 +28,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     onStop,
 }) => {
     return (
-        <div className="p-4 bg-white/80 backdrop-blur-sm border-t border-slate-100 sticky bottom-0 z-20 w-full">
+        <div className="p-4 bg-white/80 backdrop-blur-sm border-t border-slate-100 z-20 w-full">
             <div className="w-full px-4 md:px-8">
                 <UnifiedInputBar
                     inputValue={inputText}

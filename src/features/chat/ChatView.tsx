@@ -38,18 +38,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         setMode,
     );
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({
-            behavior: "smooth",
-        });
-    };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages, isTyping]);
+    // Scroll handling is now delegated to MessageList's ResizeObserver
+    // to correctly handle dynamic content (KaTeX, Images) resizing.
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-white relative">
+        <div className="flex-1 flex flex-col h-full bg-white relative min-h-0">
             <MessageList
                 messages={messages}
                 isTyping={isTyping}

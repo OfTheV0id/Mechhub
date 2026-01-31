@@ -154,7 +154,7 @@ export default function App() {
                 </div>
             </div>
 
-            <main className="flex-1 flex flex-col h-full relative overflow-hidden">
+            <main className="flex-1 flex flex-col h-full relative overflow-hidden min-w-0 min-h-0">
                 {activeView === "home" && (
                     <HomeView
                         onStartChat={(msg, imageUrls, fileAttachments) =>
