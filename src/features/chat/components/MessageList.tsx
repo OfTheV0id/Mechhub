@@ -191,7 +191,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -30 }}
                             transition={{ duration: 0.2 }}
-                            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100]"
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100]"
                         >
                             <button
                                 onClick={scrollToBottom}
