@@ -105,8 +105,8 @@ export const MessageList: React.FC<MessageListProps> = ({
         );
     };
 
-    const [showNewMessageToast, setShowNewMessageToast] = useState(false);
     const prevIsTypingRef = useRef(isTyping);
+    const toastIdRef = useRef<string | number | null>(null);
 
     // Sound effect
     const playNotificationSound = () => {
@@ -120,14 +120,15 @@ export const MessageList: React.FC<MessageListProps> = ({
         }
     };
 
-    // Check scroll position and manage toast visibility
+    // Check scroll position and dismiss toast
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const target = e.currentTarget;
         const isAtBottom =
             target.scrollHeight - target.scrollTop - target.clientHeight < 70;
 
-        if (isAtBottom) {
-            setShowNewMessageToast(false);
+        if (isAtBottom && toastIdRef.current !== null) {
+            toast.dismiss(toastIdRef.current);
+            toastIdRef.current = null;
         }
     };
 
@@ -150,17 +151,21 @@ export const MessageList: React.FC<MessageListProps> = ({
                 70;
 
             if (!isAtBottom) {
-                // User is looking at history -> Show notification
-                setShowNewMessageToast(true);
+                // User is looking at history -> Show toast notification
+                toastIdRef.current = toast("有新消息", {
+                    action: {
+                        label: "查看",
+                        onClick: () => {
+                            messagesEndRef.current?.scrollIntoView({
+                                behavior: "smooth",
+                            });
+                        },
+                    },
+                });
                 playNotificationSound();
             }
         }
     }, [isTyping]);
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        setShowNewMessageToast(false);
-    };
 
     return (
         <div
