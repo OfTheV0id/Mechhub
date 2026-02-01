@@ -183,24 +183,27 @@ export const MessageList: React.FC<MessageListProps> = ({
                     <TypingIndicator />
                 )}
 
-            <AnimatePresence>
-                {showNewMessageToast && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -30 }}
-                        transition={{ duration: 0.2 }}
-                        className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100]"
-                    >
-                        <button
-                            onClick={scrollToBottom}
-                            className="px-6 py-3 bg-slate-900 text-white text-sm font-semibold rounded-full shadow-lg hover:bg-slate-800 active:bg-slate-700 transition-colors cursor-pointer"
+            {createPortal(
+                <AnimatePresence>
+                    {showNewMessageToast && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -30 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100]"
                         >
-                            ⬇️ 新消息
-                        </button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            <button
+                                onClick={scrollToBottom}
+                                className="px-6 py-3 bg-slate-900 text-white text-sm font-semibold rounded-full shadow-lg hover:bg-slate-800 active:bg-slate-700 transition-colors cursor-pointer"
+                            >
+                                ⬇️ 新消息
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body,
+            )}
 
             <div ref={messagesEndRef} className="h-4" />
 
