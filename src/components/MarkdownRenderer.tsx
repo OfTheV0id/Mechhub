@@ -33,8 +33,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                                         margin: 0,
                                         borderRadius: 0,
                                         background: "#1e293b", // slate-900 like
-                                        width: "fit-content",
-                                        minWidth: "100%",
+                                        width: "100%",
+                                        maxWidth: "100%",
                                     }}
                                     {...props}
                                 >
