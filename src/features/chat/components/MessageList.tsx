@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Message } from "../../../types/message";
 import {
     TextMessage,
@@ -181,22 +182,31 @@ export const MessageList: React.FC<MessageListProps> = ({
                     <TypingIndicator />
                 )}
 
+            <AnimatePresence>
+                {showNewMessageToast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 30 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex justify-center py-4 mb-4"
+                    >
+                        <button
+                            onClick={scrollToBottom}
+                            className="px-6 py-3 bg-slate-900 text-white text-sm font-semibold rounded-full shadow-lg hover:bg-slate-800 active:bg-slate-700 transition-colors cursor-pointer"
+                        >
+                            ⬇️ 新消息
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div ref={messagesEndRef} className="h-4" />
 
             <ImagePreviewModal
                 previewImage={previewImage}
                 onClose={() => setPreviewImage(null)}
             />
-
-            {/* New Message Toast - Testing: Always visible */}
-            <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100]">
-                <button
-                    onClick={scrollToBottom}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full shadow-lg hover:bg-slate-800 transition-all cursor-pointer"
-                >
-                    <span>⬇️ 新消息 (测试)</span>
-                </button>
-            </div>
         </div>
     );
 };
