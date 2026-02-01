@@ -23,7 +23,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                     code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || "");
                         return !inline && match ? (
-                            <div className="rounded-lg overflow-x-auto my-2 shadow-sm border border-slate-700/50 max-w-full">
+                            <div
+                                className="rounded-lg overflow-x-auto my-2 shadow-sm border border-slate-700/50"
+                                style={{ width: 0, minWidth: "100%" }}
+                            >
                                 <SyntaxHighlighter
                                     style={oneDark}
                                     language={match[1]}
@@ -33,8 +36,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                                         margin: 0,
                                         borderRadius: 0,
                                         background: "#1e293b", // slate-900 like
-                                        width: "fit-content",
-                                        minWidth: "100%",
+                                        width: "100%",
                                     }}
                                     {...props}
                                 >
