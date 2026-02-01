@@ -185,11 +185,11 @@ export const MessageList: React.FC<MessageListProps> = ({
             <AnimatePresence>
                 {showNewMessageToast && (
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: -30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 30 }}
+                        exit={{ opacity: 0, y: -30 }}
                         transition={{ duration: 0.2 }}
-                        className="flex justify-center py-4 mb-4"
+                        className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100]"
                     >
                         <button
                             onClick={scrollToBottom}
