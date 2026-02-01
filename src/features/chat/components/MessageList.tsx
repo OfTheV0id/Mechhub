@@ -187,17 +187,30 @@ export const MessageList: React.FC<MessageListProps> = ({
                 <AnimatePresence>
                     {showNewMessageToast && (
                         <motion.div
-                            initial={{ opacity: 0, y: -30 }}
+                            initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -30 }}
+                            exit={{ opacity: 0, y: 30 }}
                             transition={{ duration: 0.2 }}
-                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100]"
+                            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[100]"
                         >
                             <button
                                 onClick={scrollToBottom}
-                                className="px-6 py-3 bg-slate-900 text-white text-sm font-semibold rounded-full shadow-lg hover:bg-slate-800 active:bg-slate-700 transition-colors cursor-pointer"
+                                className="px-6 py-3 bg-slate-900 text-white text-sm font-semibold rounded-full shadow-lg hover:bg-slate-800 active:bg-slate-700 transition-colors cursor-pointer flex items-center gap-2"
                             >
-                                ⬇️ 新消息
+                                新消息
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M5 15l7-7 7 7"
+                                    />
+                                </svg>
                             </button>
                         </motion.div>
                     )}
