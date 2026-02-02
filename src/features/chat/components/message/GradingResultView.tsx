@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { GradingResult } from "../../../../types/message";
-import { AIAvatar } from "../../../../components";
+import { AIAvatar, MarkdownRenderer } from "../../../../components";
 import { ImageGradingPanel } from "./ImageGradingPanel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
