@@ -52,8 +52,8 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
                 <div className="flex items-start gap-3 mb-4">
                     <div className="flex-shrink-0 w-1 h-10 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full" />
                     <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">总体评价</h3>
-                        <p className="text-base leading-relaxed text-slate-100">
+                        <h3 className="text-sm font-semibold text-amber-300 uppercase tracking-wider mb-3">总体评价</h3>
+                        <p className="text-base leading-relaxed text-white">
                             {gradingResult.summary}
                         </p>
                     </div>
