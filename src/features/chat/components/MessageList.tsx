@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Message } from "../../../types/message";
 import { TextMessage, GradingResultView, ImagePreviewModal } from "./message";
 import { useMessageList } from "../hooks/useMessageList";
