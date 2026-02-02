@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { FileAttachment } from "../../../../types/message";
+import { useFileAttachmentPreview } from "../../hooks/useFileAttachmentPreview";
 
 interface FileAttachmentPreviewProps {
     file: FileAttachment;
@@ -14,13 +15,10 @@ export const FileAttachmentPreview: React.FC<FileAttachmentPreviewProps> = ({
     file,
     role,
 }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const { isExpanded, toggleExpanded } = useFileAttachmentPreview();
     const MAX_CHARS_PER_LINE = 100;
 
-    // 1. Split into original lines
     const originalLines = file.content.split("\n");
-
-    // 2. Process each line: Wrap long lines into multiple lines
     const processedLines = originalLines.flatMap((line) => {
         if (line.length <= MAX_CHARS_PER_LINE) return [line];
         const chunks = [];
@@ -30,7 +28,6 @@ export const FileAttachmentPreview: React.FC<FileAttachmentPreviewProps> = ({
         return chunks;
     });
 
-    // 3. Truncate to first 30 visual lines
     const isTruncated = processedLines.length > 30;
     const displayContent = isTruncated
         ? processedLines.slice(0, 30).join("\n")
@@ -44,9 +41,8 @@ export const FileAttachmentPreview: React.FC<FileAttachmentPreviewProps> = ({
                     : "bg-slate-50 border-slate-200"
             }`}
         >
-            {/* File Header - Always visible */}
             <button
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={toggleExpanded}
                 className="w-full px-4 py-3 flex items-center gap-3 transition-colors"
                 style={{
                     backgroundColor: role === "user" ? "#334155" : "#ffffff",
@@ -59,7 +55,6 @@ export const FileAttachmentPreview: React.FC<FileAttachmentPreviewProps> = ({
                         fontWeight: "bold",
                         fontSize: "1rem",
                         flexGrow: 1,
-                        flexShrink: 0,
                         textAlign: "left",
                         whiteSpace: "nowrap",
                         overflow: "visible",
@@ -90,7 +85,6 @@ export const FileAttachmentPreview: React.FC<FileAttachmentPreviewProps> = ({
                 />
             </button>
 
-            {/* File Content (Expandable) */}
             <AnimatePresence>
                 {isExpanded && (
                     <motion.div
@@ -110,13 +104,10 @@ export const FileAttachmentPreview: React.FC<FileAttachmentPreviewProps> = ({
                                 customStyle={{
                                     margin: 0,
                                     padding: "1rem",
-                                    backgroundColor:
-                                        role === "user" ? "#1e293b" : "#1e293b",
+                                    backgroundColor: "#1e293b",
                                 }}
                                 showLineNumbers={true}
-                                lineNumberStyle={{
-                                    color: "#64748b",
-                                }}
+                                lineNumberStyle={{ color: "#64748b" }}
                             >
                                 {displayContent}
                             </SyntaxHighlighter>

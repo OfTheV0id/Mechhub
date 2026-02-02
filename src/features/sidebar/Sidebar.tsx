@@ -1,29 +1,31 @@
-import React, { useState, useEffect } from "react";
-import { Plus, Settings, MessageSquare } from "lucide-react";
-import { ChatSession } from "../types/session";
-import { UserProfile } from "../types/user";
-import { MissionItem } from "./sidebar/MissionItem";
-
-const MIN_SIDEBAR_WIDTH = 240;
-const MAX_SIDEBAR_WIDTH = 500;
-const DEFAULT_SIDEBAR_WIDTH = 280;
+import React from "react";
+import { Plus, Settings, MessageSquare, LogOut } from "lucide-react";
+import { toast } from "sonner";
+import { ChatSession } from "../../types/session";
+import { UserProfile } from "../../types/user";
+import { MissionItem } from "./components/MissionItem";
+import { useSidebarResize } from "./hooks/useSidebarResize";
+import { MechHubLogo } from "../../components";
 
 interface SidebarProps {
     activeView: string;
     setActiveView: (view: string) => void;
-    onNewQuest: () => void;
     user?: UserProfile;
     sessions?: ChatSession[];
     currentSessionId?: string | null;
-    onSelectSession?: (id: string) => void;
-    onDeleteSession?: (id: string) => void;
+    handleSelectSession?: (id: string) => boolean;
+    handleStartNewQuest?: () => void;
+    deleteChatSession?: (
+        id: string,
+    ) => Promise<{ success: boolean; wasCurrentSession: boolean }>;
     onRenameSession?: (id: string, newTitle: string) => Promise<boolean>;
+    handleSignOut?: () => void;
+    isLoading?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
     activeView,
     setActiveView,
-    onNewQuest,
     user = {
         name: "张同学",
         avatar: "https://images.unsplash.com/photo-1644904105846-095e45fca990?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwc3R1ZGVudCUyMGF2YXRhcnxlbnwxfHx8fDE3Njg3OTU3NDh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
@@ -31,94 +33,69 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     sessions = [],
     currentSessionId,
-    onSelectSession,
-    onDeleteSession,
+    handleSelectSession,
+    handleStartNewQuest,
+    deleteChatSession,
     onRenameSession,
+    handleSignOut,
+    isLoading = false,
 }) => {
-    // Sidebar width state
-    const [sidebarWidth, setSidebarWidth] = useState(() => {
-        const saved = localStorage.getItem("sidebarWidth");
-        return saved ? parseInt(saved, 10) : DEFAULT_SIDEBAR_WIDTH;
-    });
-    const [isResizing, setIsResizing] = useState(false);
+    // Use resize hook for sidebar width management
+    const { sidebarWidth, handleMouseDown } = useSidebarResize();
 
-    // Handle mouse move for resizing
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!isResizing) return;
+    // Handle new quest: reset session and go to home
+    const onNewQuest = () => {
+        handleStartNewQuest?.();
+        setActiveView("home");
+    };
 
-            const newWidth = e.clientX;
-            if (
-                newWidth >= MIN_SIDEBAR_WIDTH &&
-                newWidth <= MAX_SIDEBAR_WIDTH
-            ) {
-                setSidebarWidth(newWidth);
-                localStorage.setItem("sidebarWidth", newWidth.toString());
-            }
-        };
-
-        const handleMouseUp = () => {
-            setIsResizing(false);
-        };
-
-        if (isResizing) {
-            document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener("mouseup", handleMouseUp);
-            document.body.style.cursor = "ew-resize";
-            document.body.style.userSelect = "none";
+    // Handle select session: load session and switch to chat view
+    const onSelectSession = (id: string) => {
+        if (handleSelectSession?.(id)) {
+            setActiveView("chat");
         }
+    };
 
-        return () => {
-            document.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mouseup", handleMouseUp);
-            document.body.style.cursor = "";
-            document.body.style.userSelect = "";
-        };
-    }, [isResizing]);
+    // Handle delete session with toast feedback and view switching
+    const handleDeleteSession = async (id: string) => {
+        if (!deleteChatSession) return;
+
+        const result = await deleteChatSession(id);
+        if (result.success) {
+            toast.success("对话已删除");
+            if (result.wasCurrentSession) {
+                setActiveView("home");
+            }
+        } else {
+            toast.error("删除失败");
+        }
+    };
 
     return (
         <div
-            className="flex-1 flex flex-col bg-white border-r border-slate-200 flex-shrink-0 relative"
+            className="flex flex-col bg-white border-r border-slate-200 flex-shrink-0 relative"
             style={{ width: `${sidebarWidth}px` }}
         >
-            {/* Resize Handle - wider drag area with visible line */}
+            {/* Resize Handle */}
             <div
                 className="absolute top-0 right-0 w-3 h-full z-50 flex items-center justify-center"
                 style={{ cursor: "ew-resize" }}
-                onMouseDown={() => setIsResizing(true)}
+                onMouseDown={handleMouseDown}
                 title="拖拽调整侧边栏宽度"
             >
-                {/* Visible indicator line */}
                 <div className="w-[2px] h-full bg-slate-400 hover:bg-blue-500 transition-colors"></div>
             </div>
 
             {/* Header */}
             <div className="px-4 py-6">
-                <div
-                    className="flex items-center gap-3 mb-8 cursor-pointer flex-wrap"
+                <MechHubLogo
+                    className="mb-8 cursor-pointer flex-wrap"
                     onClick={() => setActiveView("home")}
-                >
-                    <div
-                        className="bg-black text-white rounded-lg p-[14px] cursor-pointer hover:opacity-90 transition-all flex-shrink-0"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveView("landing");
-                        }}
-                    >
-                        <Settings
-                            size={30}
-                            className="animate-[spin_10s_linear_infinite]"
-                        />
-                    </div>
-                    <div className="min-w-0 flex-shrink">
-                        <h1
-                            className="font-bold leading-tight tracking-tight text-[32px] whitespace-nowrap overflow-hidden text-ellipsis"
-                            style={{ fontFamily: "Courier New, monospace" }}
-                        >
-                            MechHub
-                        </h1>
-                    </div>
-                </div>
+                    onIconClick={(e) => {
+                        e.stopPropagation();
+                        setActiveView("landing");
+                    }}
+                />
 
                 <button
                     onClick={onNewQuest}
@@ -135,7 +112,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     最近对话
                 </h3>
                 <div className="space-y-1">
-                    {sessions.length === 0 ? (
+                    {isLoading ? (
+                        <div className="animate-pulse space-y-3">
+                            <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
+                            <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
+                            <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
+                        </div>
+                    ) : sessions.length === 0 ? (
                         <div className="text-sm text-slate-400 text-center py-4">
                             暂无历史记录
                         </div>
@@ -155,7 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 }}
                                 onDelete={(e) => {
                                     e.stopPropagation();
-                                    onDeleteSession?.(session.id);
+                                    handleDeleteSession(session.id);
                                 }}
                                 onRename={
                                     onRenameSession
@@ -172,8 +155,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     )}
                 </div>
             </div>
-
-            {/* Daily Goal Widget */}
 
             {/* User Footer */}
             <div className="p-4 border-t border-slate-100 m-2">
@@ -198,6 +179,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </div>
                     <Settings size={16} className="text-slate-300" />
                 </button>
+
+                {/* Sign Out Button */}
+                {handleSignOut && (
+                    <button
+                        onClick={handleSignOut}
+                        className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors w-full px-4 py-2 mt-2 rounded-lg hover:bg-slate-50"
+                    >
+                        <LogOut size={14} />
+                        退出登录
+                    </button>
+                )}
             </div>
         </div>
     );

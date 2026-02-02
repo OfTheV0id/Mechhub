@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
-import { Sidebar } from "./components";
+import { Sidebar } from "./features/sidebar/Sidebar";
 import { ChatInterface } from "./features/chat/ChatView";
 import { HomeView } from "./features/home/HomeView";
 import { ProfileView } from "./features/profile/ProfileView";
 import { AuthPage } from "./features/auth/AuthPage";
 import { LandingPage } from "./features/landing/LandingPage";
-import { Toaster, toast } from "sonner";
-import { LogOut } from "lucide-react";
-import { useAuth } from "./hooks/useAuth/useAuth";
-import { useChatSession } from "./hooks/useChat/useChatSession";
+import { Toaster } from "sonner";
+import { useAuth } from "./features/auth/hooks/useAuth";
+import { useChatSession } from "./features/chat/hooks/useChatSession";
 import { FileAttachment } from "./types/message";
 
 export default function App() {
@@ -35,6 +34,7 @@ export default function App() {
         handleSendMessage,
         handleRenameSession,
         handleStopGeneration,
+        isLoadingSessions,
     } = useChatSession(session);
 
     const [activeView, setActiveView] = useState("home"); // 'home', 'chat', 'profile'
@@ -45,27 +45,6 @@ export default function App() {
             fetchChatSessions();
         }
     }, [session]);
-
-    // Wrapper to switch view when selecting a session
-    const onSelectSessionWrapper = (id: string) => {
-        if (handleSelectSession(id)) {
-            setActiveView("chat");
-        }
-    };
-
-    // Wrapper to switch view when deleting (if needed) or just delete
-    const onDeleteSessionWrapper = async (id: string) => {
-        const result = await deleteChatSession(id);
-        if (result.success) {
-            toast.success("对话已删除");
-            // If the current session was deleted, switch to home view
-            if (result.wasCurrentSession) {
-                setActiveView("home");
-            }
-        } else {
-            toast.error("删除失败");
-        }
-    };
 
     // Wrapper to switch view on new message
     const onSendMessageWrapper = (
@@ -79,11 +58,6 @@ export default function App() {
             () => setActiveView("chat"),
             fileAttachments,
         );
-    };
-
-    const onStartNewQuestWrapper = () => {
-        handleStartNewQuest();
-        setActiveView("home");
     };
 
     if (loading) {
@@ -131,28 +105,19 @@ export default function App() {
         <div className="flex h-screen bg-white text-slate-800 font-sans overflow-hidden">
             <Toaster position="top-center" richColors />
 
-            <div className="flex flex-col h-full">
-                <Sidebar
-                    activeView={activeView}
-                    setActiveView={setActiveView}
-                    onNewQuest={onStartNewQuestWrapper}
-                    user={userProfile}
-                    sessions={chatSessions}
-                    currentSessionId={currentSessionId}
-                    onSelectSession={onSelectSessionWrapper}
-                    onDeleteSession={onDeleteSessionWrapper}
-                    onRenameSession={handleRenameSession}
-                />
-                <div className="mt-auto p-4 border-r border-slate-100 bg-white">
-                    <button
-                        onClick={handleSignOut}
-                        className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors w-full px-4 py-2 rounded-lg hover:bg-slate-50"
-                    >
-                        <LogOut size={14} />
-                        退出登录
-                    </button>
-                </div>
-            </div>
+            <Sidebar
+                activeView={activeView}
+                setActiveView={setActiveView}
+                user={userProfile}
+                sessions={chatSessions}
+                currentSessionId={currentSessionId}
+                handleSelectSession={handleSelectSession}
+                handleStartNewQuest={handleStartNewQuest}
+                deleteChatSession={deleteChatSession}
+                onRenameSession={handleRenameSession}
+                handleSignOut={handleSignOut}
+                isLoading={isLoadingSessions}
+            />
 
             <main className="flex-1 flex flex-col h-full relative overflow-hidden min-w-0 min-h-0">
                 {activeView === "home" && (
@@ -181,7 +146,6 @@ export default function App() {
                         onStop={handleStopGeneration}
                         mode={chatMode}
                         setMode={setChatMode}
-                        user={userProfile}
                         sessionId={currentSessionId}
                     />
                 )}

@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { ChatSession } from "../../types/session";
-import { Message, FileAttachment } from "../../types/message";
-import { ChatService } from "../../services/ChatService";
-import { AIService } from "../../services/ai/AIService";
+import { ChatSession } from "../../../types/session";
+import { Message, FileAttachment } from "../../../types/message";
+import { ChatService } from "../../../services/ChatService";
+import { AIService } from "../../../services/ai/AIService";
 
 const INITIAL_MESSAGES: Message[] = [];
 
@@ -22,17 +22,22 @@ export const useChatSession = (session: Session | null) => {
     const currentSessionIdRef = useRef<string | null>(null);
     const isSubmittingRef = useRef(false);
 
+    const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+
     useEffect(() => {
         currentSessionIdRef.current = currentSessionId;
     }, [currentSessionId]);
 
     const fetchChatSessions = async () => {
         if (!session) return;
+        setIsLoadingSessions(true);
         try {
             const chats = await ChatService.fetchChats();
             setChatSessions(chats);
         } catch (error) {
             console.error("Failed to fetch chats", error);
+        } finally {
+            setIsLoadingSessions(false);
         }
     };
 
@@ -396,5 +401,6 @@ export const useChatSession = (session: Session | null) => {
         handleSendMessage,
         handleRenameSession,
         handleStopGeneration,
+        isLoadingSessions,
     };
 };

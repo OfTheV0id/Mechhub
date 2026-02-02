@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { ZoomIn, Copy, Check } from "lucide-react";
-import { toast } from "sonner";
 import { FileAttachment } from "../../../../types/message";
 import { AIAvatar } from "../../../../components";
 import { MarkdownRenderer } from "../../../../components/MarkdownRenderer";
 import { FileAttachmentPreview } from "./FileAttachmentPreview";
+import { useTextMessage } from "../../hooks/useTextMessage";
 
 interface TextMessageProps {
     role: "user" | "assistant";
@@ -18,31 +18,14 @@ interface TextMessageProps {
 export const TextMessage: React.FC<TextMessageProps> = ({
     role,
     content,
-
     imageUrls,
     fileAttachments,
     onImageClick,
     isGenerating = false,
 }) => {
-    const [isCopied, setIsCopied] = useState(false);
+    const { isCopied, handleCopyText } = useTextMessage(content);
 
-    // Collect all valid images into a single array
     const displayImages = imageUrls && imageUrls.length > 0 ? imageUrls : [];
-
-    const handleCopyText = async () => {
-        try {
-            await navigator.clipboard.writeText(content);
-            setIsCopied(true);
-            toast.success("已复制到剪贴板");
-
-            // Reset button state after animation
-            setTimeout(() => {
-                setIsCopied(false);
-            }, 2000);
-        } catch (error) {
-            toast.error("复制失败");
-        }
-    };
 
     return (
         <div
@@ -62,7 +45,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                 key={idx}
                                 className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm cursor-zoom-in group transition-transform hover:scale-[1.02]"
                                 onClick={() => onImageClick(url)}
-                                style={{ width: "120px", height: "120px" }} // Fixed thumbnail size
+                                style={{ width: "120px", height: "120px" }}
                             >
                                 <img
                                     src={url}
@@ -81,7 +64,6 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                     </div>
                 )}
 
-                {/* File Attachments */}
                 {fileAttachments && fileAttachments.length > 0 && (
                     <div className="mb-2 space-y-2">
                         {fileAttachments.map((file) => (
@@ -94,7 +76,6 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                     </div>
                 )}
 
-                {/* Only show message bubble if there is text content */}
                 {content && content.trim() && (
                     <div className="group flex flex-col gap-2">
                         <div
@@ -111,7 +92,6 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                             )}
                         </div>
 
-                        {/* Toolbar with copy button positioned below bubble */}
                         <div
                             className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 relative ${
                                 role === "user"
@@ -138,7 +118,6 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                     isCopied ? "已复制到剪贴板" : "复制文本内容"
                                 }
                                 title={isCopied ? "已复制到剪贴板" : "复制文本"}
-                                aria-pressed={isCopied}
                             >
                                 {isCopied ? (
                                     <>
@@ -155,7 +134,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                         </div>
                     </div>
                 )}
-                {/* Math Formula Example (Static for now) */}
+
                 {content && content.includes("period formula") && (
                     <div className="my-2 p-6 bg-slate-50 rounded-xl flex justify-center border border-slate-100">
                         <span className="text-2xl font-serif italic">
