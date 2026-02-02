@@ -6,12 +6,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface GradingResultViewProps {
     gradingResult: GradingResult;
-    onImageClick?: (url: string) => void;
 }
 
 export const GradingResultView: React.FC<GradingResultViewProps> = ({
     gradingResult,
-    onImageClick,
 }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -76,10 +74,7 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
 
             {/* Current Image Grading Panel */}
             {currentImage ? (
-                <ImageGradingPanel
-                    imageGrading={currentImage}
-                    onImageClick={onImageClick}
-                />
+                <ImageGradingPanel imageGrading={currentImage} />
             ) : (
                 <div className="bg-slate-100 rounded-2xl p-8 text-center text-slate-500">
                     <p>未找到图片数据</p>

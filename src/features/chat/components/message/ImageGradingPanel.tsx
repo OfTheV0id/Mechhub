@@ -1,64 +1,54 @@
-import React, { useState, useRef } from "react";
+import React from "react";
 import { ImageGradingResult } from "../../../../types/message";
 import { StepAnnotationBox } from "./StepAnnotationBox";
 import { StepFeedbackList } from "./StepFeedbackList";
 import { X, ZoomIn, ChevronRight, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useImageGradingPanel } from "../../hooks/useImageGradingPanel";
 
 interface ImageGradingPanelProps {
     imageGrading: ImageGradingResult;
-    onImageClick?: (url: string) => void;
 }
 
 export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
     imageGrading,
-    onImageClick,
 }) => {
-    const [showDetail, setShowDetail] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
-    const stepRefs = useRef<Map<number, HTMLDivElement>>(new Map());
-
-    const handleSelectStep = (idx: number) => {
-        const newIndex = activeStepIndex === idx ? null : idx;
-        setActiveStepIndex(newIndex);
-        if (newIndex !== null) {
-            const stepEl = stepRefs.current.get(newIndex);
-            stepEl?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-    };
+    const {
+        showDetail,
+        openDetail,
+        closeDetail,
+        isSidebarOpen,
+        toggleSidebar,
+        activeStepIndex,
+        handleSelectStep,
+        stepRefs,
+    } = useImageGradingPanel();
 
     return (
         <>
-            {/* 紧凑卡片视图 - 上图下文 */}
+            {/* 紧凑卡片视图 */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                {/* 顶部：图片 + 标注框 */}
-                {/* 顶部：图片 + 标注框 */}
                 <div
                     className="relative w-full bg-slate-50 cursor-pointer group border-b border-slate-100 flex items-center justify-center overflow-hidden"
-                    onClick={() => setShowDetail(true)}
+                    onClick={openDetail}
                     style={{ aspectRatio: "16/9", minHeight: "200px" }}
                 >
-                    {/* 包装器：确保标注框和图片坐标系一致 */}
                     <div className="relative inline-block max-w-full max-h-full group-hover:scale-105 transition-transform duration-300">
                         <img
                             src={imageGrading.imageUrl}
                             alt="作业图片"
                             className="block max-w-full max-h-full object-contain"
                         />
-                        {/* Compact模式下的标注框 */}
-                        {imageGrading.steps?.map((step, idx) => (
+                        {imageGrading.steps?.map((step) => (
                             <StepAnnotationBox
                                 key={step.stepNumber}
                                 step={step}
                                 isActive={false}
-                                onSelect={() => setShowDetail(true)}
+                                onSelect={openDetail}
                                 isCompact={true}
                             />
                         ))}
                     </div>
-
-                    {/* 悬停遮罩 */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center pointer-events-none z-10">
                         <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
                             <span className="text-sm font-bold text-slate-700 flex items-center gap-2">
@@ -68,7 +58,6 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                     </div>
                 </div>
 
-                {/* 底部：步骤小球列表 */}
                 <div className="p-4 bg-slate-50/50">
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -79,13 +68,14 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                         </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {imageGrading.steps?.map((step, idx) => (
+                        {imageGrading.steps?.map((step) => (
                             <div
                                 key={step.stepNumber}
-                                className={`
-                                    w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm border border-white/50
-                                    ${step.isCorrect ? "bg-green-500" : "bg-red-500"}
-                                `}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm border border-white/50 ${
+                                    step.isCorrect
+                                        ? "bg-green-500"
+                                        : "bg-red-500"
+                                }`}
                                 title={`Step ${step.stepNumber}: ${step.stepTitle} - ${step.isCorrect ? "正确" : "错误"}`}
                             >
                                 {step.stepNumber}
@@ -103,7 +93,7 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
-                        onClick={() => setShowDetail(false)}
+                        onClick={closeDetail}
                     >
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -117,24 +107,19 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                             className="bg-white rounded-2xl w-full max-w-7xl h-[90vh] overflow-hidden flex flex-col shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {/* 头部 */}
                             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white z-10">
-                                <div className="flex items-center gap-4">
-                                    <h3 className="text-xl font-bold text-slate-800">
-                                        详细批改报告
-                                    </h3>
-                                </div>
+                                <h3 className="text-xl font-bold text-slate-800">
+                                    详细批改报告
+                                </h3>
                                 <button
-                                    onClick={() => setShowDetail(false)}
+                                    onClick={closeDetail}
                                     className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 hover:text-slate-800"
                                 >
                                     <X size={24} />
                                 </button>
                             </div>
 
-                            {/* 内容区域 */}
                             <div className="flex-1 flex flex-row overflow-hidden bg-slate-50 relative">
-                                {/* 左侧：大图 (Canvas) - 自适应剩余空间 */}
                                 <div className="flex-1 relative min-w-0 bg-slate-200/50 flex flex-col overflow-auto">
                                     <div className="inline-flex relative m-4 shadow-2xl rounded-lg bg-white border border-slate-200">
                                         <img
@@ -160,22 +145,12 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                                     </div>
                                 </div>
 
-                                {/* 右侧：可折叠反馈列表 */}
                                 <AnimatePresence initial={false}>
                                     {isSidebarOpen && (
                                         <motion.div
-                                            initial={{
-                                                width: 0,
-                                                opacity: 0,
-                                            }}
-                                            animate={{
-                                                width: 320, // 固定宽度，不再用百分比
-                                                opacity: 1,
-                                            }}
-                                            exit={{
-                                                width: 0,
-                                                opacity: 0,
-                                            }}
+                                            initial={{ width: 0, opacity: 0 }}
+                                            animate={{ width: 320, opacity: 1 }}
+                                            exit={{ width: 0, opacity: 0 }}
                                             transition={{
                                                 type: "spring",
                                                 stiffness: 300,
@@ -201,15 +176,10 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                                     )}
                                 </AnimatePresence>
 
-                                {/* 折叠/展开按钮 */}
                                 <motion.button
-                                    onClick={() =>
-                                        setIsSidebarOpen(!isSidebarOpen)
-                                    }
+                                    onClick={toggleSidebar}
                                     initial={false}
-                                    animate={{
-                                        right: isSidebarOpen ? 320 : 0,
-                                    }}
+                                    animate={{ right: isSidebarOpen ? 320 : 0 }}
                                     transition={{
                                         type: "spring",
                                         stiffness: 300,

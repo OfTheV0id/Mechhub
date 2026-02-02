@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { motion } from "motion/react";
 import {
     Settings,
@@ -24,8 +24,6 @@ interface ProfileViewProps {
 
 import { useProfile } from "./hooks/useProfile";
 
-// ... imports remain the same
-
 export const ProfileView: React.FC<ProfileViewProps> = ({
     user,
     onUpdateProfile,
@@ -36,36 +34,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         role,
         setRole,
         avatar,
-        setAvatar,
         isEditing,
         setIsEditing,
         handleSave,
         handleCancel,
+        containerVariants,
+        itemVariants,
     } = useProfile(user, onUpdateProfile);
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2,
-            },
-        },
-    };
-
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: {
-            y: 0,
-            opacity: 1,
-            transition: {
-                type: "spring",
-                stiffness: 300,
-                damping: 24,
-            } as const,
-        },
-    };
 
     return (
         <div className="flex-1 h-full overflow-y-auto bg-slate-50/50">

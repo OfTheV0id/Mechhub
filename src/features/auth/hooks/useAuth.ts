@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
-import { AuthService } from "../../services/AuthService";
-import { UserProfile } from "../../types/user";
+import { AuthService } from "../../../services/AuthService";
+import { UserProfile } from "../../../types/user";
 
 const DEFAULT_USER: UserProfile = {
     name: "张同学",

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Message, FileAttachment } from "../../../types/message";
+import { FileAttachment } from "../../../types/message";
 
 export const useChatInterface = (
     onSendMessage: (
@@ -7,8 +7,6 @@ export const useChatInterface = (
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
     ) => void,
-    mode: "study" | "correct",
-    setMode: (mode: "study" | "correct") => void,
 ) => {
     const [inputText, setInputText] = useState("");
 

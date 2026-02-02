@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 
 import { Settings } from "lucide-react";
+import { MechHubLogo } from "../../components";
 
 interface LandingPageProps {
     onStart: () => void;
@@ -9,8 +10,6 @@ interface LandingPageProps {
 }
 
 import { useLandingPage } from "./hooks/useLandingPage";
-
-// ... existing imports
 
 export const LandingPage: React.FC<LandingPageProps> = ({
     onStart,
@@ -89,21 +88,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     {/* Left Column */}
                     <div className="flex-1 flex flex-col justify-between">
                         {/* Logo */}
-                        <div className="flex items-center gap-3">
-                            <div className="bg-black text-white p-2 rounded-xl">
-                                <Settings
-                                    className="animate-[spin_10s_linear_infinite]"
-                                    size={24}
-                                    strokeWidth={2.5}
-                                />
-                            </div>
-                            <span
-                                className="text-2xl font-bold tracking-tight font-['Courier_New'] text-[32px]"
-                                style={{ fontFamily: "Courier New, monospace" }}
-                            >
-                                MechHub
-                            </span>
-                        </div>
+                        <MechHubLogo />
 
                         {/* Main Text */}
                         <div className="my-12 md:my-0 flex-1 flex flex-col justify-center">
