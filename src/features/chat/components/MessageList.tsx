@@ -8,6 +8,7 @@ interface MessageListProps {
     isTyping: boolean;
     messagesEndRef: React.RefObject<HTMLDivElement | null>;
     sessionId: string | null;
+    isGradingMode?: boolean;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
