@@ -123,11 +123,11 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
 
                             <div className="flex-1 flex flex-row overflow-hidden bg-slate-50 relative">
                                 <div className="flex-1 relative min-w-0 bg-slate-200/50 flex flex-col overflow-auto">
-                                    <div className="flex relative m-4 shadow-2xl rounded-lg bg-white border border-slate-200 w-fit max-w-full">
+                                    <div className="inline-block relative m-4 shadow-2xl rounded-lg bg-white border border-slate-200 max-w-full">
                                         <img
                                             src={imageGrading.imageUrl}
                                             alt="作业图片"
-                                            className="block max-w-full max-h-[600px] object-contain"
+                                            className="block max-w-full h-auto object-contain"
                                         />
                                         {imageGrading.steps?.map(
                                             (step, idx) => (
