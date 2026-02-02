@@ -127,7 +127,7 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                                         <img
                                             src={imageGrading.imageUrl}
                                             alt="作业图片"
-                                            className="block w-auto h-auto min-w-[600px] min-h-[400px] max-w-none object-contain"
+                                            className="block w-full h-auto max-w-full object-contain"
                                         />
                                         {imageGrading.steps?.map(
                                             (step, idx) => (
