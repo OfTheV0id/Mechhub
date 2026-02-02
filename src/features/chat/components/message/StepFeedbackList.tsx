@@ -17,7 +17,7 @@ export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
     stepRefs,
 }) => {
     return (
-        <div className="p-6 bg-slate-50 h-full">
+        <div className="p-6 bg-slate-50">
             <h4 className="font-bold text-lg text-slate-800 mb-5">
                 AI Feedback Breakdown
             </h4>
