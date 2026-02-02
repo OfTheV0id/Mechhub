@@ -103,9 +103,10 @@ export const MessageList: React.FC<MessageListProps> = ({
                     return (
                         <div
                             key={msg.id}
+                            ref={isGradingMode && isGradingResult ? gradingResultRef : null}
                             className={`w-full ${
                                 isGradingMode && isGradingResult
-                                    ? "bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
+                                    ? "bg-white rounded-2xl p-8 shadow-md border border-slate-100 ring-2 ring-amber-100"
                                     : ""
                             }`}
                         >
