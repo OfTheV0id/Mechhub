@@ -72,10 +72,10 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                             <motion.div
                                 key={step.stepNumber}
                                 whileHover={{ scale: 1.1 }}
-                                className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md border-2 cursor-pointer transition-all hover:shadow-lg ${
+                                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-md border-2 cursor-pointer transition-all hover:shadow-lg ${
                                     step.isCorrect
-                                        ? "bg-gradient-to-br from-green-400 to-green-600 border-green-300/50"
-                                        : "bg-gradient-to-br from-red-400 to-red-600 border-red-300/50"
+                                        ? "bg-green-500 border-green-600 text-white"
+                                        : "bg-red-500 border-red-600 text-white"
                                 }`}
                                 title={`Step ${step.stepNumber}: ${step.stepTitle} - ${step.isCorrect ? "正确" : "错误"}`}
                                 onClick={openDetail}
