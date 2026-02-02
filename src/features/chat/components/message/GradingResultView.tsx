@@ -38,46 +38,59 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
 
     return (
         <div className="w-full">
-            {/* Header */}
-            <div className="flex items-center gap-2 mb-4">
-                <AIAvatar isThinking={false} size={32} iconSize={16} />
-                <span className="font-bold text-slate-800">批改结果</span>
+            {/* Prominent Header with Enhanced Styling */}
+            <div className="flex items-center gap-3 mb-6">
+                <AIAvatar isThinking={false} size={40} iconSize={20} />
+                <div className="flex-1">
+                    <h2 className="text-2xl font-bold text-slate-900">批改结果</h2>
+                    <p className="text-xs text-slate-500 mt-1">详细的作业批改报告</p>
+                </div>
             </div>
 
-            {/* Summary Card */}
-            <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-6 mb-4 text-white">
-                <p className="text-slate-300 text-sm leading-relaxed">
-                    {gradingResult.summary}
-                </p>
+            {/* Enhanced Summary Card with Better Visual Hierarchy */}
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 rounded-3xl p-8 mb-8 text-white shadow-lg border border-slate-600/30">
+                <div className="flex items-start gap-3 mb-4">
+                    <div className="flex-shrink-0 w-1 h-10 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full" />
+                    <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">总体评价</h3>
+                        <p className="text-base leading-relaxed text-slate-100">
+                            {gradingResult.summary}
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            {/* Image Navigation (if multiple) */}
+            {/* Image Navigation Section */}
             {hasMultipleImages && (
-                <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="flex items-center justify-center gap-6 mb-8 px-4 py-3 bg-slate-50 rounded-2xl">
                     <button
                         onClick={goToPrev}
-                        className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
+                        className="p-3 rounded-full bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all text-slate-700"
+                        aria-label="上一张"
                     >
-                        <ChevronLeft size={20} />
+                        <ChevronLeft size={20} strokeWidth={2} />
                     </button>
-                    <span className="text-sm text-slate-600">
+                    <span className="text-base font-semibold text-slate-700 min-w-max">
                         图片 {currentImageIndex + 1} / {images.length}
                     </span>
                     <button
                         onClick={goToNext}
-                        className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
+                        className="p-3 rounded-full bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all text-slate-700"
+                        aria-label="下一张"
                     >
-                        <ChevronRight size={20} />
+                        <ChevronRight size={20} strokeWidth={2} />
                     </button>
                 </div>
             )}
 
             {/* Current Image Grading Panel */}
             {currentImage ? (
-                <ImageGradingPanel imageGrading={currentImage} />
+                <div className="mb-2">
+                    <ImageGradingPanel imageGrading={currentImage} />
+                </div>
             ) : (
-                <div className="bg-slate-100 rounded-2xl p-8 text-center text-slate-500">
-                    <p>未找到图片数据</p>
+                <div className="bg-slate-100 rounded-2xl p-12 text-center text-slate-500 border border-slate-200">
+                    <p className="font-semibold">未找到图片数据</p>
                     <p className="text-xs mt-2">
                         images: {JSON.stringify(images)}
                     </p>
