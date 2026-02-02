@@ -26,12 +26,12 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
 
     return (
         <>
-            {/* 紧凑卡片视图 */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            {/* Enhanced Compact Card View - Larger and More Prominent */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col">
                 <div
-                    className="relative w-full bg-slate-50 cursor-pointer group border-b border-slate-100 flex items-center justify-center overflow-hidden"
+                    className="relative w-full bg-gradient-to-b from-slate-50 to-slate-100 cursor-pointer group border-b border-slate-100 flex items-center justify-center overflow-hidden"
                     onClick={openDetail}
-                    style={{ aspectRatio: "16/9", minHeight: "200px" }}
+                    style={{ aspectRatio: "4/3", minHeight: "320px" }}
                 >
                     <div className="relative inline-block max-w-full max-h-full group-hover:scale-105 transition-transform duration-300">
                         <img
@@ -49,37 +49,39 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                             />
                         ))}
                     </div>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center pointer-events-none z-10">
-                        <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                            <span className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                                <ZoomIn size={16} /> 查看详情
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none z-10">
+                        <motion.div className="bg-white/95 backdrop-blur-md px-6 py-3 rounded-full shadow-xl opacity-0 group-hover:opacity-100 transition-all transform translate-y-4 group-hover:translate-y-0">
+                            <span className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                                <ZoomIn size={18} /> 查看详情
                             </span>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
 
-                <div className="p-4 bg-slate-50/50">
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            评测步骤
+                <div className="p-6 bg-slate-50">
+                    <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                            批改步骤
                         </span>
-                        <span className="text-xs text-slate-400">
-                            {imageGrading.steps?.length || 0} Steps
+                        <span className="text-sm font-semibold text-slate-500">
+                            共 {imageGrading.steps?.length || 0} 步
                         </span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-3">
                         {imageGrading.steps?.map((step) => (
-                            <div
+                            <motion.div
                                 key={step.stepNumber}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm border border-white/50 ${
+                                whileHover={{ scale: 1.1 }}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md border-2 cursor-pointer transition-all hover:shadow-lg ${
                                     step.isCorrect
-                                        ? "bg-green-500"
-                                        : "bg-red-500"
+                                        ? "bg-gradient-to-br from-green-400 to-green-600 border-green-300/50"
+                                        : "bg-gradient-to-br from-red-400 to-red-600 border-red-300/50"
                                 }`}
                                 title={`Step ${step.stepNumber}: ${step.stepTitle} - ${step.isCorrect ? "正确" : "错误"}`}
+                                onClick={openDetail}
                             >
                                 {step.stepNumber}
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
