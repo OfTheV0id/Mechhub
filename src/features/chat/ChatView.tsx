@@ -33,6 +33,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const { inputText, setInputText, handleSubmit } =
         useChatInterface(onSendMessage);
 
+    // Detect grading mode: check if last message has gradingResult and mode is "correct"
+    const lastMessage = messages[messages.length - 1];
+    const hasGradingResult = lastMessage?.gradingResult !== undefined;
+    const isGradingMode = mode === "correct" && hasGradingResult;
+
     return (
         <div className="absolute inset-0 flex flex-col bg-white z-0">
             <MessageList
@@ -40,6 +45,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 isTyping={isTyping}
                 messagesEndRef={messagesEndRef}
                 sessionId={sessionId}
+                isGradingMode={isGradingMode}
             />
 
             <ChatInput
