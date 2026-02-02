@@ -26,6 +26,8 @@ export const MessageList: React.FC<MessageListProps> = ({
         handleScroll,
     } = useMessageList({ messages, isTyping, messagesEndRef, sessionId });
 
+    const gradingResultRef = useRef<HTMLDivElement>(null);
+
     const renderMessage = (msg: Message, index: number) => {
         const isLastMessage = index === messages.length - 1;
         const isGenerating =
@@ -49,6 +51,20 @@ export const MessageList: React.FC<MessageListProps> = ({
     // Find the grading result message index for layout adjustment
     const gradingMessageIndex = messages.findIndex(msg => msg.gradingResult !== undefined);
     const shouldShowCollapsedHistory = isGradingMode && gradingMessageIndex > 0;
+
+    // Scroll to grading result when it appears in grading mode
+    useEffect(() => {
+        if (isGradingMode && gradingResultRef.current && !isTyping) {
+            // Delay slightly to allow DOM rendering
+            const timer = setTimeout(() => {
+                gradingResultRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                });
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [isGradingMode, isTyping, messages.length]);
 
     return (
         <div
