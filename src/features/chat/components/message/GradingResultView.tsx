@@ -42,8 +42,12 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
             <div className="flex items-center gap-3 mb-6">
                 <AIAvatar isThinking={false} size={40} iconSize={20} />
                 <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-slate-900">批改结果</h2>
-                    <p className="text-xs text-slate-500 mt-1">详细的作业批改报告</p>
+                    <h2 className="text-2xl font-bold text-slate-900">
+                        批改结果
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                        详细的作业批改报告
+                    </p>
                 </div>
             </div>
 
@@ -52,7 +56,9 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
                 <div className="flex items-start gap-3 mb-4">
                     <div className="flex-shrink-0 w-1 h-10 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full" />
                     <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-blue-700 uppercase tracking-wider mb-3">总体评价</h3>
+                        <h3 className="text-sm font-semibold text-blue-700 uppercase tracking-wider mb-3">
+                            总体评价
+                        </h3>
                         <div className="text-base leading-relaxed text-slate-800">
                             <MarkdownRenderer content={gradingResult.summary} />
                         </div>

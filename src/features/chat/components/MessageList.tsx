@@ -49,7 +49,9 @@ export const MessageList: React.FC<MessageListProps> = ({
     };
 
     // Find the grading result message index for layout adjustment
-    const gradingMessageIndex = messages.findIndex(msg => msg.gradingResult !== undefined);
+    const gradingMessageIndex = messages.findIndex(
+        (msg) => msg.gradingResult !== undefined,
+    );
     const shouldShowCollapsedHistory = isGradingMode && gradingMessageIndex > 0;
 
     // Scroll to grading result when it appears in grading mode
@@ -74,20 +76,30 @@ export const MessageList: React.FC<MessageListProps> = ({
             style={{ overflowAnchor: "none" }}
             onScroll={handleScroll}
         >
-            <div ref={contentRef} className={isGradingMode ? "space-y-6" : "space-y-8"}>
+            <div
+                ref={contentRef}
+                className={isGradingMode ? "space-y-6" : "space-y-8"}
+            >
                 {/* Collapsible History in Grading Mode */}
                 {shouldShowCollapsedHistory && (
                     <details className="cursor-pointer">
                         <summary className="py-2 px-4 text-sm text-slate-500 hover:text-slate-700 select-none flex items-center gap-2">
                             <span>📝 查看对话历史</span>
-                            <span className="text-xs">({gradingMessageIndex} 条消息)</span>
+                            <span className="text-xs">
+                                ({gradingMessageIndex} 条消息)
+                            </span>
                         </summary>
                         <div className="space-y-6 mt-4 pl-4 border-l-2 border-slate-200">
-                            {messages.slice(0, gradingMessageIndex).map((msg, index) => (
-                                <div key={msg.id} className="w-full opacity-75">
-                                    {renderMessage(msg, index)}
-                                </div>
-                            ))}
+                            {messages
+                                .slice(0, gradingMessageIndex)
+                                .map((msg, index) => (
+                                    <div
+                                        key={msg.id}
+                                        className="w-full opacity-75"
+                                    >
+                                        {renderMessage(msg, index)}
+                                    </div>
+                                ))}
                         </div>
                     </details>
                 )}
@@ -95,7 +107,10 @@ export const MessageList: React.FC<MessageListProps> = ({
                 {/* Main Messages */}
                 {messages.map((msg, index) => {
                     // Skip already-rendered history in grading mode
-                    if (shouldShowCollapsedHistory && index < gradingMessageIndex) {
+                    if (
+                        shouldShowCollapsedHistory &&
+                        index < gradingMessageIndex
+                    ) {
                         return null;
                     }
 
@@ -103,7 +118,11 @@ export const MessageList: React.FC<MessageListProps> = ({
                     return (
                         <div
                             key={msg.id}
-                            ref={isGradingMode && isGradingResult ? gradingResultRef : null}
+                            ref={
+                                isGradingMode && isGradingResult
+                                    ? gradingResultRef
+                                    : null
+                            }
                             className={`w-full ${
                                 isGradingMode && isGradingResult
                                     ? "bg-white rounded-2xl p-8 shadow-md border border-slate-100 ring-2 ring-amber-100"
