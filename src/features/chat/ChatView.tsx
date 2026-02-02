@@ -42,6 +42,22 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
     return (
         <div className="absolute inset-0 flex flex-col bg-white z-0">
+            {/* Grading Mode Indicator Banner */}
+            {isGradingMode && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="bg-gradient-to-r from-amber-50 to-blue-50 border-b-2 border-amber-200 px-6 py-3 flex items-center gap-3"
+                >
+                    <CheckCircle size={20} className="text-blue-600 flex-shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-sm font-semibold text-slate-900">批改模式</p>
+                        <p className="text-xs text-slate-600">查看详细的作业批改报告</p>
+                    </div>
+                </motion.div>
+            )}
+
             <MessageList
                 messages={messages}
                 isTyping={isTyping}
