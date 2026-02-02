@@ -3,6 +3,8 @@ import { ChatInput } from "./components/ChatInput";
 import { MessageList } from "./components/MessageList";
 import { Message, FileAttachment } from "../../types/message";
 import { useChatInterface } from "./hooks/useChatInterface";
+import { CheckCircle } from "lucide-react";
+import { motion } from "motion/react";
 
 export type { Message };
 
