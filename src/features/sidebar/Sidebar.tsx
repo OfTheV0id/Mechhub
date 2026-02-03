@@ -1,27 +1,10 @@
 import React from "react";
 import { Plus, Settings, MessageSquare, LogOut } from "lucide-react";
-import { toast } from "sonner";
-import { ChatSession } from "../../types/session";
-import { UserProfile } from "../../types/user";
 import { MissionItem } from "./components/MissionItem";
 import { useSidebarResize } from "./hooks/useSidebarResize";
+import { useSidebarActions } from "./hooks/useSidebarActions";
+import { SidebarProps } from "./types/sidebar";
 import { MechHubLogo } from "../../components";
-
-interface SidebarProps {
-    activeView: string;
-    setActiveView: (view: string) => void;
-    user?: UserProfile;
-    sessions?: ChatSession[];
-    currentSessionId?: string | null;
-    handleSelectSession?: (id: string) => boolean;
-    handleStartNewQuest?: () => void;
-    deleteChatSession?: (
-        id: string,
-    ) => Promise<{ success: boolean; wasCurrentSession: boolean }>;
-    onRenameSession?: (id: string, newTitle: string) => Promise<boolean>;
-    handleSignOut?: () => void;
-    isLoading?: boolean;
-}
 
 export const Sidebar: React.FC<SidebarProps> = ({
     activeView,
@@ -40,36 +23,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     handleSignOut,
     isLoading = false,
 }) => {
-    // Use resize hook for sidebar width management
     const { sidebarWidth, handleMouseDown } = useSidebarResize();
-
-    // Handle new quest: reset session and go to home
-    const onNewQuest = () => {
-        handleStartNewQuest?.();
-        setActiveView("home");
-    };
-
-    // Handle select session: load session and switch to chat view
-    const onSelectSession = (id: string) => {
-        if (handleSelectSession?.(id)) {
-            setActiveView("chat");
-        }
-    };
-
-    // Handle delete session with toast feedback and view switching
-    const handleDeleteSession = async (id: string) => {
-        if (!deleteChatSession) return;
-
-        const result = await deleteChatSession(id);
-        if (result.success) {
-            toast.success("对话已删除");
-            if (result.wasCurrentSession) {
-                setActiveView("home");
-            }
-        } else {
-            toast.error("删除失败");
-        }
-    };
+    const { onNewQuest, onSelectSession, handleDeleteSession } =
+        useSidebarActions({
+            setActiveView,
+            handleSelectSession,
+            handleStartNewQuest,
+            deleteChatSession,
+        });
 
     return (
         <div

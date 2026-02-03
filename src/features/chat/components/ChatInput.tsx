@@ -1,6 +1,7 @@
 import React from "react";
-import { UnifiedInputBar } from "../../../components";
+import { UnifiedInputBar } from "./UnifiedInputBar";
 import { FileAttachment } from "../../../types/message";
+import { ChatMode } from "../types/chat";
 
 interface ChatInputProps {
     inputText: string;
@@ -10,8 +11,8 @@ interface ChatInputProps {
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
     ) => void;
-    mode: "study" | "correct";
-    setMode: (mode: "study" | "correct") => void;
+    mode: ChatMode;
+    setMode: (mode: ChatMode) => void;
 
     isTyping: boolean;
     onStop?: () => void;

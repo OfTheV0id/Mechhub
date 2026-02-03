@@ -1,8 +1,10 @@
 import React from "react";
 import { motion } from "motion/react";
-import { UnifiedInputBar, AIAvatar } from "../../components";
+import { AIAvatar } from "../../components";
+import { UnifiedInputBar } from "../chat";
 import { FileAttachment } from "../../types/message";
 import { useHomeView } from "./hooks/useHomeView";
+import { ChatMode } from "../chat/types/chat";
 
 interface HomeViewProps {
     onStartChat: (
@@ -10,8 +12,8 @@ interface HomeViewProps {
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
     ) => void;
-    mode?: "study" | "correct";
-    setMode?: (mode: "study" | "correct") => void;
+    mode?: ChatMode;
+    setMode?: (mode: ChatMode) => void;
     userName?: string;
 }
 
@@ -50,11 +52,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
     setMode = () => {},
     userName = "同学",
 }) => {
-    const { inputValue, setInputValue, handleSubmit } = useHomeView(
-        onStartChat,
-        mode,
-        setMode,
-    );
+    const { inputValue, setInputValue, handleSubmit } =
+        useHomeView(onStartChat);
 
     return (
         <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-white relative">

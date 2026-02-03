@@ -7,8 +7,6 @@ export const useHomeView = (
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
     ) => void,
-    mode: "study" | "correct" = "study",
-    setMode: (mode: "study" | "correct") => void = () => {},
 ) => {
     const [inputValue, setInputValue] = useState("");
 

@@ -2,7 +2,8 @@ import React, { useRef } from "react";
 import { ChatInput } from "./components/ChatInput";
 import { MessageList } from "./components/MessageList";
 import { Message, SubmitMessage } from "../../types/message";
-import { useChat } from "./hooks/useChat";
+import { useChatInput } from "./hooks/useChatInput";
+import { ChatMode } from "./types/chat";
 
 export type { Message };
 
@@ -11,8 +12,8 @@ interface ChatInterfaceProps {
     onSendMessage: (submitMessage: SubmitMessage) => void;
     onStop?: () => void;
     isTyping: boolean;
-    mode: "study" | "correct";
-    setMode: (mode: "study" | "correct") => void;
+    mode: ChatMode;
+    setMode: (mode: ChatMode) => void;
     sessionId: string | null;
 }
 
@@ -26,7 +27,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     sessionId,
 }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { inputText, setInputText, handleSubmit } = useChat(onSendMessage);
+    const { inputText, setInputText, handleSubmit } =
+        useChatInput(onSendMessage);
 
     const lastMessage = messages[messages.length - 1];
     const hasGradingResult = lastMessage?.gradingResult !== undefined;

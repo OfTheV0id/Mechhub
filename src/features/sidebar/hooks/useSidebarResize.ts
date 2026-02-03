@@ -6,6 +6,7 @@ const DEFAULT_SIDEBAR_WIDTH = 280;
 
 export const useSidebarResize = () => {
     const [sidebarWidth, setSidebarWidth] = useState(() => {
+        if (typeof window === "undefined") return DEFAULT_SIDEBAR_WIDTH;
         const saved = localStorage.getItem("sidebarWidth");
         const parsed = saved ? parseInt(saved, 10) : DEFAULT_SIDEBAR_WIDTH;
         return isNaN(parsed) ? DEFAULT_SIDEBAR_WIDTH : parsed;
@@ -51,7 +52,6 @@ export const useSidebarResize = () => {
 
     return {
         sidebarWidth,
-        isResizing,
         handleMouseDown,
     };
 };

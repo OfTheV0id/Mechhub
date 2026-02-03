@@ -1,15 +1,12 @@
 import React from "react";
 import { motion } from "motion/react";
-
-import { Settings } from "lucide-react";
 import { MechHubLogo } from "../../components";
+import { useLandingPage } from "./hooks/useLandingPage";
 
 interface LandingPageProps {
     onStart: () => void;
     onLogin: () => void;
 }
-
-import { useLandingPage } from "./hooks/useLandingPage";
 
 export const LandingPage: React.FC<LandingPageProps> = ({
     onStart,

@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 import { toast } from "sonner";
-import { FileAttachment } from "../../types/message";
+import { FileAttachment } from "../../../types/message";
+import { ChatMode } from "../types/chat";
 
 interface ImageAttachment {
     id: string;
@@ -71,7 +72,7 @@ interface UseUnifiedInputProps {
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
     ) => void;
-    mode: "study" | "correct";
+    mode: ChatMode;
 }
 
 export const useUnifiedInput = ({

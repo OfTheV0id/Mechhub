@@ -37,18 +37,23 @@ export interface Message extends SubmitMessage {
     id: string;
     role: "user" | "assistant";
     type: "text" | "grading";
+    content?: string;
     gradingResult?: GradingResult;
     createdAt?: string;
 }
 
 export interface SubmitMessage {
     text: string;
+    content?: string;
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
 }
 
-export interface AICompletionRequest extends SubmitMessage {
+export interface AICompletionRequest {
+    messages: Message[];
     mode: "study" | "correct";
+    imageUrls?: string[];
+    fileAttachments?: FileAttachment[];
 }
 
 export interface AICompletionResponse {

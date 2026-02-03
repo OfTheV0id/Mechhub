@@ -16,13 +16,12 @@ import {
 } from "lucide-react";
 
 import { UserProfile } from "../../types/user";
+import { useProfile } from "./hooks/useProfile";
 
 interface ProfileViewProps {
     user?: UserProfile;
     onUpdateProfile?: (name: string, role: string, avatar: string) => void;
 }
-
-import { useProfile } from "./hooks/useProfile";
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
     user,

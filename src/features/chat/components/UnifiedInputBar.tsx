@@ -10,8 +10,9 @@ import {
     FileText,
     Square,
 } from "lucide-react";
-import { FileAttachment } from "../types/message";
-import { useUnifiedInput } from "./hooks/useUnifiedInput";
+import { FileAttachment } from "../../../types/message";
+import { useUnifiedInput } from "../hooks/useUnifiedInput";
+import { ChatMode } from "../types/chat";
 
 interface UnifiedInputBarProps {
     inputValue: string;
@@ -21,8 +22,8 @@ interface UnifiedInputBarProps {
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
     ) => void;
-    mode: "study" | "correct";
-    setMode: (mode: "study" | "correct") => void;
+    mode: ChatMode;
+    setMode: (mode: ChatMode) => void;
     placeholder?: string;
     isTyping?: boolean;
     onStop?: () => void;
