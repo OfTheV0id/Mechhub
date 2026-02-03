@@ -22,7 +22,7 @@ export const StepAnnotationBox: React.FC<StepAnnotationBoxProps> = ({
     // Colors
     const correctColor = "#22c55e"; // green-500
     const incorrectColor = "#ef4444"; // red-500
-    const activeColor = "#1e293b"; // slate-800
+
     const baseColor = step.isCorrect ? correctColor : incorrectColor;
 
     return (
@@ -45,12 +45,13 @@ export const StepAnnotationBox: React.FC<StepAnnotationBoxProps> = ({
             <motion.div
                 className="w-full h-full rounded-xl border-2"
                 animate={{
-                    borderColor: isActive ? activeColor : baseColor,
+                    borderColor: baseColor,
+                    borderWidth: isActive ? "4px" : "2px",
                     backgroundColor: isActive
-                        ? `${activeColor}10` // 10% opacity
+                        ? `${baseColor}20` // 20% opacity when active
                         : `${baseColor}10`,
                     boxShadow: isActive
-                        ? `0 0 0 4px ${activeColor}20` // 20% opacity
+                        ? `0 0 0 4px ${baseColor}20` // 20% opacity
                         : "none",
                 }}
                 transition={{ duration: 0.2 }}
@@ -62,9 +63,9 @@ export const StepAnnotationBox: React.FC<StepAnnotationBoxProps> = ({
                     className="absolute left-1/2 -bottom-5 px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap text-xs font-semibold z-10"
                     style={{ transform: "translateX(-50%)" }}
                     animate={{
-                        backgroundColor: isActive ? activeColor : "#ffffff",
+                        backgroundColor: isActive ? baseColor : "#ffffff",
                         color: isActive ? "#ffffff" : "#475569",
-                        borderColor: isActive ? activeColor : "#e2e8f0",
+                        borderColor: isActive ? baseColor : "#e2e8f0",
                     }}
                     transition={{ duration: 0.2 }}
                 >

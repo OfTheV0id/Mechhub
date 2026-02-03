@@ -68,7 +68,7 @@ export const useMessageList = ({
     const playNotificationSound = () => {
         try {
             const audio = new Audio(NOTIFICATION_SOUND_URL);
-            audio.volume = 0.5;
+            audio.volume = 0.3;
             audio.play().catch((e) => console.log("Audio play failed", e));
         } catch (e) {
             console.error("Audio error", e);
@@ -101,7 +101,7 @@ export const useMessageList = ({
                 scrollContainer.scrollHeight -
                     scrollContainer.scrollTop -
                     scrollContainer.clientHeight <
-                70;
+                300;
 
             if (!isAtBottom) {
                 toastIdRef.current = toast("有新消息", {

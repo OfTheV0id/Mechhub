@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabase";
 import type { Session } from "@supabase/supabase-js";
-import { toast } from "sonner";
 import { AuthService } from "../../../services/AuthService";
 import { UserProfile } from "../../../types/user";
+import { useUpdateProfile } from "./useAuthMutations";
 
 const DEFAULT_USER: UserProfile = {
     name: "张同学",
@@ -16,6 +16,8 @@ export const useAuth = () => {
     const [loading, setLoading] = useState(true);
     const [showAuth, setShowAuth] = useState(false);
     const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER);
+
+    const updateProfileMutation = useUpdateProfile();
 
     useEffect(() => {
         // Get initial session
@@ -37,18 +39,15 @@ export const useAuth = () => {
         return () => subscription.unsubscribe();
     }, []);
 
-    const handleUpdateProfile = async (
+    const handleUpdateProfile = (
         name: string,
         role: string,
         avatar: string,
     ) => {
+        // Optimistically update local state
         setUserProfile({ name, role, avatar });
-        try {
-            await AuthService.updateUser({ name, role, avatar_url: avatar });
-            toast.success("个人信息已更新");
-        } catch (error) {
-            toast.error("更新个人信息失败");
-        }
+
+        updateProfileMutation.mutate({ name, role, avatar });
     };
 
     const handleSignOut = async () => {
@@ -64,5 +63,6 @@ export const useAuth = () => {
         userProfile,
         handleUpdateProfile,
         handleSignOut,
+        isUpdating: updateProfileMutation.isPending,
     };
 };

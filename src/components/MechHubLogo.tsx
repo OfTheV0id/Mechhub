@@ -15,7 +15,7 @@ export const MechHubLogo: React.FC<MechHubLogoProps> = ({
     // Standardize to Landing Page style
     const iconSize = 24;
     const paddingClass = "p-2";
-    const bgClass = "bg-black text-white rounded-lg";
+    const bgClass = "bg-black text-white rounded-xl";
 
     // Both use 32px font size effectively
     const textClass = "text-[32px] font-bold tracking-tight";

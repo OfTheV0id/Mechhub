@@ -17,12 +17,12 @@ export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
     stepRefs,
 }) => {
     return (
-        <div className="p-6 bg-slate-50">
-            <h4 className="font-bold text-lg text-slate-800 mb-5">
+        <div className="p-6 bg-slate-50 h-full flex flex-col min-h-0">
+            <h4 className="font-bold text-lg text-slate-800 mb-5 flex-shrink-0">
                 AI Feedback Breakdown
             </h4>
 
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto pr-2">
                 {steps.map((step, idx) => (
                     <motion.div
                         key={step.stepNumber}

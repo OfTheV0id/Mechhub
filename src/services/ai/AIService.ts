@@ -80,15 +80,7 @@ export class AIService {
         let systemPrompt = `你是一个精通理论力学的AI助教。你的目标是引导学生思考,而不是直接给出答案。
 
 ## 格式要求
-- 使用 Markdown 格式回复
-- 数学公式必须使用 LaTeX 语法:
-  - 行内公式: 使用单个 $ 包围,例如 $E = mc^2$
-  - 独立公式块: 使用双 $$ 包围,例如:
-    $$
-    F = ma
-    $$
-- 不要使用括号 ( ) 或方括号 [ ] 包围数学公式
-- 数学符号使用 LaTeX 命令,例如 \\cdot, \\times, \\frac{}{}, \\sum, \\int 等`;
+- 使用 Markdown 格式回复`;
 
         // Get image URLs from the latest user message for grading mode
         const latestUserMessage = messages
@@ -131,14 +123,7 @@ export class AIService {
 注意：
 1. bbox的x, y, width, height都是百分比(0-100)，表示在图片上的相对位置
 2. 每个步骤都必须指定bbox来标注该步骤在图片上的位置
-3. 图片顺序与用户上传顺序一致
-
-## 数学公式格式要求
-在 comment 和 suggestion 字段中使用数学公式时:
-- 行内公式: 使用单个 $ 包围,例如 $F = ma$
-- 独立公式块: 使用双 $$ 包围
-- 不要使用括号 ( ) 或方括号 [ ] 包围数学公式
-- 数学符号使用 LaTeX 命令,例如 \\cdot, \\times, \\frac{}{}, \\sum, \\Sigma 等`;
+3. 图片顺序与用户上传顺序一致`;
         }
 
         const payloadMessages = [
@@ -303,15 +288,7 @@ export class AIService {
         let systemPrompt = `你是一个精通理论力学的AI助教。你的目标是引导学生思考,而不是直接给出答案。
 
 ## 格式要求
-- 使用 Markdown 格式回复
-- 数学公式必须使用 LaTeX 语法:
-  - 行内公式: 使用单个 $ 包围,例如 $E = mc^2$
-  - 独立公式块: 使用双 $$ 包围,例如:
-    $$
-    F = ma
-    $$
-- 不要使用括号 ( ) 或方括号 [ ] 包围数学公式
-- 数学符号使用 LaTeX 命令,例如 \\cdot, \\times, \\frac{}{}, \\sum, \\int 等`;
+- 使用 Markdown 格式回复`;
 
         const payloadMessages = [
             { role: "system", content: systemPrompt },

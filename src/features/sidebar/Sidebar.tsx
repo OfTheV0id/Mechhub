@@ -87,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             {/* Header */}
-            <div className="px-4 py-6">
+            <div className="px-4 py-6 flex flex-col items-center">
                 <MechHubLogo
                     className="mb-8 cursor-pointer flex-wrap"
                     onClick={() => setActiveView("home")}

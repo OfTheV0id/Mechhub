@@ -99,8 +99,6 @@ export const MissionItem: React.FC<MissionItemProps> = ({
                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
             }`}
         >
-            <Icon size={16} className="flex-shrink-0" />
-
             {isEditing ? (
                 <div
                     className="flex-1 flex items-center gap-1.5 pr-1 overflow-hidden"

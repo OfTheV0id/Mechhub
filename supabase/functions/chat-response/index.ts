@@ -43,6 +43,23 @@ serve(async (req) => {
         // 3. Process Request
         const { messages, stream = false } = await req.json();
 
+        // Inject LaTeX formatting instruction as a system-level requirement
+        // This ensures all mathematical formulas are properly wrapped in delimiters
+        const latexFormattingInstruction = {
+            role: "system",
+            content: `CRITICAL FORMATTING RULE: 你必须将所有数学公式和 LaTeX 命令用正确的分隔符包裹:
+- 行内公式：使用单个 $ 包围，例如 $E = mc^2$、$\\frac{1}{2}$
+- 独立公式块：使用双 $$ 包围
+- 所有 LaTeX 命令（如 \\frac{}{}、\\sqrt{}、\\sum、\\int 等）都必须在 $ 或 $$ 内
+- 不要输出未包裹的裸 LaTeX 命令`,
+        };
+
+        // Prepend to messages if not already present
+        const hasSystemMsg = messages.some((m: any) => m.role === "system");
+        const finalMessages = hasSystemMsg
+            ? [latexFormattingInstruction, ...messages]
+            : [latexFormattingInstruction, ...messages];
+
         const response = await fetch(
             "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
             {
@@ -53,7 +70,7 @@ serve(async (req) => {
                 },
                 body: JSON.stringify({
                     model: "qwen3-vl-plus",
-                    messages: messages,
+                    messages: finalMessages,
                     stream: stream,
                 }),
             },

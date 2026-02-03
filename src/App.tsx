@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Sidebar } from "./features/sidebar/Sidebar";
 import { ChatInterface } from "./features/chat/ChatView";
 import { HomeView } from "./features/home/HomeView";
@@ -7,7 +7,7 @@ import { AuthPage } from "./features/auth/AuthPage";
 import { LandingPage } from "./features/landing/LandingPage";
 import { Toaster } from "sonner";
 import { useAuth } from "./features/auth/hooks/useAuth";
-import { useChatSession } from "./features/chat/hooks/useChatSession";
+import { useChat } from "./features/chat/hooks/useChat";
 import { FileAttachment } from "./types/message";
 
 export default function App() {
@@ -27,7 +27,6 @@ export default function App() {
         currentSessionId,
         chatMode,
         setChatMode,
-        fetchChatSessions,
         deleteChatSession,
         handleSelectSession,
         handleStartNewQuest,
@@ -35,16 +34,9 @@ export default function App() {
         handleRenameSession,
         handleStopGeneration,
         isLoadingSessions,
-    } = useChatSession(session);
+    } = useChat(session);
 
     const [activeView, setActiveView] = useState("home"); // 'home', 'chat', 'profile'
-
-    // Initial fetch when session becomes available
-    useEffect(() => {
-        if (session) {
-            fetchChatSessions();
-        }
-    }, [session]);
 
     // Wrapper to switch view on new message
     const onSendMessageWrapper = (
@@ -53,10 +45,12 @@ export default function App() {
         fileAttachments?: FileAttachment[],
     ) => {
         handleSendMessage(
-            text,
-            imageUrls,
+            {
+                text,
+                imageUrls,
+                fileAttachments,
+            },
             () => setActiveView("chat"),
-            fileAttachments,
         );
     };
 

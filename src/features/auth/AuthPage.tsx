@@ -11,6 +11,7 @@ import {
     EyeOff,
 } from "lucide-react";
 import { useAuthPage } from "./hooks/useAuthPage";
+import { MechHubLogo } from "../../components";
 
 interface AuthPageProps {
     onLoginSuccess: () => void;
@@ -96,34 +97,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                         ) : (
                             <>
                                 {/* Logo */}
-                                <div className="flex items-center gap-2 mb-10 justify-center">
-                                    <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            className="text-white animate-[spin_10s_linear_infinite]"
-                                        >
-                                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-                                            <circle cx="12" cy="12" r="3" />
-                                        </svg>
-                                    </div>
-                                    <span
-                                        className="font-bold text-2xl text-slate-900 tracking-tight text-[32px]"
-                                        style={{
-                                            fontFamily:
-                                                "Courier New, monospace",
-                                        }}
-                                    >
-                                        MechHub
-                                    </span>
-                                </div>
+                                <MechHubLogo className="mb-10 justify-center" />
 
                                 {/* Toggle */}
                                 <div className="bg-slate-100 p-1.5 rounded-full flex relative mb-8">
