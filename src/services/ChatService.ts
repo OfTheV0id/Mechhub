@@ -3,6 +3,20 @@ import { ChatSession } from "../types/session";
 import { supabase } from "../lib/supabase";
 
 export class ChatService {
+    private static normalizeMessage(raw: any): Message {
+        const text =
+            typeof raw?.text === "string"
+                ? raw.text
+                : typeof raw?.content === "string"
+                  ? raw.content
+                  : "";
+
+        return {
+            ...raw,
+            text,
+        };
+    }
+
     static async fetchChats(): Promise<ChatSession[]> {
         // We rely on RLS to filter chats for the current user.
         const { data, error } = await supabase
@@ -18,7 +32,11 @@ export class ChatService {
         return (data || []).map((chat: any) => ({
             id: chat.id,
             title: chat.title,
-            messages: chat.messages,
+            messages: Array.isArray(chat.messages)
+                ? chat.messages.map((message: any) =>
+                      ChatService.normalizeMessage(message),
+                  )
+                : [],
             updatedAt: new Date(chat.updated_at).getTime(),
         }));
     }
@@ -61,7 +79,11 @@ export class ChatService {
         return {
             id: data.id,
             title: data.title,
-            messages: data.messages,
+            messages: Array.isArray(data.messages)
+                ? data.messages.map((message: any) =>
+                      ChatService.normalizeMessage(message),
+                  )
+                : [],
             updatedAt: new Date(data.updated_at).getTime(),
         };
     }

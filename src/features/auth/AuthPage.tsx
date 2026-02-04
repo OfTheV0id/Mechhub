@@ -33,6 +33,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
         isVerificationPending,
         setIsVerificationPending,
     } = useAuthPage(onLoginSuccess);
+    const authInputClass =
+        "w-full rounded-xl border border-slate-200 bg-slate-50 py-3 text-slate-700 outline-none transition-all focus:border-black focus:ring-1 focus:ring-black";
+    const socialButtonClass =
+        "rounded-xl border border-slate-200 p-3 transition-colors hover:bg-slate-50";
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC] p-4">
@@ -46,7 +50,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-white/40 to-transparent" />
 
-                    <div className="relative z-10 p-8 backdrop-blur-md bg-white/30 rounded-2xl border border-white/50 shadow-lg max-w-xs">
+                    <div className="relative z-10 max-w-xs rounded-2xl border border-white/50 bg-white/30 p-8 shadow-lg">
                         <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center mb-4">
                             <GraduationCap className="text-white" />
                         </div>
@@ -153,7 +157,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                                                     setEmail(e.target.value)
                                                 }
                                                 placeholder="student@university.edu"
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-slate-700 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                                                className={`${authInputClass} pl-11 pr-4`}
                                             />
                                         </div>
                                     </div>
@@ -188,7 +192,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                                                     setPassword(e.target.value)
                                                 }
                                                 placeholder="••••••••"
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-11 pr-10 text-slate-700 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                                                className={`${authInputClass} pl-11 pr-10`}
                                             />
                                             <button
                                                 type="button"
@@ -245,7 +249,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                                         onClick={() =>
                                             handleSocialLogin("google")
                                         }
-                                        className="p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                                        className={socialButtonClass}
                                         title="通过 Google 继续"
                                     >
                                         <Chrome
@@ -255,7 +259,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                                     </button>
                                     {/* Note: Google is the most common example, keeping it simple as per design */}
                                     <button
-                                        className="p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                                        className={socialButtonClass}
                                         title="校园账号登录 (模拟)"
                                     >
                                         <GraduationCap

@@ -8,35 +8,27 @@ interface MechHubLogoProps {
 }
 
 export const MechHubLogo: React.FC<MechHubLogoProps> = ({
-    className = "",
+    className,
     onClick,
     onIconClick,
 }) => {
-    // Standardize to Landing Page style
-    const iconSize = 24;
-    const paddingClass = "p-2";
-    const bgClass = "bg-black text-white rounded-xl";
-
-    // Both use 32px font size effectively
-    const textClass = "text-[32px] font-bold tracking-tight";
-
     return (
         <div
             className={`flex items-center gap-3 select-none ${className}`}
             onClick={onClick}
         >
             <div
-                className={`${bgClass} ${paddingClass} cursor-pointer hover:opacity-90 transition-all flex-shrink-0`}
+                className="bg-black text-white rounded-xl p-2 cursor-pointer hover:opacity-90 transition-all"
                 onClick={onIconClick}
             >
                 <Settings
                     className="animate-[spin_10s_linear_infinite]"
-                    size={iconSize}
+                    size={24}
                     strokeWidth={2.5}
                 />
             </div>
             <span
-                className={textClass}
+                className="text-[32px] font-bold tracking-tight"
                 style={{ fontFamily: "Courier New, monospace" }}
             >
                 MechHub

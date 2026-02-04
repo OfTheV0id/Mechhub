@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "motion/react";
 import { AIAvatar } from "../../components";
 import { UnifiedInputBar } from "../chat";
@@ -27,7 +26,7 @@ const TypewriterText = ({
     const letters = text.split("");
 
     return (
-        <span className="inline-block text-left no-underline p-[0px]">
+        <span>
             {letters.map((letter, i) => (
                 <motion.span
                     key={i}
@@ -46,18 +45,18 @@ const TypewriterText = ({
     );
 };
 
-export const HomeView: React.FC<HomeViewProps> = ({
+export const HomeView = ({
     onStartChat,
     mode = "study",
     setMode = () => {},
     userName = "同学",
-}) => {
+}: HomeViewProps) => {
     const { inputValue, setInputValue, handleSubmit } =
         useHomeView(onStartChat);
 
     return (
-        <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-white relative">
-            <div className="max-w-6xl w-full flex flex-col items-start p-[0px] mt-[0px] mr-[0px] mb-[0px] ml-[50px]">
+        <div className="relative flex h-full flex-1 flex-col items-center justify-center bg-white p-8">
+            <div className="ml-[50px] flex w-full max-w-6xl flex-col items-start">
                 {/* Top Greeting Row */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -67,7 +66,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 >
                     <AIAvatar isThinking={true} />
                     {/* Greeting */}
-                    <span className="text-2xl font-semibold text-slate-900 font-sans m-[0px]">
+                    <span className="text-2xl font-semibold text-slate-900">
                         Hi, {userName}
                     </span>
                 </motion.div>
@@ -84,15 +83,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     </h1>
 
                     {/* Bottom Search Bar */}
-                    <div className="w-full relative">
-                        <UnifiedInputBar
-                            inputValue={inputValue}
-                            onInputChange={setInputValue}
-                            onSubmit={handleSubmit}
-                            mode={mode}
-                            setMode={setMode}
-                        />
-                    </div>
+                    <UnifiedInputBar
+                        inputValue={inputValue}
+                        onInputChange={setInputValue}
+                        onSubmit={handleSubmit}
+                        mode={mode}
+                        setMode={setMode}
+                    />
                 </div>
             </div>
         </div>

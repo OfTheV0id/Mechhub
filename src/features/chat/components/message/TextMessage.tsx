@@ -8,7 +8,7 @@ import { useTextMessage } from "../../hooks/useTextMessage";
 
 interface TextMessageProps {
     role: "user" | "assistant";
-    content: string;
+    text: string;
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
@@ -17,13 +17,13 @@ interface TextMessageProps {
 
 export const TextMessage: React.FC<TextMessageProps> = ({
     role,
-    content,
+    text,
     imageUrls,
     fileAttachments,
     onImageClick,
     isGenerating = false,
 }) => {
-    const { isCopied, handleCopyText } = useTextMessage(content);
+    const { isCopied, handleCopyText } = useTextMessage(text);
 
     const displayImages = imageUrls && imageUrls.length > 0 ? imageUrls : [];
 
@@ -53,7 +53,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                     className="w-full h-full object-cover"
                                     loading="lazy"
                                 />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                <div className="absolute inset-0 flex items-center justify-center transition-colors group-hover:bg-black/10">
                                     <ZoomIn
                                         className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md"
                                         size={20}
@@ -76,24 +76,24 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                     </div>
                 )}
 
-                {content && content.trim() && (
+                {text && text.trim() && (
                     <div className="group flex flex-col gap-2">
                         <div
                             className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-y-auto min-w-0 ${
                                 role === "user"
-                                    ? "bg-slate-900 text-white rounded-2xl rounded-tr-sm"
+                                    ? "bg-slate-900 text-white rounded-tr-sm"
                                     : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
                             }`}
                         >
                             {role === "user" ? (
-                                content
+                                text
                             ) : (
-                                <MarkdownRenderer content={content} />
+                                <MarkdownRenderer content={text} />
                             )}
                         </div>
 
                         <div
-                            className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 relative ${
+                            className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${
                                 role === "user"
                                     ? "justify-end"
                                     : "justify-start"
@@ -106,12 +106,12 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                         ? `${
                                               isCopied
                                                   ? "bg-slate-800 text-green-400"
-                                                  : "bg-slate-950/0 text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                                                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
                                           } focus:ring-slate-600 focus:ring-offset-slate-900`
                                         : `${
                                               isCopied
                                                   ? "bg-slate-100/50 text-green-600"
-                                                  : "bg-white/0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                                  : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                           } focus:ring-slate-300 focus:ring-offset-white`
                                 }`}
                                 aria-label={
@@ -135,7 +135,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                     </div>
                 )}
 
-                {content && content.includes("period formula") && (
+                {text && text.includes("period formula") && (
                     <div className="my-2 p-6 bg-slate-50 rounded-xl flex justify-center border border-slate-100">
                         <span className="text-2xl font-serif italic">
                             T ≈ 2π√(L/g)

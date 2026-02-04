@@ -1,12 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { realpathSync } from "fs";
-
-const projectRoot = realpathSync(process.cwd());
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-    root: projectRoot,
-    plugins: [react()],
+    plugins: [tailwindcss(), react()],
     resolve: {
         extensions: [".js", ".jsx", ".ts", ".tsx", ".json"],
     },
@@ -15,7 +12,6 @@ export default defineConfig({
         outDir: "build",
     },
     server: {
-        port: 3000,
         fs: {
             strict: false,
         },

@@ -33,20 +33,18 @@ export interface GradingResult {
     imageGradingResult: ImageGradingResult[];
 }
 
+export interface SubmitMessage {
+    text: string;
+    imageUrls?: string[];
+    fileAttachments?: FileAttachment[];
+}
+
 export interface Message extends SubmitMessage {
     id: string;
     role: "user" | "assistant";
     type: "text" | "grading";
-    content?: string;
     gradingResult?: GradingResult;
     createdAt?: string;
-}
-
-export interface SubmitMessage {
-    text: string;
-    content?: string;
-    imageUrls?: string[];
-    fileAttachments?: FileAttachment[];
 }
 
 export interface AICompletionRequest {
@@ -57,7 +55,7 @@ export interface AICompletionRequest {
 }
 
 export interface AICompletionResponse {
-    content: string;
+    text: string;
     gradingResult?: GradingResult;
 }
 

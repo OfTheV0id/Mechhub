@@ -35,7 +35,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const isGradingMode = mode === "correct" && hasGradingResult;
 
     return (
-        <div className="absolute inset-0 flex flex-col bg-white z-0">
+        <div className="absolute inset-0 z-0 flex flex-col bg-white">
             <MessageList
                 messages={messages}
                 isTyping={isTyping}

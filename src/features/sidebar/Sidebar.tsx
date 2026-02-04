@@ -34,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
     return (
         <div
-            className="flex flex-col bg-white border-r border-slate-200 flex-shrink-0 relative"
+            className="relative flex shrink-0 flex-col border-r border-slate-200 bg-white"
             style={{ width: `${sidebarWidth}px` }}
         >
             {/* Resize Handle */}
@@ -44,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onMouseDown={handleMouseDown}
                 title="拖拽调整侧边栏宽度"
             >
-                <div className="w-[2px] h-full bg-slate-400 hover:bg-blue-500 transition-colors"></div>
+                <div className="h-full w-[2px] bg-slate-400 transition-colors hover:bg-blue-500"></div>
             </div>
 
             {/* Header */}
@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 <button
                     onClick={onNewQuest}
-                    className="w-full flex items-center justify-center gap-2 bg-black hover:bg-slate-800 text-white rounded-full font-bold text-sm transition-all shadow-lg shadow-slate-200 text-[18px] px-[16px] py-[3px]"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-black px-[16px] py-[3px] text-[18px] font-bold text-white shadow-lg shadow-slate-200 transition-all hover:bg-slate-800"
                 >
                     <Plus size={18} strokeWidth={3} />
                     <span className="text-[19px]">新对话</span>
@@ -121,9 +121,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="p-4 border-t border-slate-100 m-2">
                 <button
                     onClick={() => setActiveView("profile")}
-                    className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded-xl transition-colors text-left text-[20px]"
+                    className="flex w-full items-center gap-3 rounded-xl p-2 text-left text-[20px] transition-colors hover:bg-slate-50"
                 >
-                    <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-white bg-slate-200 shadow-sm">
                         <img
                             src={user.avatar}
                             alt={user.name}

@@ -6,6 +6,18 @@ import {
 import { supabase, supabaseUrl, publicAnonKey } from "../../lib/supabase";
 
 export class AIService {
+    private static getMessageText(
+        message: Message & { content?: unknown },
+    ): string {
+        if (typeof message.text === "string") {
+            return message.text;
+        }
+        if (typeof message.content === "string") {
+            return message.content;
+        }
+        return "";
+    }
+
     static async getResponse(
         request: AICompletionRequest,
     ): Promise<AICompletionResponse> {
@@ -17,7 +29,7 @@ export class AIService {
                 ((m.imageUrls && m.imageUrls.length > 0) ||
                     (m.fileAttachments && m.fileAttachments.length > 0))
             ) {
-                let textContent = m.content || " ";
+                let textContent = AIService.getMessageText(m) || " ";
 
                 // Append file content to message text
                 if (m.fileAttachments && m.fileAttachments.length > 0) {
@@ -56,7 +68,7 @@ export class AIService {
                 m.fileAttachments &&
                 m.fileAttachments.length > 0
             ) {
-                let textContent = m.content || " ";
+                let textContent = AIService.getMessageText(m) || " ";
                 const fileContents = m.fileAttachments
                     .map((file) => {
                         const language = file.language || "text";
@@ -73,7 +85,7 @@ export class AIService {
 
             return {
                 role: m.role,
-                content: m.content,
+                content: AIService.getMessageText(m) || " ",
             };
         });
 
@@ -191,7 +203,7 @@ export class AIService {
                         gradingResult,
                     );
                     return {
-                        content: aiReply,
+                        text: aiReply,
                         gradingResult,
                     };
                 }
@@ -202,7 +214,7 @@ export class AIService {
         }
 
         return {
-            content: aiReply,
+            text: aiReply,
         };
     }
 
@@ -225,7 +237,7 @@ export class AIService {
                 ((m.imageUrls && m.imageUrls.length > 0) ||
                     (m.fileAttachments && m.fileAttachments.length > 0))
             ) {
-                let textContent = m.content || " ";
+                let textContent = AIService.getMessageText(m) || " ";
 
                 // Append file content to message text
                 if (m.fileAttachments && m.fileAttachments.length > 0) {
@@ -264,7 +276,7 @@ export class AIService {
                 m.fileAttachments &&
                 m.fileAttachments.length > 0
             ) {
-                let textContent = m.content || " ";
+                let textContent = AIService.getMessageText(m) || " ";
                 const fileContents = m.fileAttachments
                     .map((file) => {
                         const language = file.language || "text";
@@ -281,7 +293,7 @@ export class AIService {
 
             return {
                 role: m.role,
-                content: m.content,
+                content: AIService.getMessageText(m) || " ",
             };
         });
 
@@ -373,14 +385,14 @@ export class AIService {
             if (error instanceof Error && error.name === "AbortError") {
                 console.log("Stream aborted by user");
                 return {
-                    content: fullContent || "生成已停止",
+                    text: fullContent || "生成已停止",
                 };
             }
             throw error;
         }
 
         return {
-            content: fullContent,
+            text: fullContent,
         };
     }
 
@@ -407,9 +419,10 @@ export class AIService {
 
         // Create smart fallback title
         let fallbackTitle = "新对话";
-        if (firstMessage.content && firstMessage.content.trim()) {
+        const firstMessageText = AIService.getMessageText(firstMessage);
+        if (firstMessageText && firstMessageText.trim()) {
             // Has text content
-            fallbackTitle = firstMessage.content.slice(0, 15);
+            fallbackTitle = firstMessageText.slice(0, 15);
         } else if (
             firstMessage.imageUrls &&
             firstMessage.imageUrls.length > 0
@@ -433,10 +446,10 @@ export class AIService {
         const titleMessages: { role: string; content: string }[] = [];
 
         // Add user message (with context about images/files if no text)
-        if (firstMessage.content && firstMessage.content.trim()) {
+        if (firstMessageText && firstMessageText.trim()) {
             titleMessages.push({
                 role: firstMessage.role,
-                content: firstMessage.content,
+                content: firstMessageText,
             });
         } else if (
             firstMessage.imageUrls &&
@@ -458,10 +471,13 @@ export class AIService {
         }
 
         // Add AI response if available
-        if (aiResponse?.content && aiResponse.content.trim()) {
+        const aiResponseText = aiResponse
+            ? AIService.getMessageText(aiResponse)
+            : "";
+        if (aiResponseText && aiResponseText.trim()) {
             titleMessages.push({
                 role: aiResponse.role,
-                content: aiResponse.content,
+                content: aiResponseText,
             });
         }
 

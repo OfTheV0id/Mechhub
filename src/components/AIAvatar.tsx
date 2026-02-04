@@ -6,18 +6,16 @@ interface AIAvatarProps {
     isThinking?: boolean;
     size?: number;
     iconSize?: number;
-    className?: string;
 }
 
 export const AIAvatar: React.FC<AIAvatarProps> = ({
     isThinking = false,
     size = 40,
     iconSize = 20,
-    className = "",
 }) => {
     return (
         <div
-            className={`flex items-center justify-center ${className}`}
+            className="flex items-center justify-center"
             style={{ width: size, height: size }}
         >
             <motion.div

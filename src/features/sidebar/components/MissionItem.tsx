@@ -113,7 +113,7 @@ export const MissionItem: React.FC<MissionItemProps> = ({
                         onBlur={handleSaveRename}
                         className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-blue-500 min-w-0"
                     />
-                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                    <div className="flex shrink-0 items-center gap-0.5">
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -154,7 +154,7 @@ export const MissionItem: React.FC<MissionItemProps> = ({
 
                             {/* Three-dot menu button */}
                             <div
-                                className="relative flex-shrink-0"
+                                className="relative shrink-0"
                                 ref={menuRef}
                             >
                                 <button
@@ -162,7 +162,7 @@ export const MissionItem: React.FC<MissionItemProps> = ({
                                         e.stopPropagation();
                                         setIsMenuOpen(!isMenuOpen);
                                     }}
-                                    className="p-1.5 hover:bg-slate-200 rounded-md transition-all text-slate-400 hover:text-slate-700 opacity-0 group-hover:opacity-100"
+                                    className="rounded-md p-1.5 text-slate-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-slate-200 hover:text-slate-700"
                                     title="更多操作"
                                 >
                                     <MoreVertical size={16} />

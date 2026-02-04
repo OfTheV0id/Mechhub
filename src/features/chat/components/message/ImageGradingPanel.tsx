@@ -45,7 +45,7 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
     return (
         <>
             {/* Enhanced Compact Card View - Larger and More Prominent */}
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col">
+            <div className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg">
                 <div
                     className="relative w-full bg-gradient-to-b from-slate-50 to-slate-100 cursor-pointer group border-b border-slate-100 flex items-center justify-center overflow-hidden"
                     onClick={openDetail}
@@ -67,8 +67,8 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                             />
                         ))}
                     </div>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none z-10">
-                        <motion.div className="bg-white/95 backdrop-blur-md px-6 py-3 rounded-full shadow-xl opacity-0 group-hover:opacity-100 transition-all transform translate-y-4 group-hover:translate-y-0">
+                    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-colors group-hover:bg-black/10">
+                        <motion.div className="rounded-full bg-white/95 px-6 py-3 shadow-xl opacity-0 transition-all translate-y-4 group-hover:translate-y-0 group-hover:opacity-100">
                             <span className="text-base font-semibold text-slate-800 flex items-center gap-2">
                                 <ZoomIn size={18} /> 查看详情
                             </span>
@@ -256,7 +256,7 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                                         stiffness: 300,
                                         damping: 30,
                                     }}
-                                    className="absolute top-1/2 z-30 transform -translate-y-1/2 bg-white border border-slate-200 shadow-md p-1.5 rounded-l-lg hover:bg-slate-50 hover:text-blue-600"
+                                    className="absolute top-1/2 z-30 -translate-y-1/2 rounded-l-lg border border-slate-200 bg-white p-1.5 shadow-md hover:bg-slate-50 hover:text-blue-600"
                                     style={{
                                         borderRight: isSidebarOpen
                                             ? "none"

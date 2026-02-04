@@ -36,7 +36,7 @@ export const MessageList: React.FC<MessageListProps> = ({
         return (
             <TextMessage
                 role={msg.role}
-                content={msg.content}
+                text={msg.text}
                 imageUrls={msg.imageUrls}
                 fileAttachments={msg.fileAttachments}
                 onImageClick={openPreview}

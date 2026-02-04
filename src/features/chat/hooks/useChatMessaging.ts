@@ -145,7 +145,7 @@ export const useChatMessaging = ({
                     updateChatMessages(queryClient, activeId, (msgs) =>
                         msgs.map((message) =>
                             message.id === streamingMessageId
-                                ? { ...message, content: streamedContent }
+                                ? { ...message, text: streamedContent }
                                 : message,
                         ),
                     );
@@ -158,8 +158,7 @@ export const useChatMessaging = ({
             id: streamingMessageId,
             role: "assistant",
             type: "text",
-            text: response.content,
-            content: response.content,
+            text: response.text,
             createdAt: new Date().toISOString(),
         };
     };
@@ -182,8 +181,7 @@ export const useChatMessaging = ({
             id: (Date.now() + 1).toString(),
             role: "assistant",
             type: response.gradingResult ? "grading" : "text",
-            text: response.content,
-            content: response.content,
+            text: response.text,
             gradingResult: response.gradingResult,
             createdAt: new Date().toISOString(),
         };

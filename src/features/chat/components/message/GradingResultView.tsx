@@ -40,7 +40,7 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
         <div className="w-full">
             {/* Prominent Header with Enhanced Styling */}
             <div className="flex items-center gap-3 mb-6">
-                <AIAvatar isThinking={false} size={40} iconSize={20} />
+                <AIAvatar isThinking={false} />
                 <div className="flex-1">
                     <h2 className="text-2xl font-bold text-slate-900">
                         批改结果

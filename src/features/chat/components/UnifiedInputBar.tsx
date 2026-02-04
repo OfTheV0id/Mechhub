@@ -29,7 +29,7 @@ interface UnifiedInputBarProps {
     onStop?: () => void;
 }
 
-export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
+export const UnifiedInputBar = ({
     inputValue,
     onInputChange,
     onSubmit,
@@ -38,7 +38,7 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     placeholder,
     isTyping = false,
     onStop,
-}) => {
+}: UnifiedInputBarProps) => {
     const {
         fileInputRef,
         imageAttachments,
@@ -52,6 +52,8 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
     } = useUnifiedInput({ inputValue, onSubmit, mode });
 
     const showStopButton = isTyping && !!onStop;
+    const modeButtonClass =
+        "relative z-10 flex w-[100px] items-center justify-center gap-2 rounded-[20px] px-4 py-2 text-xs font-bold transition-colors";
 
     return (
         <form onSubmit={handleSubmitInternal} className="w-full relative">
@@ -123,7 +125,7 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                                     onClick={() =>
                                         removeFileAttachment(att.filename)
                                     }
-                                    className="ml-1 text-slate-400 hover:text-slate-600 opacity-100 transition-opacity p-0.5 hover:bg-slate-200 rounded"
+                                    className="ml-1 text-slate-400 hover:text-slate-600 p-0.5 hover:bg-slate-200 rounded"
                                 >
                                     <X size={14} />
                                 </button>
@@ -133,9 +135,9 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                 )}
             </AnimatePresence>
 
-            <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 transition-colors rounded-[32px] p-2 pr-2 border border-slate-200 focus-within:border-slate-300 focus-within:ring-4 focus-within:ring-slate-100 shadow-sm">
+            <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 transition-colors rounded-[32px] p-2 border border-slate-200 focus-within:border-slate-300 focus-within:ring-4 focus-within:ring-slate-100 shadow-sm">
                 {/* Integrated Mode Switcher */}
-                <div className="flex bg-white/80 relative p-1 rounded-[24px] border border-slate-200 mr-1 flex-shrink-0">
+                <div className="relative mr-1 flex shrink-0 rounded-[24px] border border-slate-200 bg-white/80 p-1">
                     <motion.div
                         className="absolute top-1 bottom-1 bg-slate-900 rounded-[20px] shadow-sm z-0"
                         layoutId="activeModeInputUnified"
@@ -154,7 +156,7 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                     <button
                         type="button"
                         onClick={() => setMode("study")}
-                        className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-[20px] text-xs font-bold transition-colors w-[100px] ${
+                        className={`${modeButtonClass} ${
                             mode === "study"
                                 ? "text-white"
                                 : "text-slate-500 hover:text-slate-700"
@@ -166,7 +168,7 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                     <button
                         type="button"
                         onClick={() => setMode("correct")}
-                        className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 rounded-[20px] text-xs font-bold transition-colors w-[100px] ${
+                        className={`${modeButtonClass} ${
                             mode === "correct"
                                 ? "text-white"
                                 : "text-slate-500 hover:text-slate-700"
@@ -192,7 +194,7 @@ export const UnifiedInputBar: React.FC<UnifiedInputBarProps> = ({
                         (mode === "correct" ? "上传你的解答." : "提出你的疑问.")
                     }
                     rows={1}
-                    className="flex-1 bg-transparent border-none outline-none py-3 px-2 text-slate-700 placeholder:text-slate-400 text-lg min-w-0 resize-none max-h-[200px] overflow-y-auto self-center"
+                    className="flex-1 min-w-0 resize-none overflow-y-auto bg-transparent border-none outline-none py-3 px-2 text-lg text-slate-700 placeholder:text-slate-400 max-h-[200px]"
                     onKeyDown={(e) => {
                         if (e.nativeEvent.isComposing) return;
                         if (e.key === "Enter" && !e.shiftKey) {
