@@ -9,6 +9,7 @@ interface StepFeedbackListProps {
     activeStepIndex: number | null;
     onSelectStep: (index: number) => void;
     stepRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
+    stepListContainerRef: React.MutableRefObject<HTMLDivElement | null>;
 }
 
 export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
@@ -16,14 +17,18 @@ export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
     activeStepIndex,
     onSelectStep,
     stepRefs,
+    stepListContainerRef,
 }) => {
     return (
-        <div className="p-2 bg-slate-50 h-full flex flex-col">
-            <h4 className="font-bold text-lg text-slate-800 mb-5 shrink-0">
+        <div className="p-2 bg-slate-50 h-full min-h-0 flex flex-col">
+            <h4 className="font-bold text-lg text-slate-800 shrink-0">
                 AI Feedback Breakdown
             </h4>
 
-            <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+            <div
+                ref={stepListContainerRef}
+                className="space-y-4 flex-1 min-h-0 overflow-y-auto pr-2"
+            >
                 {steps.map((step, idx) => (
                     <motion.div
                         key={step.stepNumber}
@@ -48,9 +53,9 @@ export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
                         {/* 标题行 */}
                         <div className="flex items-center gap-2 mb-2">
                             {step.isCorrect ? (
-                                <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
                             ) : (
-                                <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                                <XCircle className="w-5 h-5 text-red-500 shrink-0" />
                             )}
                             <span className="font-bold text-slate-800">
                                 Step {step.stepNumber}: {step.stepTitle}
@@ -65,7 +70,7 @@ export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
                         {/* 建议（如果有） */}
                         {step.suggestion && (
                             <div className="mt-3 ml-7 flex items-start gap-2 p-3 bg-amber-50 rounded-lg border border-amber-100">
-                                <Lightbulb className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                                <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                                 <div className="text-xs text-amber-700 leading-relaxed">
                                     <MarkdownRenderer
                                         content={step.suggestion}

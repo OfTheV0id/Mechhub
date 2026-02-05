@@ -5,6 +5,7 @@ export const useImageGradingPanel = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
     const stepRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+    const stepListContainerRef = useRef<HTMLDivElement | null>(null);
 
     const openDetail = () => setShowDetail(true);
     const closeDetail = () => setShowDetail(false);
@@ -16,7 +17,21 @@ export const useImageGradingPanel = () => {
         setActiveStepIndex(newIndex);
         if (newIndex !== null) {
             const stepEl = stepRefs.current.get(newIndex);
-            stepEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+            const container = stepListContainerRef.current;
+            if (!stepEl || !container) return;
+
+            const containerTop = container.getBoundingClientRect().top;
+            const stepTop = stepEl.getBoundingClientRect().top;
+            const deltaTop = stepTop - containerTop;
+            const targetTop =
+                container.scrollTop +
+                deltaTop -
+                (container.clientHeight - stepEl.clientHeight) / 2;
+
+            container.scrollTo({
+                top: Math.max(0, targetTop),
+                behavior: "smooth",
+            });
         }
     };
 
@@ -68,6 +83,7 @@ export const useImageGradingPanel = () => {
         activeStepIndex,
         handleSelectStep,
         stepRefs,
+        stepListContainerRef,
         // Zoom & Pan
         scale,
         position,

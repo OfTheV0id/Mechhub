@@ -1,4 +1,4 @@
-import { MutableRefObject, useRef, useState } from "react";
+import { MutableRefObject } from "react";
 import { QueryClient } from "@tanstack/react-query";
 import { AIService } from "../../../services/ai/AIService";
 import { Message, SubmitMessage } from "../../../types/message";
@@ -12,6 +12,7 @@ import {
     updateChatTitle,
 } from "../lib/chatCache";
 import { ChatMode } from "../types/chat";
+import { useChatGenerationState } from "./useChatGenerationState";
 
 interface UseChatMessagingParams {
     chatMode: ChatMode;
@@ -36,20 +37,16 @@ export const useChatMessaging = ({
     saveChat,
     generateTitle,
 }: UseChatMessagingParams) => {
-    const [isTyping, setIsTyping] = useState(false);
-    const [generatingSessionId, setGeneratingSessionId] = useState<
-        string | null
-    >(null);
-
-    const abortControllerRef = useRef<AbortController | null>(null);
-    const isSubmittingRef = useRef(false);
-
-    const resetSubmissionState = () => {
-        setIsTyping(false);
-        setGeneratingSessionId(null);
-        abortControllerRef.current = null;
-        isSubmittingRef.current = false;
-    };
+    const {
+        typingSessionIds,
+        setSessionTyping,
+        registerAbortController,
+        getAbortController,
+        canSubmit,
+        markSubmitting,
+        resetSubmissionState,
+        clearNewChatSubmitting,
+    } = useChatGenerationState();
 
     const isMessageEmpty = ({
         text,
@@ -87,7 +84,7 @@ export const useChatMessaging = ({
 
             setCurrentSessionId(tempId);
             prependChatSession(queryClient, newSession);
-            setGeneratingSessionId(tempId);
+            setSessionTyping(tempId, true);
 
             return {
                 activeId: tempId,
@@ -100,7 +97,7 @@ export const useChatMessaging = ({
             ...msgs,
             newMessage,
         ]);
-        setGeneratingSessionId(currentSessionId);
+        setSessionTyping(currentSessionId, true);
 
         return {
             activeId: currentSessionId,
@@ -112,6 +109,7 @@ export const useChatMessaging = ({
     const runStudyMessage = async (
         activeId: string,
         submitMessage: SubmitMessage,
+        signal?: AbortSignal,
     ): Promise<Message> => {
         const streamingMessageId = (Date.now() + 1).toString();
         const streamingMessage: Message = {
@@ -143,17 +141,15 @@ export const useChatMessaging = ({
             },
             (chunk) => {
                 streamedContent += chunk;
-                if (activeId === currentSessionIdRef.current) {
-                    updateChatMessages(queryClient, activeId, (msgs) =>
-                        msgs.map((message) =>
-                            message.id === streamingMessageId
-                                ? { ...message, text: streamedContent }
-                                : message,
-                        ),
-                    );
-                }
+                updateChatMessages(queryClient, activeId, (msgs) =>
+                    msgs.map((message) =>
+                        message.id === streamingMessageId
+                            ? { ...message, text: streamedContent }
+                            : message,
+                    ),
+                );
             },
-            abortControllerRef.current?.signal,
+            signal,
         );
 
         return {
@@ -258,9 +254,14 @@ export const useChatMessaging = ({
     };
 
     const handleStopGeneration = () => {
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-            resetSubmissionState();
+        const sessionId = currentSessionIdRef.current;
+        if (!sessionId) return;
+
+        const controller = getAbortController(sessionId);
+        if (controller) {
+            controller.abort();
+            resetSubmissionState(sessionId, false);
+            clearNewChatSubmitting();
         }
     };
 
@@ -271,11 +272,8 @@ export const useChatMessaging = ({
         const { text } = submitMessage;
         if (isMessageEmpty(submitMessage)) return;
 
-        if (isSubmittingRef.current) return;
+        if (!canSubmit(currentSessionId, !currentSessionId)) return;
         if (switchToChatView) switchToChatView();
-
-        isSubmittingRef.current = true;
-        setIsTyping(true);
 
         const mode = chatMode;
         const newMessage = createUserMessage(submitMessage);
@@ -284,15 +282,23 @@ export const useChatMessaging = ({
             text,
         );
 
+        if (!canSubmit(activeId, isNewChat)) return;
+        markSubmitting(activeId, isNewChat);
+
         try {
-            abortControllerRef.current = new AbortController();
+            const controller = new AbortController();
+            registerAbortController(activeId, controller);
             const aiResponse =
                 mode === "study"
-                    ? await runStudyMessage(activeId, submitMessage)
+                    ? await runStudyMessage(
+                          activeId,
+                          submitMessage,
+                          controller.signal,
+                      )
                     : await runCorrectMessage(activeId, submitMessage);
 
             applyAssistantMessage(activeId, mode, aiResponse);
-            resetSubmissionState();
+            resetSubmissionState(activeId, isNewChat);
 
             const finalMessages = await persistSession(activeId, chatTitle);
             if (isNewChat) {
@@ -306,13 +312,12 @@ export const useChatMessaging = ({
                 setCurrentSessionId(null);
             }
 
-            resetSubmissionState();
+            resetSubmissionState(activeId, isNewChat);
         }
     };
 
     return {
-        isTyping,
-        generatingSessionId,
+        typingSessionIds,
         handleSendMessage,
         handleStopGeneration,
     };

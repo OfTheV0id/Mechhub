@@ -6,6 +6,70 @@ import { chatKeys } from "../queries/useChatQueries";
 const getChatList = (queryClient: QueryClient): ChatSession[] =>
     queryClient.getQueryData<ChatSession[]>(chatKeys.lists()) || [];
 
+const mergeMessages = (local: Message[], remote: Message[]) => {
+    if (!local.length) return remote;
+    if (!remote.length) return local;
+
+    const remoteById = new Map(remote.map((message) => [message.id, message]));
+    const localById = new Map(local.map((message) => [message.id, message]));
+    const merged = remote.map((message) => {
+        const localMessage = localById.get(message.id);
+        if (!localMessage) return message;
+
+        const remoteTextLen = message.text?.length ?? 0;
+        const localTextLen = localMessage.text?.length ?? 0;
+        const preferLocal =
+            localTextLen > remoteTextLen ||
+            (!!localMessage.gradingResult && !message.gradingResult);
+
+        return preferLocal
+            ? { ...message, ...localMessage }
+            : { ...localMessage, ...message };
+    });
+
+    for (const message of local) {
+        if (!remoteById.has(message.id)) merged.push(message);
+    }
+
+    return merged;
+};
+
+export const mergeChatSessions = (
+    local: ChatSession[],
+    remote: ChatSession[],
+): ChatSession[] => {
+    if (!local.length) return remote;
+    if (!remote.length) return local;
+
+    const localById = new Map(local.map((session) => [session.id, session]));
+    const remoteIds = new Set(remote.map((session) => session.id));
+    const merged = remote.map((session) => {
+        const localSession = localById.get(session.id);
+        if (!localSession) return session;
+
+        const mergedMessages = mergeMessages(
+            localSession.messages || [],
+            session.messages || [],
+        );
+
+        return {
+            ...session,
+            isGeneratingTitle:
+                localSession.isGeneratingTitle ?? session.isGeneratingTitle,
+            messages: mergedMessages,
+            updatedAt:
+                Math.max(localSession.updatedAt || 0, session.updatedAt || 0) ||
+                session.updatedAt,
+        };
+    });
+
+    for (const session of local) {
+        if (!remoteIds.has(session.id)) merged.push(session);
+    }
+
+    return merged.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+};
+
 export const findChatById = (
     queryClient: QueryClient,
     sessionId: string,

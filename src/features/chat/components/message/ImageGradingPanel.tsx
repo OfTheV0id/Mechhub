@@ -30,6 +30,7 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
         activeStepIndex,
         handleSelectStep,
         stepRefs,
+        stepListContainerRef,
         // Zoom & Pan
         scale,
         position,
@@ -242,6 +243,9 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                                                 }
                                                 onSelectStep={handleSelectStep}
                                                 stepRefs={stepRefs}
+                                                stepListContainerRef={
+                                                    stepListContainerRef
+                                                }
                                             />
                                         </motion.div>
                                     )}

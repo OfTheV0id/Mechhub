@@ -1,6 +1,6 @@
 {
     "name": "mechhub",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "private": true,
     "dependencies": {
         "@jsr/supabase__supabase-js": "^2.49.8",

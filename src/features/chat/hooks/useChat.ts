@@ -31,8 +31,7 @@ export const useChat = (session: Session | null) => {
     }, [currentSessionId]);
 
     const {
-        isTyping,
-        generatingSessionId,
+        typingSessionIds,
         handleSendMessage,
         handleStopGeneration,
     } = useChatMessaging({
@@ -48,7 +47,8 @@ export const useChat = (session: Session | null) => {
 
     return {
         messages,
-        isTyping: isTyping && currentSessionId === generatingSessionId,
+        isTyping:
+            !!currentSessionId && typingSessionIds.has(currentSessionId),
         chatSessions,
         currentSessionId,
         chatMode,

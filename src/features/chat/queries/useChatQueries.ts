@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChatService } from "../../../services/ChatService";
 import { Message } from "../../../types/message";
+import { ChatSession } from "../../../types/session";
 import { AIService } from "../../../services/ai/AIService";
 import {
+    mergeChatSessions,
     removeChatSession,
     updateChatTitle,
     upsertSavedChatSession,
@@ -15,10 +17,17 @@ export const chatKeys = {
 };
 
 export const useChats = (enabled = true) => {
+    const queryClient = useQueryClient();
+
     return useQuery({
         queryKey: chatKeys.lists(),
         queryFn: ChatService.fetchChats,
         enabled,
+        select: (remoteChats) =>
+            mergeChatSessions(
+                queryClient.getQueryData<ChatSession[]>(chatKeys.lists()) || [],
+                remoteChats || [],
+            ),
     });
 };
 
@@ -41,6 +50,7 @@ export const useSaveChat = () => {
             upsertSavedChatSession(queryClient, savedChat);
             await queryClient.invalidateQueries({
                 queryKey: chatKeys.lists(),
+                refetchType: "inactive",
             });
         },
     });
