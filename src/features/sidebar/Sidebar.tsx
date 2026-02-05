@@ -1,27 +1,13 @@
 import React from "react";
 import { Plus, Settings, MessageSquare, LogOut } from "lucide-react";
-import { toast } from "sonner";
-import { ChatSession } from "../../types/session";
-import { UserProfile } from "../../types/user";
 import { MissionItem } from "./components/MissionItem";
 import { useSidebarResize } from "./hooks/useSidebarResize";
+import { useSidebarActions } from "./hooks/useSidebarActions";
+import { SidebarProps } from "./types/sidebar";
 import { MechHubLogo } from "../../components";
-
-interface SidebarProps {
-    activeView: string;
-    setActiveView: (view: string) => void;
-    user?: UserProfile;
-    sessions?: ChatSession[];
-    currentSessionId?: string | null;
-    handleSelectSession?: (id: string) => boolean;
-    handleStartNewQuest?: () => void;
-    deleteChatSession?: (
-        id: string,
-    ) => Promise<{ success: boolean; wasCurrentSession: boolean }>;
-    onRenameSession?: (id: string, newTitle: string) => Promise<boolean>;
-    handleSignOut?: () => void;
-    isLoading?: boolean;
-}
+import { Button } from "../../components/ui/button";
+import { ICON_SIZE, ICON_STROKE_WIDTH } from "../../lib/ui-constants";
+import { cn } from "../../lib/utils";
 
 export const Sidebar: React.FC<SidebarProps> = ({
     activeView,
@@ -40,54 +26,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
     handleSignOut,
     isLoading = false,
 }) => {
-    // Use resize hook for sidebar width management
     const { sidebarWidth, handleMouseDown } = useSidebarResize();
-
-    // Handle new quest: reset session and go to home
-    const onNewQuest = () => {
-        handleStartNewQuest?.();
-        setActiveView("home");
-    };
-
-    // Handle select session: load session and switch to chat view
-    const onSelectSession = (id: string) => {
-        if (handleSelectSession?.(id)) {
-            setActiveView("chat");
-        }
-    };
-
-    // Handle delete session with toast feedback and view switching
-    const handleDeleteSession = async (id: string) => {
-        if (!deleteChatSession) return;
-
-        const result = await deleteChatSession(id);
-        if (result.success) {
-            toast.success("对话已删除");
-            if (result.wasCurrentSession) {
-                setActiveView("home");
-            }
-        } else {
-            toast.error("删除失败");
-        }
-    };
+    const { onNewQuest, onSelectSession, handleDeleteSession } =
+        useSidebarActions({
+            setActiveView,
+            handleSelectSession,
+            handleStartNewQuest,
+            deleteChatSession,
+        });
 
     return (
         <div
-            className="flex flex-col bg-white border-r border-slate-200 flex-shrink-0 relative"
+            className="relative flex flex-col border-r border-canvas-alt bg-canvas-alt"
             style={{ width: `${sidebarWidth}px` }}
         >
             {/* Resize Handle */}
             <div
-                className="absolute top-0 right-0 w-3 h-full z-50 flex items-center justify-center"
+                className="absolute top-0 right-0 w-3 h-full z-50 flex "
                 style={{ cursor: "ew-resize" }}
                 onMouseDown={handleMouseDown}
                 title="拖拽调整侧边栏宽度"
-            >
-                <div className="w-[2px] h-full bg-slate-400 hover:bg-blue-500 transition-colors"></div>
-            </div>
+            ></div>
 
             {/* Header */}
-            <div className="px-4 py-6">
+            <div className="px-4 py-6 flex flex-col items-center">
                 <MechHubLogo
                     className="mb-8 cursor-pointer flex-wrap"
                     onClick={() => setActiveView("home")}
@@ -97,29 +59,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }}
                 />
 
-                <button
+                <Button
                     onClick={onNewQuest}
-                    className="w-full flex items-center justify-center gap-2 bg-black hover:bg-slate-800 text-white rounded-full font-bold text-sm transition-all shadow-lg shadow-slate-200 text-[18px] px-[16px] py-[3px]"
+                    size="sm"
+                    className="w-full rounded-xl text-on-ink [font-size:var(--font-size-sidebar-btn-icon)]"
                 >
-                    <Plus size={18} strokeWidth={3} />
-                    <span className="text-[19px]">新对话</span>
-                </button>
+                    <Plus
+                        size={ICON_SIZE.lg}
+                        strokeWidth={ICON_STROKE_WIDTH.strong}
+                    />
+                    <span className="text-on-ink [font-size:var(--font-size-sidebar-btn-label)]">
+                        新对话
+                    </span>
+                </Button>
             </div>
 
             {/* Recent Missions */}
             <div className="flex-1 overflow-y-auto px-6 py-2">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+                <h3 className="text-xs font-bold text-text-faint uppercase tracking-wider mb-4">
                     最近对话
                 </h3>
                 <div className="space-y-1">
                     {isLoading ? (
                         <div className="animate-pulse space-y-3">
-                            <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
-                            <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
-                            <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
+                            <div className="h-10 bg-fill-soft rounded-lg w-full"></div>
+                            <div className="h-10 bg-fill-soft rounded-lg w-full"></div>
+                            <div className="h-10 bg-fill-soft rounded-lg w-full"></div>
                         </div>
                     ) : sessions.length === 0 ? (
-                        <div className="text-sm text-slate-400 text-center py-4">
+                        <div className="text-sm text-text-faint text-center py-4">
                             暂无历史记录
                         </div>
                     ) : (
@@ -157,12 +125,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             {/* User Footer */}
-            <div className="p-4 border-t border-slate-100 m-2">
+            <div className="p-4">
                 <button
                     onClick={() => setActiveView("profile")}
-                    className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded-xl transition-colors text-left text-[20px]"
+                    className={cn(
+                        "flex w-full items-center gap-3 rounded-xl p-2 text-left [font-size:var(--font-size-profile-trigger)] transition-colors",
+                        activeView === "profile"
+                            ? "bg-surface text-text-secondary"
+                            : "text-text-secondary hover:bg-surface",
+                    )}
                 >
-                    <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-surface bg-border-subtle shadow-sm">
                         <img
                             src={user.avatar}
                             alt={user.name}
@@ -170,23 +143,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <div className="font-bold text-sm text-slate-800 truncate">
+                        <div className="font-bold text-sm text-text-secondary truncate">
                             {user.name}
                         </div>
-                        <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wide truncate">
-                            {user.role}
-                        </div>
                     </div>
-                    <Settings size={16} className="text-slate-300" />
+                    <Settings size={ICON_SIZE.md} className="text-focus-ring" />
                 </button>
 
                 {/* Sign Out Button */}
                 {handleSignOut && (
                     <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors w-full px-4 py-2 mt-2 rounded-lg hover:bg-slate-50"
+                        className="flex items-center gap-2 text-xs font-bold text-text-faint hover:text-danger transition-colors w-full px-4 py-2 mt-2 rounded-lg hover:bg-fill-muted"
                     >
-                        <LogOut size={14} />
+                        <LogOut size={ICON_SIZE.xs} />
                         退出登录
                     </button>
                 )}

@@ -8,30 +8,41 @@ import { useTextMessage } from "../../hooks/useTextMessage";
 
 interface TextMessageProps {
     role: "user" | "assistant";
-    content: string;
+    text: string;
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
     isGenerating?: boolean;
+    showGeneratingLabel?: boolean;
 }
 
 export const TextMessage: React.FC<TextMessageProps> = ({
     role,
-    content,
+    text,
     imageUrls,
     fileAttachments,
     onImageClick,
     isGenerating = false,
+    showGeneratingLabel = false,
 }) => {
-    const { isCopied, handleCopyText } = useTextMessage(content);
+    const { isCopied, handleCopyText } = useTextMessage(text);
 
     const displayImages = imageUrls && imageUrls.length > 0 ? imageUrls : [];
 
     return (
         <div
-            className={`flex gap-4 ${role === "user" ? "flex-row-reverse" : ""}`}
+            className={`flex ${role === "user" ? "flex-row-reverse" : "relative pl-12"}`}
         >
-            {role === "assistant" && <AIAvatar isThinking={isGenerating} />}
+            {role === "assistant" && (
+                <div className="absolute left-0 top-0 flex items-center gap-2">
+                    <AIAvatar isThinking={isGenerating} />
+                    {showGeneratingLabel && (
+                        <div className="[font-size:var(--font-size-meta)] text-text-faint animate-pulse select-none">
+                            生成中...
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div
                 className={`flex flex-col gap-1 max-w-[90%] min-w-0 ${role === "user" ? "items-end" : "items-start"}`}
@@ -53,7 +64,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                     className="w-full h-full object-cover"
                                     loading="lazy"
                                 />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                <div className="absolute inset-0 flex items-center justify-center transition-colors group-hover:bg-black/10">
                                     <ZoomIn
                                         className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md"
                                         size={20}
@@ -76,24 +87,24 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                     </div>
                 )}
 
-                {content && content.trim() && (
+                {text && text.trim() && (
                     <div className="group flex flex-col gap-2">
                         <div
-                            className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-y-auto min-w-0 ${
+                            className={`text-base leading-loose p-3 overflow-y-auto min-w-0 ${
                                 role === "user"
-                                    ? "bg-slate-900 text-white rounded-2xl rounded-tr-sm"
-                                    : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
+                                    ? "bg-slate-900 text-white rounded-xl rounded-tr-xs"
+                                    : "bg-fill-muted border-none text-slate-700 rounded-none"
                             }`}
                         >
                             {role === "user" ? (
-                                content
+                                text
                             ) : (
-                                <MarkdownRenderer content={content} />
+                                <MarkdownRenderer content={text} />
                             )}
                         </div>
 
                         <div
-                            className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 relative ${
+                            className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${
                                 role === "user"
                                     ? "justify-end"
                                     : "justify-start"
@@ -106,12 +117,12 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                         ? `${
                                               isCopied
                                                   ? "bg-slate-800 text-green-400"
-                                                  : "bg-slate-950/0 text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                                                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
                                           } focus:ring-slate-600 focus:ring-offset-slate-900`
                                         : `${
                                               isCopied
                                                   ? "bg-slate-100/50 text-green-600"
-                                                  : "bg-white/0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                                  : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                           } focus:ring-slate-300 focus:ring-offset-white`
                                 }`}
                                 aria-label={
@@ -132,14 +143,6 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                 )}
                             </button>
                         </div>
-                    </div>
-                )}
-
-                {content && content.includes("period formula") && (
-                    <div className="my-2 p-6 bg-slate-50 rounded-xl flex justify-center border border-slate-100">
-                        <span className="text-2xl font-serif italic">
-                            T ≈ 2π√(L/g)
-                        </span>
                     </div>
                 )}
             </div>

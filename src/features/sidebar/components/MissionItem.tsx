@@ -8,6 +8,9 @@ import {
     MoreVertical,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Input } from "../../../components/ui/input";
+import { ICON_SIZE } from "../../../lib/ui-constants";
+import { cn } from "../../../lib/utils";
 
 interface MissionItemProps {
     label: string;
@@ -73,7 +76,6 @@ export const MissionItem: React.FC<MissionItemProps> = ({
         } else {
             setEditTitle(label);
             setIsEditing(false);
-            toast.error("重命名失败，请重试");
         }
     };
 
@@ -93,48 +95,49 @@ export const MissionItem: React.FC<MissionItemProps> = ({
     return (
         <div
             onClick={onClick}
-            className={`w-full group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors relative cursor-pointer ${
+            className={cn(
+                "w-full group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors relative cursor-pointer",
                 active
-                    ? "bg-slate-100 text-slate-900"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-            }`}
+                    ? "bg-surface text-text-secondary"
+                    : "text-text-subtle hover:bg-surface hover:text-text-secondary",
+            )}
         >
-            <Icon size={16} className="flex-shrink-0" />
-
             {isEditing ? (
                 <div
                     className="flex-1 flex items-center gap-1.5 pr-1 overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <input
+                    <Input
                         ref={inputRef}
                         type="text"
+                        inputSize="sm"
+                        variant="ghost"
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
                         onKeyDown={handleKeyDown}
                         onBlur={handleSaveRename}
-                        className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:border-blue-500 min-w-0"
+                        className="flex-1 min-w-0"
                     />
-                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                    <div className="flex shrink-0 items-center gap-0.5">
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleSaveRename();
                             }}
-                            className="p-1 hover:bg-green-100 rounded transition-all text-slate-500 hover:text-green-600"
+                            className="p-1 hover:bg-success-bg rounded transition-all text-text-subtle hover:text-success"
                             title="保存 (Enter)"
                         >
-                            <Check size={14} />
+                            <Check size={ICON_SIZE.xs} />
                         </button>
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleCancelRename();
                             }}
-                            className="p-1 hover:bg-red-100 rounded transition-all text-slate-500 hover:text-red-600"
+                            className="p-1 hover:bg-danger-bg rounded transition-all text-text-subtle hover:text-danger-hover"
                             title="取消 (Esc)"
                         >
-                            <X size={14} />
+                            <X size={ICON_SIZE.xs} />
                         </button>
                     </div>
                 </div>
@@ -142,8 +145,8 @@ export const MissionItem: React.FC<MissionItemProps> = ({
                 <>
                     {isGeneratingTitle ? (
                         <div className="flex-1 flex items-center gap-2">
-                            <div className="h-3 bg-slate-200 rounded animate-pulse flex-1 max-w-[120px]"></div>
-                            <div className="text-[10px] text-slate-400 animate-pulse">
+                            <div className="h-3 bg-border-subtle rounded animate-pulse flex-1 max-w-(--size-mission-skeleton-max-w)"></div>
+                            <div className="text-(--font-size-meta) animate-pulse">
                                 生成中...
                             </div>
                         </div>
@@ -155,24 +158,21 @@ export const MissionItem: React.FC<MissionItemProps> = ({
                             </span>
 
                             {/* Three-dot menu button */}
-                            <div
-                                className="relative flex-shrink-0"
-                                ref={menuRef}
-                            >
+                            <div className="relative shrink-0" ref={menuRef}>
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setIsMenuOpen(!isMenuOpen);
                                     }}
-                                    className="p-1.5 hover:bg-slate-200 rounded-md transition-all text-slate-400 hover:text-slate-700 opacity-0 group-hover:opacity-100"
+                                    className="rounded-md p-1.5 text-text-faint opacity-0 transition-all group-hover:opacity-100 hover:bg-border-subtle hover:text-text-secondary"
                                     title="更多操作"
                                 >
-                                    <MoreVertical size={16} />
+                                    <MoreVertical size={ICON_SIZE.md} />
                                 </button>
 
                                 {/* Dropdown menu */}
                                 {isMenuOpen && (
-                                    <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-slate-100 py-1.5 w-32 z-50 overflow-hidden">
+                                    <div className="absolute right-0 top-full mt-1 bg-surface rounded-lg shadow-xl border border-border-soft py-1.5 w-32 z-50 overflow-hidden">
                                         {onRename && (
                                             <button
                                                 onClick={(e) => {
@@ -180,11 +180,11 @@ export const MissionItem: React.FC<MissionItemProps> = ({
                                                     setIsMenuOpen(false);
                                                     setIsEditing(true);
                                                 }}
-                                                className="w-full px-3 py-2 text-left text-sm hover:bg-slate-50 flex items-center gap-2.5 text-slate-700 transition-colors whitespace-nowrap leading-none"
+                                                className="w-full px-3 py-2 text-left text-sm hover:bg-fill-muted flex items-center gap-2.5 text-text-secondary transition-colors whitespace-nowrap leading-none"
                                             >
                                                 <Edit2
-                                                    size={15}
-                                                    className="text-blue-500 stroke-[1.5]"
+                                                    size={ICON_SIZE.sm}
+                                                    className="text-info stroke-[1.5]"
                                                 />
                                                 <span className="font-medium">
                                                     重命名
@@ -198,11 +198,11 @@ export const MissionItem: React.FC<MissionItemProps> = ({
                                                     setIsMenuOpen(false);
                                                     onDelete(e);
                                                 }}
-                                                className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 flex items-center gap-2.5 text-slate-700 hover:text-red-600 transition-colors whitespace-nowrap leading-none"
+                                                className="w-full px-3 py-2 text-left text-sm hover:bg-danger-bg flex items-center gap-2.5 text-text-secondary hover:text-danger-hover transition-colors whitespace-nowrap leading-none"
                                             >
                                                 <Trash2
-                                                    size={15}
-                                                    className="text-red-500 stroke-[1.5]"
+                                                    size={ICON_SIZE.sm}
+                                                    className="text-danger stroke-[1.5]"
                                                 />
                                                 <span className="font-medium">
                                                     删除

@@ -2,6 +2,7 @@ import React from "react";
 import { GradingStep } from "../../../../types/message";
 import { motion } from "motion/react";
 import { CheckCircle2, XCircle, Lightbulb } from "lucide-react";
+import { MarkdownRenderer } from "../../../../components";
 
 interface StepFeedbackListProps {
     steps: GradingStep[];
@@ -17,12 +18,12 @@ export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
     stepRefs,
 }) => {
     return (
-        <div className="p-6 bg-slate-50">
-            <h4 className="font-bold text-lg text-slate-800 mb-5">
+        <div className="p-2 bg-slate-50 h-full flex flex-col">
+            <h4 className="font-bold text-lg text-slate-800 mb-5 shrink-0">
                 AI Feedback Breakdown
             </h4>
 
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1 overflow-y-auto pr-2">
                 {steps.map((step, idx) => (
                     <motion.div
                         key={step.stepNumber}
@@ -57,17 +58,19 @@ export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
                         </div>
 
                         {/* 评语 */}
-                        <p className="text-sm text-slate-600 leading-relaxed pl-7">
-                            {step.comment}
-                        </p>
+                        <div className="text-sm text-slate-600 leading-relaxed pl-7">
+                            <MarkdownRenderer content={step.comment} />
+                        </div>
 
                         {/* 建议（如果有） */}
                         {step.suggestion && (
                             <div className="mt-3 ml-7 flex items-start gap-2 p-3 bg-amber-50 rounded-lg border border-amber-100">
                                 <Lightbulb className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                                <p className="text-xs text-amber-700 leading-relaxed">
-                                    {step.suggestion}
-                                </p>
+                                <div className="text-xs text-amber-700 leading-relaxed">
+                                    <MarkdownRenderer
+                                        content={step.suggestion}
+                                    />
+                                </div>
                             </div>
                         )}
                     </motion.div>

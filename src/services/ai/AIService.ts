@@ -6,6 +6,91 @@ import {
 import { supabase, supabaseUrl, publicAnonKey } from "../../lib/supabase";
 
 export class AIService {
+    private static getMessageText(
+        message: Message & { content?: unknown },
+    ): string {
+        if (typeof message.text === "string") {
+            return message.text;
+        }
+        if (typeof message.content === "string") {
+            return message.content;
+        }
+        return "";
+    }
+
+    private static async getValidAccessToken(): Promise<string> {
+        const {
+            data: { session },
+            error,
+        } = await supabase.auth.getSession();
+
+        if (error || !session) {
+            throw new Error("未登录,请刷新页面重新登录");
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        const willExpireSoon = !!session.expires_at && session.expires_at < now + 60;
+
+        if (!willExpireSoon) {
+            return session.access_token;
+        }
+
+        const { data: refreshed, error: refreshError } =
+            await supabase.auth.refreshSession();
+
+        if (refreshError || !refreshed.session) {
+            throw new Error("登录已过期,请重新登录");
+        }
+
+        return refreshed.session.access_token;
+    }
+
+    private static extractJsonObject(text: string): string | null {
+        const fenced = text.match(/```json\s*([\s\S]*?)\s*```/i);
+        if (fenced?.[1]) {
+            return fenced[1];
+        }
+
+        const start = text.indexOf("{");
+        if (start === -1) {
+            return null;
+        }
+
+        let depth = 0;
+        let inString = false;
+        let escaped = false;
+
+        for (let i = start; i < text.length; i++) {
+            const ch = text[i];
+
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                } else if (ch === "\\") {
+                    escaped = true;
+                } else if (ch === '"') {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (ch === '"') {
+                inString = true;
+                continue;
+            }
+
+            if (ch === "{") depth += 1;
+            if (ch === "}") {
+                depth -= 1;
+                if (depth === 0) {
+                    return text.slice(start, i + 1);
+                }
+            }
+        }
+
+        return null;
+    }
+
     static async getResponse(
         request: AICompletionRequest,
     ): Promise<AICompletionResponse> {
@@ -17,7 +102,7 @@ export class AIService {
                 ((m.imageUrls && m.imageUrls.length > 0) ||
                     (m.fileAttachments && m.fileAttachments.length > 0))
             ) {
-                let textContent = m.content || " ";
+                let textContent = AIService.getMessageText(m) || " ";
 
                 // Append file content to message text
                 if (m.fileAttachments && m.fileAttachments.length > 0) {
@@ -56,7 +141,7 @@ export class AIService {
                 m.fileAttachments &&
                 m.fileAttachments.length > 0
             ) {
-                let textContent = m.content || " ";
+                let textContent = AIService.getMessageText(m) || " ";
                 const fileContents = m.fileAttachments
                     .map((file) => {
                         const language = file.language || "text";
@@ -73,22 +158,14 @@ export class AIService {
 
             return {
                 role: m.role,
-                content: m.content,
+                content: AIService.getMessageText(m) || " ",
             };
         });
 
         let systemPrompt = `你是一个精通理论力学的AI助教。你的目标是引导学生思考,而不是直接给出答案。
 
 ## 格式要求
-- 使用 Markdown 格式回复
-- 数学公式必须使用 LaTeX 语法:
-  - 行内公式: 使用单个 $ 包围,例如 $E = mc^2$
-  - 独立公式块: 使用双 $$ 包围,例如:
-    $$
-    F = ma
-    $$
-- 不要使用括号 ( ) 或方括号 [ ] 包围数学公式
-- 数学符号使用 LaTeX 命令,例如 \\cdot, \\times, \\frac{}{}, \\sum, \\int 等`;
+- 使用 Markdown 格式回复`;
 
         // Get image URLs from the latest user message for grading mode
         const latestUserMessage = messages
@@ -131,14 +208,7 @@ export class AIService {
 注意：
 1. bbox的x, y, width, height都是百分比(0-100)，表示在图片上的相对位置
 2. 每个步骤都必须指定bbox来标注该步骤在图片上的位置
-3. 图片顺序与用户上传顺序一致
-
-## 数学公式格式要求
-在 comment 和 suggestion 字段中使用数学公式时:
-- 行内公式: 使用单个 $ 包围,例如 $F = ma$
-- 独立公式块: 使用双 $$ 包围
-- 不要使用括号 ( ) 或方括号 [ ] 包围数学公式
-- 数学符号使用 LaTeX 命令,例如 \\cdot, \\times, \\frac{}{}, \\sum, \\Sigma 等`;
+3. 图片顺序与用户上传顺序一致`;
         }
 
         const payloadMessages = [
@@ -168,9 +238,9 @@ export class AIService {
             );
             try {
                 // Extract JSON from response (in case there's extra text)
-                const jsonMatch = aiReply.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const gradingResult = JSON.parse(jsonMatch[0]);
+                const jsonPayload = AIService.extractJsonObject(aiReply);
+                if (jsonPayload) {
+                    const gradingResult = JSON.parse(jsonPayload);
                     console.log(
                         "[AIService] Parsed gradingResult:",
                         gradingResult,
@@ -206,7 +276,7 @@ export class AIService {
                         gradingResult,
                     );
                     return {
-                        content: aiReply,
+                        text: aiReply,
                         gradingResult,
                     };
                 }
@@ -217,7 +287,7 @@ export class AIService {
         }
 
         return {
-            content: aiReply,
+            text: aiReply,
         };
     }
 
@@ -240,7 +310,7 @@ export class AIService {
                 ((m.imageUrls && m.imageUrls.length > 0) ||
                     (m.fileAttachments && m.fileAttachments.length > 0))
             ) {
-                let textContent = m.content || " ";
+                let textContent = AIService.getMessageText(m) || " ";
 
                 // Append file content to message text
                 if (m.fileAttachments && m.fileAttachments.length > 0) {
@@ -279,7 +349,7 @@ export class AIService {
                 m.fileAttachments &&
                 m.fileAttachments.length > 0
             ) {
-                let textContent = m.content || " ";
+                let textContent = AIService.getMessageText(m) || " ";
                 const fileContents = m.fileAttachments
                     .map((file) => {
                         const language = file.language || "text";
@@ -296,54 +366,48 @@ export class AIService {
 
             return {
                 role: m.role,
-                content: m.content,
+                content: AIService.getMessageText(m) || " ",
             };
         });
 
         let systemPrompt = `你是一个精通理论力学的AI助教。你的目标是引导学生思考,而不是直接给出答案。
 
 ## 格式要求
-- 使用 Markdown 格式回复
-- 数学公式必须使用 LaTeX 语法:
-  - 行内公式: 使用单个 $ 包围,例如 $E = mc^2$
-  - 独立公式块: 使用双 $$ 包围,例如:
-    $$
-    F = ma
-    $$
-- 不要使用括号 ( ) 或方括号 [ ] 包围数学公式
-- 数学符号使用 LaTeX 命令,例如 \\cdot, \\times, \\frac{}{}, \\sum, \\int 等`;
+- 使用 Markdown 格式回复`;
 
         const payloadMessages = [
             { role: "system", content: systemPrompt },
             ...apiMessages,
         ];
 
-        // 检查认证状态
-        const {
-            data: { session },
-        } = await supabase.auth.getSession();
+        let accessToken = await AIService.getValidAccessToken();
 
-        if (!session) {
-            throw new Error("未登录,请刷新页面重新登录");
-        }
-
-        // 使用 fetch 直接调用 Edge Function,启用流式
-        const response = await fetch(
-            `${supabaseUrl}/functions/v1/chat-response`,
-            {
+        const invokeStream = async (token: string) =>
+            fetch(`${supabaseUrl}/functions/v1/chat-response`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${session.access_token}`,
+                    Authorization: `Bearer ${token}`,
                     apikey: publicAnonKey,
                 },
                 body: JSON.stringify({
                     messages: payloadMessages,
-                    stream: true, // 启用流式
+                    stream: true,
                 }),
                 signal: abortSignal,
-            },
-        );
+            });
+
+        let response = await invokeStream(accessToken);
+
+        if (response.status === 401) {
+            const { data: refreshed, error: refreshError } =
+                await supabase.auth.refreshSession();
+            if (refreshError || !refreshed.session) {
+                throw new Error("登录已过期,请重新登录");
+            }
+            accessToken = refreshed.session.access_token;
+            response = await invokeStream(accessToken);
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -396,14 +460,14 @@ export class AIService {
             if (error instanceof Error && error.name === "AbortError") {
                 console.log("Stream aborted by user");
                 return {
-                    content: fullContent || "生成已停止",
+                    text: fullContent || "生成已停止",
                 };
             }
             throw error;
         }
 
         return {
-            content: fullContent,
+            text: fullContent,
         };
     }
 
@@ -430,9 +494,10 @@ export class AIService {
 
         // Create smart fallback title
         let fallbackTitle = "新对话";
-        if (firstMessage.content && firstMessage.content.trim()) {
+        const firstMessageText = AIService.getMessageText(firstMessage);
+        if (firstMessageText && firstMessageText.trim()) {
             // Has text content
-            fallbackTitle = firstMessage.content.slice(0, 15);
+            fallbackTitle = firstMessageText.slice(0, 15);
         } else if (
             firstMessage.imageUrls &&
             firstMessage.imageUrls.length > 0
@@ -456,10 +521,10 @@ export class AIService {
         const titleMessages: { role: string; content: string }[] = [];
 
         // Add user message (with context about images/files if no text)
-        if (firstMessage.content && firstMessage.content.trim()) {
+        if (firstMessageText && firstMessageText.trim()) {
             titleMessages.push({
                 role: firstMessage.role,
-                content: firstMessage.content,
+                content: firstMessageText,
             });
         } else if (
             firstMessage.imageUrls &&
@@ -481,10 +546,13 @@ export class AIService {
         }
 
         // Add AI response if available
-        if (aiResponse?.content && aiResponse.content.trim()) {
+        const aiResponseText = aiResponse
+            ? AIService.getMessageText(aiResponse)
+            : "";
+        if (aiResponseText && aiResponseText.trim()) {
             titleMessages.push({
                 role: aiResponse.role,
-                content: aiResponse.content,
+                content: aiResponseText,
             });
         }
 

@@ -43,6 +43,37 @@ serve(async (req) => {
         // 3. Process Request
         const { messages, stream = false } = await req.json();
 
+        // Inject LaTeX formatting instruction for normal chat responses.
+        // Skip this in strict JSON tasks (e.g. grading result), otherwise
+        // backslashes in LaTeX can break JSON parsing on the client side.
+        const latexFormattingInstruction = {
+            role: "system",
+            content: `CRITICAL FORMATTING RULE: 你必须将所有数学公式和 LaTeX 命令用正确的分隔符包裹:
+- 行内公式：使用单个 $ 包围，例如 $E = mc^2$、$\\frac{1}{2}$
+- 独立公式块：使用双 $$ 包围
+- 所有 LaTeX 命令（如 \\frac{}{}、\\sqrt{}、\\sum、\\int 等）都必须在 $ 或 $$ 内
+- 不要输出未包裹的裸 LaTeX 命令`,
+        };
+
+        const isStrictJsonTask = messages.some(
+            (m: any) =>
+                m?.role === "system" &&
+                typeof m?.content === "string" &&
+                (m.content.includes("只返回JSON") ||
+                    m.content.includes("只返回标题文本")),
+        );
+        const gradingJsonFormattingInstruction = {
+            role: "system",
+            content: `CRITICAL JSON FORMATTING RULE (批改模式):
+- 输出必须是严格 JSON（不要 markdown 代码块、不要额外说明）
+- 在 JSON 字符串中，凡是数学公式都必须用 $...$ 包裹
+- 不要输出未包裹的裸 LaTeX 命令
+- 如果使用反斜杠 LaTeX 命令（如 \\frac、\\sqrt），请确保符合 JSON 字符串转义规范`,
+        };
+        const finalMessages = isStrictJsonTask
+            ? [gradingJsonFormattingInstruction, ...messages]
+            : [latexFormattingInstruction, ...messages];
+
         const response = await fetch(
             "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
             {
@@ -53,7 +84,7 @@ serve(async (req) => {
                 },
                 body: JSON.stringify({
                     model: "qwen3-vl-plus",
-                    messages: messages,
+                    messages: finalMessages,
                     stream: stream,
                 }),
             },

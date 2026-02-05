@@ -3,18 +3,18 @@ import { motion } from "motion/react";
 import { Settings } from "lucide-react";
 
 interface AIAvatarProps {
+    className?: string;
     isThinking?: boolean;
     size?: number;
     iconSize?: number;
-    className?: string;
 }
 
-export const AIAvatar: React.FC<AIAvatarProps> = ({
+export const AIAvatar = ({
+    className,
     isThinking = false,
     size = 40,
     iconSize = 20,
-    className = "",
-}) => {
+}: AIAvatarProps) => {
     return (
         <div
             className={`flex items-center justify-center ${className}`}

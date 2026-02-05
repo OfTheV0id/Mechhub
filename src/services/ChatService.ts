@@ -3,6 +3,20 @@ import { ChatSession } from "../types/session";
 import { supabase } from "../lib/supabase";
 
 export class ChatService {
+    private static normalizeMessage(raw: any): Message {
+        const text =
+            typeof raw?.text === "string"
+                ? raw.text
+                : typeof raw?.content === "string"
+                  ? raw.content
+                  : "";
+
+        return {
+            ...raw,
+            text,
+        };
+    }
+
     static async fetchChats(): Promise<ChatSession[]> {
         // We rely on RLS to filter chats for the current user.
         const { data, error } = await supabase
@@ -18,7 +32,11 @@ export class ChatService {
         return (data || []).map((chat: any) => ({
             id: chat.id,
             title: chat.title,
-            messages: chat.messages,
+            messages: Array.isArray(chat.messages)
+                ? chat.messages.map((message: any) =>
+                      ChatService.normalizeMessage(message),
+                  )
+                : [],
             updatedAt: new Date(chat.updated_at).getTime(),
         }));
     }
@@ -61,7 +79,11 @@ export class ChatService {
         return {
             id: data.id,
             title: data.title,
-            messages: data.messages,
+            messages: Array.isArray(data.messages)
+                ? data.messages.map((message: any) =>
+                      ChatService.normalizeMessage(message),
+                  )
+                : [],
             updatedAt: new Date(data.updated_at).getTime(),
         };
     }
@@ -70,10 +92,24 @@ export class ChatService {
         chatId: string,
         newTitle: string,
     ): Promise<void> {
-        const { error } = await supabase
+        const { data: existingChat, error: fetchError } = await supabase
             .from("chats")
-            .update({ title: newTitle, updated_at: new Date().toISOString() })
-            .eq("id", chatId);
+            .select("id, user_id, messages")
+            .eq("id", chatId)
+            .single();
+
+        if (fetchError || !existingChat) {
+            console.error("Error loading chat before rename:", fetchError);
+            throw new Error(fetchError?.message || "Chat not found");
+        }
+
+        const { error } = await supabase.from("chats").upsert({
+            id: existingChat.id,
+            user_id: existingChat.user_id,
+            messages: existingChat.messages ?? [],
+            title: newTitle,
+            updated_at: new Date().toISOString(),
+        });
 
         if (error) {
             console.error("Error updating chat title:", error);

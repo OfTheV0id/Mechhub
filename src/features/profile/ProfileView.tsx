@@ -16,13 +16,12 @@ import {
 } from "lucide-react";
 
 import { UserProfile } from "../../types/user";
+import { useProfile } from "./hooks/useProfile";
 
 interface ProfileViewProps {
     user?: UserProfile;
     onUpdateProfile?: (name: string, role: string, avatar: string) => void;
 }
-
-import { useProfile } from "./hooks/useProfile";
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
     user,
@@ -202,7 +201,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         课程进度
                     </h3>
                     <div className="relative w-full h-80 overflow-x-auto overflow-y-hidden hide-scrollbar">
-                        <div className="min-w-[900px] h-full relative flex items-center m-0">
+                        <div className="relative flex h-full min-w-[900px] items-center">
                             {/* SVG Path Background */}
                             <svg
                                 className="absolute top-0 left-0 w-full h-full pointer-events-none"
@@ -339,10 +338,10 @@ const SkillCard = ({
         }`}
     >
         {/* Background Pattern */}
-        <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-slate-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute -right-8 -bottom-8 h-32 w-32 rounded-full bg-slate-50 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
         <div
-            className={`w-16 h-16 rounded-2xl flex-shrink-0 flex items-center justify-center text-3xl relative z-10 transition-colors ${
+            className={`relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl transition-colors ${
                 status === "earned"
                     ? "bg-slate-50 text-slate-800 group-hover:bg-blue-50 group-hover:text-blue-600"
                     : "bg-slate-100 text-slate-400"
@@ -353,11 +352,7 @@ const SkillCard = ({
 
         <div className="flex-1 relative z-10">
             <h4 className="text-lg font-bold text-slate-800 mb-1">{title}</h4>
-            <div
-                className={`text-sm font-medium flex items-center gap-1.5 ${
-                    status === "earned" ? "text-slate-400" : "text-slate-400"
-                }`}
-            >
+            <div className="flex items-center gap-1.5 text-sm font-medium text-slate-400">
                 {status === "earned" ? (
                     <>
                         <Check
@@ -402,9 +397,6 @@ const TimelineNode = ({
     // SVG coordinate adjustments for absolute positioning in the container
     // The path roughly goes through the center y=128, then up/down.
     // We need to position these divs absolutely based on the approximate path coordinates.
-
-    // y adjustment based on visual tweak for text placement
-    const labelYOffset = isTop ? -40 : 50;
 
     return (
         <motion.div

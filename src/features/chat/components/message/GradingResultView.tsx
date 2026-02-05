@@ -40,7 +40,7 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
         <div className="w-full">
             {/* Prominent Header with Enhanced Styling */}
             <div className="flex items-center gap-3 mb-6">
-                <AIAvatar isThinking={false} size={40} iconSize={20} />
+                <AIAvatar isThinking={false} />
                 <div className="flex-1">
                     <h2 className="text-2xl font-bold text-slate-900">
                         批改结果
@@ -52,14 +52,14 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
             </div>
 
             {/* Enhanced Summary Card with Better Visual Hierarchy */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 mb-8 shadow-lg border-2 border-blue-200">
+            <div className="bg-fill-muted rounded-3xl p-4">
                 <div className="flex items-start gap-3 mb-4">
-                    <div className="flex-shrink-0 w-1 h-10 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full" />
+                    <div className="shrink-0 w-1 h-10 bg-slate-900 rounded-full" />
                     <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-blue-700 uppercase tracking-wider mb-3">
+                        <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-3">
                             总体评价
                         </h3>
-                        <div className="text-base leading-relaxed text-slate-800">
+                        <div className="text-base leading-relaxed text-slate-900">
                             <MarkdownRenderer content={gradingResult.summary} />
                         </div>
                     </div>
@@ -91,7 +91,7 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
 
             {/* Current Image Grading Panel */}
             {currentImage ? (
-                <div className="mb-2">
+                <div className="mb-2 border-2 border-black rounded-3xl overflow-hidden shadow-lg">
                     <ImageGradingPanel imageGrading={currentImage} />
                 </div>
             ) : (

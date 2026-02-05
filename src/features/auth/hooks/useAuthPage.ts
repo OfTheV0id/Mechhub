@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { AuthService } from "../../../services/AuthService";
+import { AuthMode } from "../types/auth";
 
 export const useAuthPage = (onLoginSuccess: () => void) => {
-    const [mode, setMode] = useState<"signin" | "register">("signin");
+    const [mode, setMode] = useState<AuthMode>("signin");
     const [isVerificationPending, setIsVerificationPending] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -19,7 +20,7 @@ export const useAuthPage = (onLoginSuccess: () => void) => {
                 await AuthService.signIn(email, password);
                 toast.success("欢迎回来！");
                 onLoginSuccess();
-            } else if (mode == "register") {
+            } else if (mode === "register") {
                 await AuthService.signUp(email, password);
                 setIsVerificationPending(true);
                 toast.success("账户创建成功！请检查您的邮箱完成验证。");

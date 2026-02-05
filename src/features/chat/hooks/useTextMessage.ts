@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const useTextMessage = (content: string) => {
+export const useTextMessage = (text: string) => {
     const [isCopied, setIsCopied] = useState(false);
 
     const handleCopyText = async () => {
         try {
-            await navigator.clipboard.writeText(content);
+            await navigator.clipboard.writeText(text);
             setIsCopied(true);
             toast.success("已复制到剪贴板");
             setTimeout(() => setIsCopied(false), 2000);

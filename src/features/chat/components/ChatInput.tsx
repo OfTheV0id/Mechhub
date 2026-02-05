@@ -1,6 +1,7 @@
 import React from "react";
-import { UnifiedInputBar } from "../../../components";
+import { UnifiedInputBar } from "./UnifiedInputBar";
 import { FileAttachment } from "../../../types/message";
+import { ChatMode } from "../types/chat";
 
 interface ChatInputProps {
     inputText: string;
@@ -10,14 +11,14 @@ interface ChatInputProps {
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
     ) => void;
-    mode: "study" | "correct";
-    setMode: (mode: "study" | "correct") => void;
+    mode: ChatMode;
+    setMode: (mode: ChatMode) => void;
 
     isTyping: boolean;
     onStop?: () => void;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({
+export const ChatInput = ({
     inputText,
     setInputText,
     onSubmit,
@@ -26,22 +27,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
     isTyping,
     onStop,
-}) => {
+}: ChatInputProps) => {
     return (
-        <div className="p-4 bg-white/80 backdrop-blur-sm border-t border-slate-100 z-20 w-full">
-            <div className="w-full px-4 md:px-8">
-                <UnifiedInputBar
-                    inputValue={inputText}
-                    onInputChange={setInputText}
-                    onSubmit={onSubmit}
-                    mode={mode}
-                    setMode={setMode}
-                    isTyping={isTyping}
-                    onStop={onStop}
-                />
-                <div className="text-center mt-3 text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-                    AI can make mistakes.
-                </div>
+        <div className="z-20 w-full bg-fill-muted p-4">
+            <UnifiedInputBar
+                inputValue={inputText}
+                onInputChange={setInputText}
+                onSubmit={onSubmit}
+                mode={mode}
+                setMode={setMode}
+                isTyping={isTyping}
+                onStop={onStop}
+            />
+            <div className="text-center mt-3 text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+                AI can make mistakes.
             </div>
         </div>
     );

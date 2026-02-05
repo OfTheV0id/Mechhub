@@ -15,7 +15,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     content,
 }) => {
     return (
-        <div className="w-full max-w-full overflow-visible flow-root leading-normal">
+        <div className="leading-normal">
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex]}
@@ -45,7 +45,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                             </div>
                         ) : (
                             <code
-                                className={`${className} bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm font-mono border border-slate-200`}
+                                className={`${className ?? ""} rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-sm font-mono text-slate-800`}
                                 {...props}
                             >
                                 {children}
@@ -74,7 +74,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                         <h3 className="text-lg font-bold my-2">{children}</h3>
                     ),
                     p: ({ children }) => (
-                        <div className="my-2 leading-relaxed break-words">
+                        <div className="my-2 leading-relaxed wrap-break-word">
                             {children}
                         </div>
                     ),

@@ -2,7 +2,15 @@ import React from "react";
 import { ImageGradingResult } from "../../../../types/message";
 import { StepAnnotationBox } from "./StepAnnotationBox";
 import { StepFeedbackList } from "./StepFeedbackList";
-import { X, ZoomIn, ChevronRight, ChevronLeft } from "lucide-react";
+import {
+    X,
+    ZoomIn,
+    ChevronRight,
+    ChevronLeft,
+    Minus,
+    Plus,
+    RotateCcw,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useImageGradingPanel } from "../../hooks/useImageGradingPanel";
 
@@ -22,14 +30,24 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
         activeStepIndex,
         handleSelectStep,
         stepRefs,
+        // Zoom & Pan
+        scale,
+        position,
+        isDragging,
+        handleZoomIn,
+        handleZoomOut,
+        handleReset,
+        handleMouseDown,
+        handleMouseMove,
+        handleMouseUp,
     } = useImageGradingPanel();
 
     return (
         <>
             {/* Enhanced Compact Card View - Larger and More Prominent */}
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col">
+            <div className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg">
                 <div
-                    className="relative w-full bg-gradient-to-b from-slate-50 to-slate-100 cursor-pointer group border-b border-slate-100 flex items-center justify-center overflow-hidden"
+                    className="relative w-full bg-linear-to-b from-slate-50 to-slate-100 cursor-pointer group border-b border-slate-100 flex items-center justify-center overflow-hidden"
                     onClick={openDetail}
                     style={{ aspectRatio: "4/3", minHeight: "320px" }}
                 >
@@ -49,8 +67,8 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                             />
                         ))}
                     </div>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center pointer-events-none z-10">
-                        <motion.div className="bg-white/95 backdrop-blur-md px-6 py-3 rounded-full shadow-xl opacity-0 group-hover:opacity-100 transition-all transform translate-y-4 group-hover:translate-y-0">
+                    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-colors group-hover:bg-black/10">
+                        <motion.div className="rounded-full bg-white/95 px-6 py-3 shadow-xl opacity-0 transition-all translate-y-4 group-hover:translate-y-0 group-hover:opacity-100">
                             <span className="text-base font-semibold text-slate-800 flex items-center gap-2">
                                 <ZoomIn size={18} /> 查看详情
                             </span>
@@ -94,7 +112,7 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
+                        className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center backdrop-blur-sm"
                         onClick={closeDetail}
                     >
                         <motion.div
@@ -121,13 +139,34 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                                 </button>
                             </div>
 
-                            <div className="flex-1 flex flex-row overflow-hidden bg-slate-50 relative">
-                                <div className="flex-1 relative min-w-0 bg-slate-200/50 flex flex-col overflow-auto">
-                                    <div className="inline-block relative m-4 shadow-2xl rounded-lg bg-white border border-slate-200 max-w-full">
+                            <div className="flex-1 flex flex-row overflow-hidden bg-slate-50 relative min-h-0">
+                                <div
+                                    className={`flex-1 relative min-w-0 bg-slate-200/50 flex flex-col items-center justify-center overflow-hidden p-4 select-none transition-all duration-300 ease-spring ${
+                                        isDragging
+                                            ? "cursor-grabbing"
+                                            : "cursor-grab"
+                                    }`}
+                                    style={{
+                                        marginRight: isSidebarOpen ? 320 : 0,
+                                    }}
+                                    onMouseDown={handleMouseDown}
+                                    onMouseMove={handleMouseMove}
+                                    onMouseUp={handleMouseUp}
+                                    onMouseLeave={handleMouseUp}
+                                >
+                                    <div
+                                        className="relative shadow-2xl rounded-lg bg-white border border-slate-200 max-w-full max-h-full flex flex-col origin-center transition-transform duration-100 ease-out"
+                                        style={{
+                                            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                                        }}
+                                    >
                                         <img
                                             src={imageGrading.imageUrl}
                                             alt="作业图片"
-                                            className="block max-w-full h-auto object-contain"
+                                            className="block max-w-full max-h-full object-contain pointer-events-none"
+                                            style={{
+                                                maxHeight: "calc(90vh - 100px)",
+                                            }}
                                         />
                                         {imageGrading.steps?.map(
                                             (step, idx) => (
@@ -145,35 +184,65 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                                             ),
                                         )}
                                     </div>
+
+                                    {/* 悬浮缩放控制条 */}
+                                    <div
+                                        className="absolute top-4 left-4 bg-white/90 backdrop-blur shadow-lg border border-slate-200 rounded-full px-4 py-2 flex items-center gap-4 z-10"
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <button
+                                            onClick={handleZoomOut}
+                                            className="text-slate-600 hover:text-blue-600 transition-colors p-1"
+                                            title="缩小"
+                                        >
+                                            <Minus size={20} />
+                                        </button>
+                                        <span className="text-sm font-semibold text-slate-700 w-12 text-center select-none">
+                                            {Math.round(scale * 100)}%
+                                        </span>
+                                        <button
+                                            onClick={handleZoomIn}
+                                            className="text-slate-600 hover:text-blue-600 transition-colors p-1"
+                                            title="放大"
+                                        >
+                                            <Plus size={20} />
+                                        </button>
+                                        <div className="w-px h-4 bg-slate-300"></div>
+                                        <button
+                                            onClick={handleReset}
+                                            className="text-slate-600 hover:text-blue-600 transition-colors flex items-center gap-1.5 px-1"
+                                            title="重置视图"
+                                        >
+                                            <RotateCcw size={16} />
+                                            <span className="text-xs">
+                                                重置
+                                            </span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <AnimatePresence initial={false}>
                                     {isSidebarOpen && (
                                         <motion.div
-                                            initial={{ width: 0, opacity: 0 }}
-                                            animate={{ width: 320, opacity: 1 }}
-                                            exit={{ width: 0, opacity: 0 }}
+                                            initial={{ x: "100%", opacity: 0 }}
+                                            animate={{ x: 0, opacity: 1 }}
+                                            exit={{ x: "100%", opacity: 0 }}
                                             transition={{
                                                 type: "spring",
                                                 stiffness: 300,
                                                 damping: 30,
                                             }}
-                                            className="flex-none border-l border-slate-200 bg-white overflow-y-auto shadow-xl z-20 relative"
+                                            className="absolute right-0 top-0 bottom-0 w-80 border-l border-slate-200 bg-white shadow-xl z-20 flex flex-col overflow-hidden"
                                         >
-                                            <div className="w-[320px]">
-                                                <StepFeedbackList
-                                                    steps={
-                                                        imageGrading.steps || []
-                                                    }
-                                                    activeStepIndex={
-                                                        activeStepIndex
-                                                    }
-                                                    onSelectStep={
-                                                        handleSelectStep
-                                                    }
-                                                    stepRefs={stepRefs}
-                                                />
-                                            </div>
+                                            <StepFeedbackList
+                                                steps={imageGrading.steps || []}
+                                                activeStepIndex={
+                                                    activeStepIndex
+                                                }
+                                                onSelectStep={handleSelectStep}
+                                                stepRefs={stepRefs}
+                                            />
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -187,7 +256,7 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
                                         stiffness: 300,
                                         damping: 30,
                                     }}
-                                    className="absolute top-1/2 z-30 transform -translate-y-1/2 bg-white border border-slate-200 shadow-md p-1.5 rounded-l-lg hover:bg-slate-50 hover:text-blue-600"
+                                    className="absolute top-1/2 z-30 -translate-y-1/2 rounded-l-lg border border-slate-200 bg-white p-1.5 shadow-md hover:bg-slate-50 hover:text-blue-600"
                                     style={{
                                         borderRight: isSidebarOpen
                                             ? "none"
