@@ -18,7 +18,7 @@ interface ChatInputProps {
     onStop?: () => void;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({
+export const ChatInput = ({
     inputText,
     setInputText,
     onSubmit,
@@ -27,22 +27,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
     isTyping,
     onStop,
-}) => {
+}: ChatInputProps) => {
     return (
-        <div className="z-20 w-full border-t border-slate-100 bg-white/80 p-4 backdrop-blur-sm">
-            <div className="w-full px-4 md:px-8">
-                <UnifiedInputBar
-                    inputValue={inputText}
-                    onInputChange={setInputText}
-                    onSubmit={onSubmit}
-                    mode={mode}
-                    setMode={setMode}
-                    isTyping={isTyping}
-                    onStop={onStop}
-                />
-                <div className="text-center mt-3 text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-                    AI can make mistakes.
-                </div>
+        <div className="z-20 w-full bg-fill-muted p-4">
+            <UnifiedInputBar
+                inputValue={inputText}
+                onInputChange={setInputText}
+                onSubmit={onSubmit}
+                mode={mode}
+                setMode={setMode}
+                isTyping={isTyping}
+                onStop={onStop}
+            />
+            <div className="text-center mt-3 text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+                AI can make mistakes.
             </div>
         </div>
     );

@@ -52,14 +52,14 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
             </div>
 
             {/* Enhanced Summary Card with Better Visual Hierarchy */}
-            <div className="bg-gradient-to-br from-slate-900 to-black rounded-3xl p-8 mb-8 shadow-lg border-2 border-black">
+            <div className="bg-fill-muted rounded-3xl p-4">
                 <div className="flex items-start gap-3 mb-4">
-                    <div className="flex-shrink-0 w-1 h-10 bg-gradient-to-b from-slate-200 to-white rounded-full" />
+                    <div className="shrink-0 w-1 h-10 bg-slate-900 rounded-full" />
                     <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider mb-3">
+                        <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-3">
                             总体评价
                         </h3>
-                        <div className="text-base leading-relaxed text-slate-100">
+                        <div className="text-base leading-relaxed text-slate-900">
                             <MarkdownRenderer content={gradingResult.summary} />
                         </div>
                     </div>

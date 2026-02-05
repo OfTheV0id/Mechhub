@@ -47,7 +47,7 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
             {/* Enhanced Compact Card View - Larger and More Prominent */}
             <div className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg">
                 <div
-                    className="relative w-full bg-gradient-to-b from-slate-50 to-slate-100 cursor-pointer group border-b border-slate-100 flex items-center justify-center overflow-hidden"
+                    className="relative w-full bg-linear-to-b from-slate-50 to-slate-100 cursor-pointer group border-b border-slate-100 flex items-center justify-center overflow-hidden"
                     onClick={openDetail}
                     style={{ aspectRatio: "4/3", minHeight: "320px" }}
                 >

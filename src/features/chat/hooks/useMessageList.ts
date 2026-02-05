@@ -50,7 +50,7 @@ export const useMessageList = ({
                 scrollContainer.scrollHeight -
                     scrollContainer.scrollTop -
                     scrollContainer.clientHeight <
-                150;
+                300;
 
             if (isAtBottom && messagesEndRef.current) {
                 messagesEndRef.current.scrollIntoView({
@@ -104,7 +104,7 @@ export const useMessageList = ({
                 300;
 
             if (!isAtBottom) {
-                toastIdRef.current = toast("有新消息", {
+                toastIdRef.current = toast.success("有新消息", {
                     action: {
                         label: "查看",
                         onClick: () => {
@@ -113,6 +113,12 @@ export const useMessageList = ({
                                 block: "end",
                             });
                         },
+                    },
+                    actionButtonStyle: {
+                        background: "transparent",
+                        color: "inherit",
+                        border: "none",
+                        padding: 0,
                     },
                 });
                 playNotificationSound();

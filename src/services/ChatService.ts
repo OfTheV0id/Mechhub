@@ -92,10 +92,24 @@ export class ChatService {
         chatId: string,
         newTitle: string,
     ): Promise<void> {
-        const { error } = await supabase
+        const { data: existingChat, error: fetchError } = await supabase
             .from("chats")
-            .update({ title: newTitle, updated_at: new Date().toISOString() })
-            .eq("id", chatId);
+            .select("id, user_id, messages")
+            .eq("id", chatId)
+            .single();
+
+        if (fetchError || !existingChat) {
+            console.error("Error loading chat before rename:", fetchError);
+            throw new Error(fetchError?.message || "Chat not found");
+        }
+
+        const { error } = await supabase.from("chats").upsert({
+            id: existingChat.id,
+            user_id: existingChat.user_id,
+            messages: existingChat.messages ?? [],
+            title: newTitle,
+            updated_at: new Date().toISOString(),
+        });
 
         if (error) {
             console.error("Error updating chat title:", error);

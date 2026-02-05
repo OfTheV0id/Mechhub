@@ -5,6 +5,9 @@ import { useSidebarResize } from "./hooks/useSidebarResize";
 import { useSidebarActions } from "./hooks/useSidebarActions";
 import { SidebarProps } from "./types/sidebar";
 import { MechHubLogo } from "../../components";
+import { Button } from "../../components/ui/button";
+import { ICON_SIZE, ICON_STROKE_WIDTH } from "../../lib/ui-constants";
+import { cn } from "../../lib/utils";
 
 export const Sidebar: React.FC<SidebarProps> = ({
     activeView,
@@ -34,18 +37,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
     return (
         <div
-            className="relative flex shrink-0 flex-col border-r border-slate-200 bg-white"
+            className="relative flex flex-col border-r border-canvas-alt bg-canvas-alt"
             style={{ width: `${sidebarWidth}px` }}
         >
             {/* Resize Handle */}
             <div
-                className="absolute top-0 right-0 w-3 h-full z-50 flex items-center justify-center"
+                className="absolute top-0 right-0 w-3 h-full z-50 flex "
                 style={{ cursor: "ew-resize" }}
                 onMouseDown={handleMouseDown}
                 title="拖拽调整侧边栏宽度"
-            >
-                <div className="h-full w-[2px] bg-slate-400 transition-colors hover:bg-blue-500"></div>
-            </div>
+            ></div>
 
             {/* Header */}
             <div className="px-4 py-6 flex flex-col items-center">
@@ -58,29 +59,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }}
                 />
 
-                <button
+                <Button
                     onClick={onNewQuest}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-black px-[16px] py-[3px] text-[18px] font-bold text-white shadow-lg shadow-slate-200 transition-all hover:bg-slate-800"
+                    size="sm"
+                    className="w-full rounded-xl text-on-ink [font-size:var(--font-size-sidebar-btn-icon)]"
                 >
-                    <Plus size={18} strokeWidth={3} />
-                    <span className="text-[19px]">新对话</span>
-                </button>
+                    <Plus
+                        size={ICON_SIZE.lg}
+                        strokeWidth={ICON_STROKE_WIDTH.strong}
+                    />
+                    <span className="text-on-ink [font-size:var(--font-size-sidebar-btn-label)]">
+                        新对话
+                    </span>
+                </Button>
             </div>
 
             {/* Recent Missions */}
             <div className="flex-1 overflow-y-auto px-6 py-2">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
+                <h3 className="text-xs font-bold text-text-faint uppercase tracking-wider mb-4">
                     最近对话
                 </h3>
                 <div className="space-y-1">
                     {isLoading ? (
                         <div className="animate-pulse space-y-3">
-                            <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
-                            <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
-                            <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
+                            <div className="h-10 bg-fill-soft rounded-lg w-full"></div>
+                            <div className="h-10 bg-fill-soft rounded-lg w-full"></div>
+                            <div className="h-10 bg-fill-soft rounded-lg w-full"></div>
                         </div>
                     ) : sessions.length === 0 ? (
-                        <div className="text-sm text-slate-400 text-center py-4">
+                        <div className="text-sm text-text-faint text-center py-4">
                             暂无历史记录
                         </div>
                     ) : (
@@ -118,12 +125,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             {/* User Footer */}
-            <div className="p-4 border-t border-slate-100 m-2">
+            <div className="p-4">
                 <button
                     onClick={() => setActiveView("profile")}
-                    className="flex w-full items-center gap-3 rounded-xl p-2 text-left text-[20px] transition-colors hover:bg-slate-50"
+                    className={cn(
+                        "flex w-full items-center gap-3 rounded-xl p-2 text-left [font-size:var(--font-size-profile-trigger)] transition-colors",
+                        activeView === "profile"
+                            ? "bg-surface text-text-secondary"
+                            : "text-text-secondary hover:bg-surface",
+                    )}
                 >
-                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-white bg-slate-200 shadow-sm">
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-surface bg-border-subtle shadow-sm">
                         <img
                             src={user.avatar}
                             alt={user.name}
@@ -131,23 +143,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <div className="font-bold text-sm text-slate-800 truncate">
+                        <div className="font-bold text-sm text-text-secondary truncate">
                             {user.name}
                         </div>
-                        <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wide truncate">
-                            {user.role}
-                        </div>
                     </div>
-                    <Settings size={16} className="text-slate-300" />
+                    <Settings size={ICON_SIZE.md} className="text-focus-ring" />
                 </button>
 
                 {/* Sign Out Button */}
                 {handleSignOut && (
                     <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors w-full px-4 py-2 mt-2 rounded-lg hover:bg-slate-50"
+                        className="flex items-center gap-2 text-xs font-bold text-text-faint hover:text-danger transition-colors w-full px-4 py-2 mt-2 rounded-lg hover:bg-fill-muted"
                     >
-                        <LogOut size={14} />
+                        <LogOut size={ICON_SIZE.xs} />
                         退出登录
                     </button>
                 )}

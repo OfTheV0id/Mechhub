@@ -29,6 +29,10 @@ export const MessageList: React.FC<MessageListProps> = ({
         const isLastMessage = index === messages.length - 1;
         const isGenerating =
             isTyping && isLastMessage && msg.role === "assistant";
+        const showGeneratingLabel =
+            isGenerating &&
+            msg.type === "text" &&
+            (!msg.text || msg.text.length === 0);
 
         if (msg.gradingResult) {
             return <GradingResultView gradingResult={msg.gradingResult} />;
@@ -41,29 +45,22 @@ export const MessageList: React.FC<MessageListProps> = ({
                 fileAttachments={msg.fileAttachments}
                 onImageClick={openPreview}
                 isGenerating={isGenerating}
+                showGeneratingLabel={showGeneratingLabel}
             />
         );
     };
 
     return (
         <div
-            className="flex-1 overflow-y-auto px-4 md:px-20 py-8 min-h-0 overflow-x-hidden bg-gradient-to-b from-slate-50 to-white"
+            className="flex-1 overflow-y-auto px-20 py-8 overflow-x-hidden bg-surface-muted"
             style={{ overflowAnchor: "none" }}
             onScroll={handleScroll}
         >
             <div ref={contentRef} className="space-y-6">
                 {/* Main Messages */}
                 {messages.map((msg, index) => {
-                    const isGradingResult = msg.gradingResult !== undefined;
                     return (
-                        <div
-                            key={msg.id}
-                            className={`w-full ${
-                                isGradingResult
-                                    ? "bg-white rounded-2xl p-8 shadow-md border border-slate-100 ring-2 ring-amber-100"
-                                    : ""
-                            }`}
-                        >
+                        <div key={msg.id} className="w-full">
                             {renderMessage(msg, index)}
                         </div>
                     );

@@ -74,7 +74,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                         <h3 className="text-lg font-bold my-2">{children}</h3>
                     ),
                     p: ({ children }) => (
-                        <div className="my-2 leading-relaxed break-words">
+                        <div className="my-2 leading-relaxed wrap-break-word">
                             {children}
                         </div>
                     ),

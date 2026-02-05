@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 import { useAuthPage } from "./hooks/useAuthPage";
 import { MechHubLogo } from "../../components";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { ICON_SIZE } from "../../lib/ui-constants";
+import { cn } from "../../lib/utils";
 
 interface AuthPageProps {
     onLoginSuccess: () => void;
@@ -33,80 +38,89 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
         isVerificationPending,
         setIsVerificationPending,
     } = useAuthPage(onLoginSuccess);
-    const authInputClass =
-        "w-full rounded-xl border border-slate-200 bg-slate-50 py-3 text-slate-700 outline-none transition-all focus:border-black focus:ring-1 focus:ring-black";
-    const socialButtonClass =
-        "rounded-xl border border-slate-200 p-3 transition-colors hover:bg-slate-50";
-
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC] p-4">
-            <div className="bg-white w-full max-w-5xl h-[600px] rounded-[3rem] shadow-2xl flex overflow-hidden border border-slate-100">
+        <div className="min-h-screen w-full flex items-center justify-center bg-(--color-canvas) p-(--space-4)">
+            <Card
+                radius="3xl"
+                shadow="xl"
+                className="w-full max-w-6xl h-(--size-auth-card-h) flex overflow-hidden"
+            >
                 {/* Left Side - Visual/Decor */}
-                <div className="hidden md:flex flex-1 bg-slate-50 relative items-center justify-center overflow-hidden">
+                <div className="hidden md:flex flex-1 bg-(--color-fill-muted) relative items-center justify-center overflow-hidden">
                     <img
                         src="https://images.unsplash.com/photo-1692889783742-7d99b124c402?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMG1pbmltYWwlMjB3aGl0ZSUyMGdlb21ldHJpYyUyMDNkJTIwc2hhcGVzfGVufDF8fHx8MTc2ODgxNDQxNHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
                         alt="Abstract"
                         className="absolute inset-0 w-full h-full object-cover opacity-80"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/40 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-tr from-white/40 to-transparent" />
 
-                    <div className="relative z-10 max-w-xs rounded-2xl border border-white/50 bg-white/30 p-8 shadow-lg">
-                        <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center mb-4">
+                    <Card
+                        variant="glass"
+                        radius="xl"
+                        shadow="lg"
+                        padding="lg"
+                        className=" z-10 max-w-xs"
+                    >
+                        <div className="w-12 h-12 bg-ink rounded-md flex items-center justify-center mb-4">
                             <GraduationCap className="text-white" />
                         </div>
-                        <h3 className="font-bold text-xl text-slate-800 mb-2">
+                        <h3 className="font-bold text-xl text-text-secondary mb-2">
                             精通力学
                         </h3>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-text-muted">
                             加入数万名通过 AI 辅助掌握理论力学的学生行列。
                         </p>
-                    </div>
+                    </Card>
                 </div>
 
                 {/* Right Side - Auth Form */}
-                <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-16 relative">
+                <div className="flex-1 flex flex-col items-center p-12 relative">
                     <div className="w-full max-w-sm">
                         {isVerificationPending ? (
                             <div className="flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                                    <Mail className="text-green-600 w-8 h-8" />
+                                <div className="w-16 h-16 bg-success-bg rounded-pill flex items-center justify-center mb-6">
+                                    <Mail className="text-success w-8 h-8" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                                <h3 className="text-2xl font-bold text-text-primary mb-2">
                                     请验证您的邮箱
                                 </h3>
-                                <p className="text-slate-600 mb-8">
+                                <p className="text-text-muted mb-8">
                                     我们已向{" "}
-                                    <span className="font-semibold text-slate-900">
+                                    <span className="font-semibold text-text-primary">
                                         {email}
                                     </span>{" "}
                                     发送了一封验证邮件。
                                     <br />
                                     请点击邮件中的链接以激活您的账户。
                                 </p>
-                                <button
+                                <Button
                                     onClick={() => setMode("signin")}
-                                    className="text-sm font-bold text-black border-b-2 border-black hover:border-transparent transition-colors pb-0.5"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-ink border-b-2 border-ink hover:border-transparent pb-0.5"
                                 >
                                     返回登录
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     onClick={() =>
                                         setIsVerificationPending(false)
                                     }
-                                    className="mt-4 text-xs text-slate-400 hover:text-slate-600"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="mt-4 text-xs text-text-faint hover:text-text-muted"
                                 >
                                     重新发送 (开发中)
-                                </button>
+                                </Button>
                             </div>
                         ) : (
                             <>
                                 {/* Logo */}
-                                <MechHubLogo className="mb-10 justify-center" />
+                                <MechHubLogo className="mb-6 justify-center" />
 
                                 {/* Toggle */}
-                                <div className="bg-slate-100 p-1.5 rounded-full flex relative mb-8">
+                                <div className="bg-(--color-fill-soft) rounded-pill flex relative mb-8">
                                     <motion.div
-                                        className="absolute top-1.5 bottom-1.5 bg-white rounded-full shadow-sm z-0"
+                                        className="absolute top-1.5 bottom-1.5 bg-(--color-surface) rounded-pill shadow-sm z-0"
                                         layoutId="authMode"
                                         initial={false}
                                         animate={{
@@ -122,34 +136,45 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                                             damping: 30,
                                         }}
                                     />
-                                    <button
+                                    <Button
                                         onClick={() => setMode("signin")}
-                                        className={`flex-1 relative z-10 text-sm font-bold py-2.5 text-center transition-colors ${mode === "signin" ? "text-slate-900" : "text-slate-500"}`}
+                                        variant="tab"
+                                        size="sm"
+                                        className={cn(
+                                            "flex-1 relative z-10 py-2.5 text-center transition-colors",
+                                            mode === "signin"
+                                                ? "text-text-primary"
+                                                : "text-text-subtle",
+                                        )}
                                     >
                                         登录
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         onClick={() => setMode("register")}
-                                        className={`flex-1 relative z-10 text-sm font-bold py-2.5 text-center transition-colors ${mode === "register" ? "text-slate-900" : "text-slate-500"}`}
+                                        variant="tab"
+                                        size="sm"
+                                        className={cn(
+                                            "flex-1 relative z-10 py-2.5 text-center transition-colors",
+                                            mode === "register"
+                                                ? "text-text-primary"
+                                                : "text-text-subtle",
+                                        )}
                                     >
                                         注册
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 {/* Form */}
-                                <form
-                                    onSubmit={handleSubmit}
-                                    className="space-y-4"
-                                >
+                                <form onSubmit={handleSubmit}>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">
+                                        <label className="block text-xs font-bold text-text-subtle uppercase tracking-wider mb-2 ml-1">
                                             邮箱地址
                                         </label>
                                         <div className="relative">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                                <Mail size={18} />
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-faint">
+                                                <Mail size={ICON_SIZE.lg} />
                                             </div>
-                                            <input
+                                            <Input
                                                 type="email"
                                                 required
                                                 value={email}
@@ -157,30 +182,39 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                                                     setEmail(e.target.value)
                                                 }
                                                 placeholder="student@university.edu"
-                                                className={`${authInputClass} pl-11 pr-4`}
+                                                className="pl-11 pr-4"
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <div className="flex justify-between items-center mb-2 ml-1">
-                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                        <div className="flex justify-between items-center mb-2 ml-1 min-h-6">
+                                            <label className="block text-xs font-bold text-text-subtle uppercase tracking-wider">
                                                 密码
                                             </label>
-                                            {mode === "signin" && (
-                                                <button
-                                                    type="button"
-                                                    className="text-xs font-semibold text-slate-900 hover:underline"
-                                                >
-                                                    忘记密码？
-                                                </button>
-                                            )}
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                tabIndex={
+                                                    mode === "signin" ? 0 : -1
+                                                }
+                                                aria-hidden={mode !== "signin"}
+                                                className={cn(
+                                                    "text-xs font-semibold text-text-primary hover:underline",
+                                                    mode === "signin"
+                                                        ? "visible"
+                                                        : "invisible pointer-events-none",
+                                                )}
+                                            >
+                                                忘记密码？
+                                            </Button>
                                         </div>
                                         <div className="relative">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                                <Lock size={18} />
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-faint">
+                                                <Lock size={ICON_SIZE.lg} />
                                             </div>
-                                            <input
+                                            <Input
                                                 type={
                                                     showPassword
                                                         ? "text"
@@ -192,34 +226,39 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                                                     setPassword(e.target.value)
                                                 }
                                                 placeholder="••••••••"
-                                                className={`${authInputClass} pl-11 pr-10`}
+                                                className="pl-11 pr-10"
                                             />
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={() =>
                                                     setShowPassword(
                                                         !showPassword,
                                                     )
                                                 }
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 px-0 py-0 text-text-faint hover:text-text-muted"
                                             >
                                                 {showPassword ? (
-                                                    <Eye size={16} />
+                                                    <Eye size={ICON_SIZE.md} />
                                                 ) : (
-                                                    <EyeOff size={16} />
+                                                    <EyeOff
+                                                        size={ICON_SIZE.md}
+                                                    />
                                                 )}
-                                            </button>
+                                            </Button>
                                         </div>
                                     </div>
 
-                                    <button
+                                    <Button
                                         type="submit"
                                         disabled={isLoading}
-                                        className="w-full bg-black text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 disabled:opacity-70 disabled:cursor-not-allowed mt-4"
+                                        size="md"
+                                        className="w-full mt-8"
                                     >
                                         {isLoading ? (
                                             <Loader2
-                                                size={20}
+                                                size={ICON_SIZE.xl}
                                                 className="animate-spin"
                                             />
                                         ) : (
@@ -227,52 +266,56 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
                                                 {mode === "signin"
                                                     ? "登录"
                                                     : "创建账户"}
-                                                <ArrowRight size={18} />
+                                                <ArrowRight
+                                                    size={ICON_SIZE.lg}
+                                                />
                                             </>
                                         )}
-                                    </button>
+                                    </Button>
                                 </form>
 
                                 <div className="relative my-8">
                                     <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-slate-200"></div>
+                                        <div className="w-full border-t border-border-subtle"></div>
                                     </div>
                                     <div className="relative flex justify-center text-xs">
-                                        <span className="bg-white px-2 text-slate-500">
+                                        <span className="bg-(--color-surface) px-2 text-text-subtle">
                                             或通过以下方式继续
                                         </span>
                                     </div>
                                 </div>
 
                                 <div className="flex gap-4 justify-center">
-                                    <button
+                                    <Button
                                         onClick={() =>
                                             handleSocialLogin("google")
                                         }
-                                        className={socialButtonClass}
+                                        variant="soft"
+                                        size="icon"
                                         title="通过 Google 继续"
                                     >
                                         <Chrome
-                                            size={24}
-                                            className="text-slate-700"
+                                            size={ICON_SIZE["2xl"]}
+                                            className="text-text-secondary"
                                         />
-                                    </button>
+                                    </Button>
                                     {/* Note: Google is the most common example, keeping it simple as per design */}
-                                    <button
-                                        className={socialButtonClass}
+                                    <Button
+                                        variant="soft"
+                                        size="icon"
                                         title="校园账号登录 (模拟)"
                                     >
                                         <GraduationCap
-                                            size={24}
-                                            className="text-slate-700"
+                                            size={ICON_SIZE["2xl"]}
+                                            className="text-text-secondary"
                                         />
-                                    </button>
+                                    </Button>
                                 </div>
                             </>
                         )}
                     </div>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };

@@ -18,7 +18,7 @@ export const MechHubLogo: React.FC<MechHubLogoProps> = ({
             onClick={onClick}
         >
             <div
-                className="bg-black text-white rounded-xl p-2 cursor-pointer hover:opacity-90 transition-all"
+                className="bg-black text-white rounded-md p-2 cursor-pointer"
                 onClick={onIconClick}
             >
                 <Settings

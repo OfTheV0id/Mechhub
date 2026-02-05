@@ -18,6 +18,79 @@ export class AIService {
         return "";
     }
 
+    private static async getValidAccessToken(): Promise<string> {
+        const {
+            data: { session },
+            error,
+        } = await supabase.auth.getSession();
+
+        if (error || !session) {
+            throw new Error("未登录,请刷新页面重新登录");
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        const willExpireSoon = !!session.expires_at && session.expires_at < now + 60;
+
+        if (!willExpireSoon) {
+            return session.access_token;
+        }
+
+        const { data: refreshed, error: refreshError } =
+            await supabase.auth.refreshSession();
+
+        if (refreshError || !refreshed.session) {
+            throw new Error("登录已过期,请重新登录");
+        }
+
+        return refreshed.session.access_token;
+    }
+
+    private static extractJsonObject(text: string): string | null {
+        const fenced = text.match(/```json\s*([\s\S]*?)\s*```/i);
+        if (fenced?.[1]) {
+            return fenced[1];
+        }
+
+        const start = text.indexOf("{");
+        if (start === -1) {
+            return null;
+        }
+
+        let depth = 0;
+        let inString = false;
+        let escaped = false;
+
+        for (let i = start; i < text.length; i++) {
+            const ch = text[i];
+
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                } else if (ch === "\\") {
+                    escaped = true;
+                } else if (ch === '"') {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (ch === '"') {
+                inString = true;
+                continue;
+            }
+
+            if (ch === "{") depth += 1;
+            if (ch === "}") {
+                depth -= 1;
+                if (depth === 0) {
+                    return text.slice(start, i + 1);
+                }
+            }
+        }
+
+        return null;
+    }
+
     static async getResponse(
         request: AICompletionRequest,
     ): Promise<AICompletionResponse> {
@@ -165,9 +238,9 @@ export class AIService {
             );
             try {
                 // Extract JSON from response (in case there's extra text)
-                const jsonMatch = aiReply.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const gradingResult = JSON.parse(jsonMatch[0]);
+                const jsonPayload = AIService.extractJsonObject(aiReply);
+                if (jsonPayload) {
+                    const gradingResult = JSON.parse(jsonPayload);
                     console.log(
                         "[AIService] Parsed gradingResult:",
                         gradingResult,
@@ -307,32 +380,34 @@ export class AIService {
             ...apiMessages,
         ];
 
-        // 检查认证状态
-        const {
-            data: { session },
-        } = await supabase.auth.getSession();
+        let accessToken = await AIService.getValidAccessToken();
 
-        if (!session) {
-            throw new Error("未登录,请刷新页面重新登录");
-        }
-
-        // 使用 fetch 直接调用 Edge Function,启用流式
-        const response = await fetch(
-            `${supabaseUrl}/functions/v1/chat-response`,
-            {
+        const invokeStream = async (token: string) =>
+            fetch(`${supabaseUrl}/functions/v1/chat-response`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${session.access_token}`,
+                    Authorization: `Bearer ${token}`,
                     apikey: publicAnonKey,
                 },
                 body: JSON.stringify({
                     messages: payloadMessages,
-                    stream: true, // 启用流式
+                    stream: true,
                 }),
                 signal: abortSignal,
-            },
-        );
+            });
+
+        let response = await invokeStream(accessToken);
+
+        if (response.status === 401) {
+            const { data: refreshed, error: refreshError } =
+                await supabase.auth.refreshSession();
+            if (refreshError || !refreshed.session) {
+                throw new Error("登录已过期,请重新登录");
+            }
+            accessToken = refreshed.session.access_token;
+            response = await invokeStream(accessToken);
+        }
 
         if (!response.ok) {
             const errorText = await response.text();

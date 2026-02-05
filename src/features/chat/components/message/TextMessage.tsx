@@ -13,6 +13,7 @@ interface TextMessageProps {
     fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
     isGenerating?: boolean;
+    showGeneratingLabel?: boolean;
 }
 
 export const TextMessage: React.FC<TextMessageProps> = ({
@@ -22,6 +23,7 @@ export const TextMessage: React.FC<TextMessageProps> = ({
     fileAttachments,
     onImageClick,
     isGenerating = false,
+    showGeneratingLabel = false,
 }) => {
     const { isCopied, handleCopyText } = useTextMessage(text);
 
@@ -29,9 +31,18 @@ export const TextMessage: React.FC<TextMessageProps> = ({
 
     return (
         <div
-            className={`flex gap-4 ${role === "user" ? "flex-row-reverse" : ""}`}
+            className={`flex ${role === "user" ? "flex-row-reverse" : "relative pl-12"}`}
         >
-            {role === "assistant" && <AIAvatar isThinking={isGenerating} />}
+            {role === "assistant" && (
+                <div className="absolute left-0 top-0 flex items-center gap-2">
+                    <AIAvatar isThinking={isGenerating} />
+                    {showGeneratingLabel && (
+                        <div className="[font-size:var(--font-size-meta)] text-text-faint animate-pulse select-none">
+                            生成中...
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div
                 className={`flex flex-col gap-1 max-w-[90%] min-w-0 ${role === "user" ? "items-end" : "items-start"}`}
@@ -79,10 +90,10 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                 {text && text.trim() && (
                     <div className="group flex flex-col gap-2">
                         <div
-                            className={`text-base leading-relaxed p-4 rounded-2xl shadow-sm overflow-y-auto min-w-0 ${
+                            className={`text-base leading-loose p-3 overflow-y-auto min-w-0 ${
                                 role === "user"
-                                    ? "bg-slate-900 text-white rounded-tr-sm"
-                                    : "bg-white border border-slate-100 text-slate-700 rounded-tl-none"
+                                    ? "bg-slate-900 text-white rounded-xl rounded-tr-xs"
+                                    : "bg-fill-muted border-none text-slate-700 rounded-none"
                             }`}
                         >
                             {role === "user" ? (
@@ -132,14 +143,6 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                                 )}
                             </button>
                         </div>
-                    </div>
-                )}
-
-                {text && text.includes("period formula") && (
-                    <div className="my-2 p-6 bg-slate-50 rounded-xl flex justify-center border border-slate-100">
-                        <span className="text-2xl font-serif italic">
-                            T ≈ 2π√(L/g)
-                        </span>
                     </div>
                 )}
             </div>

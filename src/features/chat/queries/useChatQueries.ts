@@ -14,10 +14,11 @@ export const chatKeys = {
     detail: (id: string) => [...chatKeys.all, "detail", id] as const,
 };
 
-export const useChats = () => {
+export const useChats = (enabled = true) => {
     return useQuery({
         queryKey: chatKeys.lists(),
         queryFn: ChatService.fetchChats,
+        enabled,
     });
 };
 
@@ -36,8 +37,11 @@ export const useSaveChat = () => {
         }) => {
             return ChatService.saveChat(id, messages, title);
         },
-        onSuccess: (savedChat) => {
+        onSuccess: async (savedChat) => {
             upsertSavedChatSession(queryClient, savedChat);
+            await queryClient.invalidateQueries({
+                queryKey: chatKeys.lists(),
+            });
         },
     });
 };
@@ -47,8 +51,11 @@ export const useDeleteChat = () => {
 
     return useMutation({
         mutationFn: ChatService.deleteChat,
-        onSuccess: (_, deletedId) => {
+        onSuccess: async (_, deletedId) => {
             removeChatSession(queryClient, deletedId);
+            await queryClient.invalidateQueries({
+                queryKey: chatKeys.lists(),
+            });
         },
     });
 };
@@ -66,8 +73,11 @@ export const useRenameChat = () => {
         }) => {
             return ChatService.updateChatTitle(id, newTitle);
         },
-        onSuccess: (_, { id, newTitle }) => {
+        onSuccess: async (_, { id, newTitle }) => {
             updateChatTitle(queryClient, id, newTitle);
+            await queryClient.invalidateQueries({
+                queryKey: chatKeys.lists(),
+            });
         },
     });
 };

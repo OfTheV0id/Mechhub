@@ -7,6 +7,7 @@ import {
     findChatById,
     prependChatSession,
     removeChatSession,
+    setChatTitleGenerating,
     updateChatMessages,
     updateChatTitle,
 } from "../lib/chatCache";
@@ -81,6 +82,7 @@ export const useChatMessaging = ({
                 title: chatTitle,
                 messages: [newMessage],
                 updatedAt: Date.now(),
+                isGeneratingTitle: true,
             };
 
             setCurrentSessionId(tempId);
@@ -167,6 +169,20 @@ export const useChatMessaging = ({
         activeId: string,
         submitMessage: SubmitMessage,
     ): Promise<Message> => {
+        const processingMessageId = (Date.now() + 1).toString();
+        const processingMessage: Message = {
+            id: processingMessageId,
+            role: "assistant",
+            type: "text",
+            text: "",
+            createdAt: new Date().toISOString(),
+        };
+
+        updateChatMessages(queryClient, activeId, (msgs) => [
+            ...msgs,
+            processingMessage,
+        ]);
+
         const currentSession = findChatById(queryClient, activeId);
         const currentMessagesWithUser = currentSession?.messages || [];
 
@@ -178,7 +194,7 @@ export const useChatMessaging = ({
         });
 
         return {
-            id: (Date.now() + 1).toString(),
+            id: processingMessageId,
             role: "assistant",
             type: response.gradingResult ? "grading" : "text",
             text: response.text,
@@ -193,7 +209,11 @@ export const useChatMessaging = ({
         aiResponse: Message,
     ) => {
         updateChatMessages(queryClient, activeId, (msgs) => {
-            if (mode === "study") {
+            const hasPendingMessage = msgs.some(
+                (message) => message.id === aiResponse.id,
+            );
+
+            if (mode === "study" || hasPendingMessage) {
                 return msgs.map((message) =>
                     message.id === aiResponse.id ? aiResponse : message,
                 );
@@ -220,6 +240,7 @@ export const useChatMessaging = ({
         activeId: string,
         finalMessages: Message[],
     ) => {
+        setChatTitleGenerating(queryClient, activeId, true);
         try {
             const aiGeneratedTitle = await generateTitle(finalMessages);
             updateChatTitle(queryClient, activeId, aiGeneratedTitle);
@@ -231,6 +252,8 @@ export const useChatMessaging = ({
             });
         } catch (titleError) {
             console.error("Failed to generate AI title:", titleError);
+        } finally {
+            setChatTitleGenerating(queryClient, activeId, false);
         }
     };
 

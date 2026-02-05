@@ -61,6 +61,22 @@ export const updateChatTitle = (
     );
 };
 
+export const setChatTitleGenerating = (
+    queryClient: QueryClient,
+    sessionId: string,
+    isGeneratingTitle: boolean,
+) => {
+    queryClient.setQueryData<ChatSession[]>(
+        chatKeys.lists(),
+        (old) =>
+            old?.map((session) =>
+                session.id === sessionId
+                    ? { ...session, isGeneratingTitle }
+                    : session,
+            ) || [],
+    );
+};
+
 export const updateChatMessages = (
     queryClient: QueryClient,
     sessionId: string,

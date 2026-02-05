@@ -43,8 +43,9 @@ serve(async (req) => {
         // 3. Process Request
         const { messages, stream = false } = await req.json();
 
-        // Inject LaTeX formatting instruction as a system-level requirement
-        // This ensures all mathematical formulas are properly wrapped in delimiters
+        // Inject LaTeX formatting instruction for normal chat responses.
+        // Skip this in strict JSON tasks (e.g. grading result), otherwise
+        // backslashes in LaTeX can break JSON parsing on the client side.
         const latexFormattingInstruction = {
             role: "system",
             content: `CRITICAL FORMATTING RULE: 你必须将所有数学公式和 LaTeX 命令用正确的分隔符包裹:
@@ -54,10 +55,23 @@ serve(async (req) => {
 - 不要输出未包裹的裸 LaTeX 命令`,
         };
 
-        // Prepend to messages if not already present
-        const hasSystemMsg = messages.some((m: any) => m.role === "system");
-        const finalMessages = hasSystemMsg
-            ? [latexFormattingInstruction, ...messages]
+        const isStrictJsonTask = messages.some(
+            (m: any) =>
+                m?.role === "system" &&
+                typeof m?.content === "string" &&
+                (m.content.includes("只返回JSON") ||
+                    m.content.includes("只返回标题文本")),
+        );
+        const gradingJsonFormattingInstruction = {
+            role: "system",
+            content: `CRITICAL JSON FORMATTING RULE (批改模式):
+- 输出必须是严格 JSON（不要 markdown 代码块、不要额外说明）
+- 在 JSON 字符串中，凡是数学公式都必须用 $...$ 包裹
+- 不要输出未包裹的裸 LaTeX 命令
+- 如果使用反斜杠 LaTeX 命令（如 \\frac、\\sqrt），请确保符合 JSON 字符串转义规范`,
+        };
+        const finalMessages = isStrictJsonTask
+            ? [gradingJsonFormattingInstruction, ...messages]
             : [latexFormattingInstruction, ...messages];
 
         const response = await fetch(
