@@ -138,6 +138,7 @@ export const useChatMessaging = ({
                 mode: "study",
                 imageUrls: submitMessage.imageUrls,
                 fileAttachments: submitMessage.fileAttachments,
+                model: submitMessage.model,
             },
             (chunk) => {
                 streamedContent += chunk;
@@ -187,6 +188,7 @@ export const useChatMessaging = ({
             mode: "correct",
             imageUrls: submitMessage.imageUrls,
             fileAttachments: submitMessage.fileAttachments,
+            model: submitMessage.model,
         });
 
         return {

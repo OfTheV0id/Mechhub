@@ -22,19 +22,22 @@ export const useAppView = ({ handleSendMessage }: UseAppViewParams) => {
         text: string,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => {
-        onSendMessage({ text, imageUrls, fileAttachments });
+        onSendMessage({ text, imageUrls, fileAttachments, model });
     };
 
     const onStartChat = (
         message?: string,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => {
         onSendMessageWrapper(
             message || (imageUrls || fileAttachments ? "" : "我们开始吧！"),
             imageUrls,
             fileAttachments,
+            model,
         );
     };
 

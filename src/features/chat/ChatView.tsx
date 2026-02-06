@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { ChatInput } from "./components/ChatInput";
 import { MessageList } from "./components/MessageList";
 import { Message, SubmitMessage } from "../../types/message";
@@ -29,6 +29,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { inputText, setInputText, handleSubmit } =
         useChatInput(onSendMessage);
+    const [model, setModel] = useState("qwen3-vl-235b-a22b-thinking");
 
     const lastMessage = messages[messages.length - 1];
     const hasGradingResult = lastMessage?.gradingResult !== undefined;
@@ -50,6 +51,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 onSubmit={handleSubmit}
                 mode={mode}
                 setMode={setMode}
+                model={model}
+                setModel={setModel}
                 isTyping={isTyping}
                 onStop={onStop}
             />

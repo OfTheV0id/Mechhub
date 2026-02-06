@@ -10,12 +10,14 @@ export const useChatInput = (onSendMessage: SendMessageFn) => {
         e: FormEvent,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => {
         e.preventDefault();
         onSendMessage({
             text: inputText,
             imageUrls,
             fileAttachments,
+            model,
         });
         setInputText("");
     };

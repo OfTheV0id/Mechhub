@@ -37,6 +37,7 @@ export interface SubmitMessage {
     text: string;
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
+    model?: string;
 }
 
 export interface Message extends SubmitMessage {
@@ -52,6 +53,7 @@ export interface AICompletionRequest {
     mode: "study" | "correct";
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
+    model?: string;
 }
 
 export interface AICompletionResponse {

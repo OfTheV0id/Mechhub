@@ -94,7 +94,7 @@ export class AIService {
     static async getResponse(
         request: AICompletionRequest,
     ): Promise<AICompletionResponse> {
-        const { messages, mode, fileAttachments } = request;
+        const { messages, mode, fileAttachments, model } = request;
 
         const apiMessages = messages.map((m) => {
             if (
@@ -219,7 +219,7 @@ export class AIService {
         const { data, error } = await supabase.functions.invoke(
             "chat-response",
             {
-                body: { messages: payloadMessages },
+                body: { messages: payloadMessages, model },
             },
         );
 
@@ -302,7 +302,7 @@ export class AIService {
         onChunk: (chunk: string) => void,
         abortSignal?: AbortSignal,
     ): Promise<AICompletionResponse> {
-        const { messages, mode, fileAttachments } = request;
+        const { messages, mode, fileAttachments, model } = request;
 
         const apiMessages = messages.map((m) => {
             if (
@@ -393,6 +393,7 @@ export class AIService {
                 body: JSON.stringify({
                     messages: payloadMessages,
                     stream: true,
+                    model,
                 }),
                 signal: abortSignal,
             });

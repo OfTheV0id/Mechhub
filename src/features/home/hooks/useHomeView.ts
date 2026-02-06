@@ -6,6 +6,7 @@ export const useHomeView = (
         message?: string,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => void,
 ) => {
     const [inputValue, setInputValue] = useState("");
@@ -14,6 +15,7 @@ export const useHomeView = (
         e: React.FormEvent,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => {
         e.preventDefault();
         const hasText = !!inputValue.trim();
@@ -21,7 +23,7 @@ export const useHomeView = (
         const hasFiles = fileAttachments && fileAttachments.length > 0;
 
         if (hasText || hasImages || hasFiles) {
-            onStartChat(inputValue, imageUrls, fileAttachments);
+            onStartChat(inputValue, imageUrls, fileAttachments, model);
         }
     };
 

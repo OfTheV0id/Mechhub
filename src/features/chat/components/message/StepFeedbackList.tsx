@@ -44,7 +44,7 @@ export const StepFeedbackList: React.FC<StepFeedbackListProps> = ({
                             stiffness: 300,
                             damping: 20,
                         }}
-                        className={`bg-white rounded-xl p-4 cursor-pointer border-2 transition-colors ${
+                        className={`bg-white rounded-xl p-4 m-2 cursor-pointer border-2 transition-colors ${
                             activeStepIndex === idx
                                 ? "border-slate-800 shadow-lg"
                                 : "border-transparent hover:border-slate-200"

@@ -21,13 +21,23 @@ interface UnifiedInputBarProps {
         e: React.FormEvent,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => void;
     mode: ChatMode;
     setMode: (mode: ChatMode) => void;
+    model: string;
+    setModel: (model: string) => void;
     placeholder?: string;
     isTyping?: boolean;
     onStop?: () => void;
 }
+
+const MODEL_OPTIONS = [
+    "qwen3-vl-235b-a22b-thinking",
+    "qwen3-vl-235b-a22b-instruct",
+    "qwen3-vl-32b-thinking",
+    "qwen3-vl-32b-instruct",
+];
 
 export const UnifiedInputBar = ({
     inputValue,
@@ -35,6 +45,8 @@ export const UnifiedInputBar = ({
     onSubmit,
     mode,
     setMode,
+    model,
+    setModel,
     placeholder,
     isTyping = false,
     onStop,
@@ -49,7 +61,7 @@ export const UnifiedInputBar = ({
         removeImageAttachment,
         removeFileAttachment,
         handleSubmitInternal,
-    } = useUnifiedInput({ inputValue, onSubmit, mode });
+    } = useUnifiedInput({ inputValue, onSubmit, mode, model });
 
     const showStopButton = isTyping && !!onStop;
     const modeButtonClass =
@@ -177,6 +189,23 @@ export const UnifiedInputBar = ({
                         <CheckCircle size={14} />
                         批改
                     </button>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-1 rounded-[20px] border border-slate-200 bg-white/80 px-2 py-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        模型
+                    </span>
+                    <select
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
+                        className="bg-transparent text-xs text-slate-700 outline-none"
+                    >
+                        {MODEL_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <textarea

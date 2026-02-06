@@ -10,9 +10,12 @@ interface ChatInputProps {
         e: React.FormEvent,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => void;
     mode: ChatMode;
     setMode: (mode: ChatMode) => void;
+    model: string;
+    setModel: (model: string) => void;
 
     isTyping: boolean;
     onStop?: () => void;
@@ -24,6 +27,8 @@ export const ChatInput = ({
     onSubmit,
     mode,
     setMode,
+    model,
+    setModel,
 
     isTyping,
     onStop,
@@ -36,6 +41,8 @@ export const ChatInput = ({
                 onSubmit={onSubmit}
                 mode={mode}
                 setMode={setMode}
+                model={model}
+                setModel={setModel}
                 isTyping={isTyping}
                 onStop={onStop}
             />

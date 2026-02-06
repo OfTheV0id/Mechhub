@@ -65,20 +65,25 @@ const LANGUAGE_MAP: { [key: string]: string } = {
     ".bash": "bash",
 };
 
+const MAX_TOTAL_IMAGE_BYTES = 10 * 1024 * 1024;
+
 interface UseUnifiedInputProps {
     inputValue: string;
     onSubmit: (
         e: React.FormEvent,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => void;
     mode: ChatMode;
+    model: string;
 }
 
 export const useUnifiedInput = ({
     inputValue,
     onSubmit,
     mode,
+    model,
 }: UseUnifiedInputProps) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imageAttachments, setImageAttachments] = useState<ImageAttachment[]>(
@@ -125,6 +130,22 @@ export const useUnifiedInput = ({
             }
 
             // Upload images
+            if (imagesToUpload.length > 0) {
+                const existingImageBytes = imageAttachments.reduce(
+                    (total, item) => total + item.file.size,
+                    0,
+                );
+                const newImageBytes = imagesToUpload.reduce(
+                    (total, item) => total + item.file.size,
+                    0,
+                );
+
+                if (existingImageBytes + newImageBytes > MAX_TOTAL_IMAGE_BYTES) {
+                    toast.error("图片总大小不能超过 10MB");
+                    imagesToUpload.length = 0;
+                }
+            }
+
             if (imagesToUpload.length > 0) {
                 setImageAttachments((prev) => [...prev, ...imagesToUpload]);
 
@@ -223,6 +244,7 @@ export const useUnifiedInput = ({
                 e,
                 imageUrls.length > 0 ? imageUrls : undefined,
                 fileAttachments.length > 0 ? fileAttachments : undefined,
+                model,
             );
             setImageAttachments([]);
             setFileAttachments([]);

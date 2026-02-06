@@ -31,6 +31,7 @@ interface MainLayoutProps {
         message?: string,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => void;
 }
 

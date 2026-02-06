@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { useState } from "react";
 import { AIAvatar } from "../../components";
 import { UnifiedInputBar } from "../chat";
 import { FileAttachment } from "../../types/message";
@@ -10,6 +11,7 @@ interface HomeViewProps {
         message?: string,
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
+        model?: string,
     ) => void;
     mode?: ChatMode;
     setMode?: (mode: ChatMode) => void;
@@ -53,6 +55,7 @@ export const HomeView = ({
 }: HomeViewProps) => {
     const { inputValue, setInputValue, handleSubmit } =
         useHomeView(onStartChat);
+    const [model, setModel] = useState("qwen3-vl-235b-a22b-thinking");
 
     return (
         <div className="relative flex h-full flex-1 flex-col items-center justify-center bg-white p-8">
@@ -89,6 +92,8 @@ export const HomeView = ({
                         onSubmit={handleSubmit}
                         mode={mode}
                         setMode={setMode}
+                        model={model}
+                        setModel={setModel}
                     />
                 </div>
             </div>
