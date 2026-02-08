@@ -1,27 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChatService } from "../../../services/ChatService";
-import { Message } from "../../../types/message";
-import { ChatSession } from "../../../types/session";
-import { AIService } from "../../../services/ai/AIService";
+import type { ChatQueryUseCases } from "../application/useCases/ChatQueryUseCases";
+import type { Message } from "../types/message";
+import type { ChatSession } from "../types/session";
 import {
     mergeChatSessions,
     removeChatSession,
     updateChatTitle,
     upsertSavedChatSession,
-} from "../lib/chatCache";
+} from "./chatCache";
+import { chatKeys } from "./chatKeys";
 
-export const chatKeys = {
-    all: ["chats"] as const,
-    lists: () => [...chatKeys.all, "list"] as const,
-    detail: (id: string) => [...chatKeys.all, "detail", id] as const,
-};
-
-export const useChats = (enabled = true) => {
+export const useChats = (chatQueryUseCases: ChatQueryUseCases, enabled = true) => {
     const queryClient = useQueryClient();
 
     return useQuery({
         queryKey: chatKeys.lists(),
-        queryFn: ChatService.fetchChats,
+        queryFn: chatQueryUseCases.fetchChats,
         enabled,
         select: (remoteChats) =>
             mergeChatSessions(
@@ -31,7 +25,7 @@ export const useChats = (enabled = true) => {
     });
 };
 
-export const useSaveChat = () => {
+export const useSaveChat = (chatQueryUseCases: ChatQueryUseCases) => {
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -44,7 +38,7 @@ export const useSaveChat = () => {
             messages: Message[];
             title: string;
         }) => {
-            return ChatService.saveChat(id, messages, title);
+            return chatQueryUseCases.saveChat(id, messages, title);
         },
         onSuccess: async (savedChat) => {
             upsertSavedChatSession(queryClient, savedChat);
@@ -56,11 +50,11 @@ export const useSaveChat = () => {
     });
 };
 
-export const useDeleteChat = () => {
+export const useDeleteChat = (chatQueryUseCases: ChatQueryUseCases) => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ChatService.deleteChat,
+        mutationFn: chatQueryUseCases.deleteChat,
         onSuccess: async (_, deletedId) => {
             removeChatSession(queryClient, deletedId);
             await queryClient.invalidateQueries({
@@ -70,7 +64,7 @@ export const useDeleteChat = () => {
     });
 };
 
-export const useRenameChat = () => {
+export const useRenameChat = (chatQueryUseCases: ChatQueryUseCases) => {
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -81,7 +75,7 @@ export const useRenameChat = () => {
             id: string;
             newTitle: string;
         }) => {
-            return ChatService.updateChatTitle(id, newTitle);
+            return chatQueryUseCases.renameChat(id, newTitle);
         },
         onSuccess: async (_, { id, newTitle }) => {
             updateChatTitle(queryClient, id, newTitle);
@@ -92,10 +86,11 @@ export const useRenameChat = () => {
     });
 };
 
-export const useGenerateTitle = () => {
+export const useGenerateTitle = (chatQueryUseCases: ChatQueryUseCases) => {
     return useMutation({
         mutationFn: async (messages: Message[]) => {
-            return AIService.generateTitle(messages);
+            return chatQueryUseCases.generateTitle(messages);
         },
     });
 };
+

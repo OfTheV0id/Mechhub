@@ -1,3 +1,4 @@
 export { AuthPage } from "./AuthPage";
-export { useAuth } from "./hooks/useAuth";
+export { useAuthFlow } from "./hooks/flow/useAuthFlow";
 export type { AuthMode } from "./types/auth";
+export type { UserProfile } from "./types/userProfile";

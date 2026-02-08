@@ -15,8 +15,8 @@ import {
     X,
 } from "lucide-react";
 
-import { UserProfile } from "../../types/user";
-import { useProfile } from "./hooks/useProfile";
+import { UserProfile } from "../auth";
+import { useProfileState } from "./hooks/ui/useProfileState";
 
 interface ProfileViewProps {
     user?: UserProfile;
@@ -39,7 +39,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         handleCancel,
         containerVariants,
         itemVariants,
-    } = useProfile(user, onUpdateProfile);
+    } = useProfileState(user, onUpdateProfile);
 
     return (
         <div className="flex-1 h-full overflow-y-auto bg-slate-50/50">

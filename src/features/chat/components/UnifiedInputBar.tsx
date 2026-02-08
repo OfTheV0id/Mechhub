@@ -10,19 +10,17 @@ import {
     FileText,
     Square,
 } from "lucide-react";
-import { FileAttachment } from "../../../types/message";
-import { useUnifiedInput } from "../hooks/useUnifiedInput";
-import { ChatMode } from "../types/chat";
+import { SubmitMessage } from "../types/message";
+import { useSendState } from "../hooks/ui/useSendState";
+import { ChatMode } from "../types/message";
+import {
+    UploadImageHandler,
+    useAttachmentUploadState,
+} from "../hooks/ui/useAttachmentUploadState";
 
 interface UnifiedInputBarProps {
-    inputValue: string;
-    onInputChange: (value: string) => void;
-    onSubmit: (
-        e: React.FormEvent,
-        imageUrls?: string[],
-        fileAttachments?: FileAttachment[],
-        model?: string,
-    ) => void;
+    onSendMessage: (payload: SubmitMessage) => void;
+    uploadImage: UploadImageHandler;
     mode: ChatMode;
     setMode: (mode: ChatMode) => void;
     model: string;
@@ -40,9 +38,8 @@ const MODEL_OPTIONS = [
 ];
 
 export const UnifiedInputBar = ({
-    inputValue,
-    onInputChange,
-    onSubmit,
+    onSendMessage,
+    uploadImage,
     mode,
     setMode,
     model,
@@ -56,19 +53,41 @@ export const UnifiedInputBar = ({
         imageAttachments,
         fileAttachments,
         isUploading,
+        uploadedImageUrls,
         handleUploadClick,
         handleFileChange,
         removeImageAttachment,
         removeFileAttachment,
-        handleSubmitInternal,
-    } = useUnifiedInput({ inputValue, onSubmit, mode, model });
+        resetAttachments,
+    } = useAttachmentUploadState({ uploadImage });
+
+    const {
+        inputValue,
+        setInputValue,
+        submitDraft,
+    } = useSendState({
+        mode,
+        model,
+        isUploading,
+        uploadedImageUrls,
+        fileAttachments,
+        resetAttachments,
+    });
+
+    const handleSubmit = (e?: { preventDefault: () => void }) => {
+        e?.preventDefault();
+        const payload = submitDraft();
+        if (payload) {
+            onSendMessage(payload);
+        }
+    };
 
     const showStopButton = isTyping && !!onStop;
     const modeButtonClass =
         "relative z-10 flex w-[100px] items-center justify-center gap-2 rounded-[20px] px-4 py-2 text-xs font-bold transition-colors";
 
     return (
-        <form onSubmit={handleSubmitInternal} className="w-full relative">
+        <form onSubmit={handleSubmit} className="w-full relative">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -217,7 +236,7 @@ export const UnifiedInputBar = ({
                         }
                     }}
                     value={inputValue}
-                    onChange={(e) => onInputChange(e.target.value)}
+                    onChange={(e) => setInputValue(e.target.value)}
                     placeholder={
                         placeholder ||
                         (mode === "correct" ? "上传你的解答." : "提出你的疑问.")
@@ -228,7 +247,7 @@ export const UnifiedInputBar = ({
                         if (e.nativeEvent.isComposing) return;
                         if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();
-                            handleSubmitInternal(e);
+                            handleSubmit(e);
                         }
                     }}
                 />
@@ -248,7 +267,7 @@ export const UnifiedInputBar = ({
                         if (showStopButton && onStop) {
                             onStop();
                         } else {
-                            handleSubmitInternal(e);
+                            handleSubmit(e);
                         }
                     }}
                     disabled={
@@ -278,3 +297,4 @@ export const UnifiedInputBar = ({
         </form>
     );
 };
+

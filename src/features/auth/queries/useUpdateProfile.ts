@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AuthService } from "../../../services/AuthService";
 import { toast } from "sonner";
 import { authKeys } from "./authKeys";
-import { UserProfile } from "../../../types/user";
+import { UserProfile } from "../types/userProfile";
+import { authUseCases } from "../infra/authDeps";
 
 export const useUpdateProfile = () => {
     const queryClient = useQueryClient();
@@ -13,7 +13,7 @@ export const useUpdateProfile = () => {
             role: string;
             avatar: string;
         }) => {
-            await AuthService.updateUser({
+            await authUseCases.updateUser({
                 name: data.name,
                 role: data.role,
                 avatar_url: data.avatar,

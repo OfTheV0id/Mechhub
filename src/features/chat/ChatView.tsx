@@ -1,15 +1,16 @@
 import React, { useRef, useState } from "react";
 import { ChatInput } from "./components/ChatInput";
 import { MessageList } from "./components/MessageList";
-import { Message, SubmitMessage } from "../../types/message";
-import { useChatInput } from "./hooks/useChatInput";
-import { ChatMode } from "./types/chat";
+import { Message, SubmitMessage } from "./types/message";
+import { ChatMode } from "./types/message";
+import type { UploadImageHandler } from "./hooks/ui/useAttachmentUploadState";
 
 export type { Message };
 
 interface ChatInterfaceProps {
     messages: Message[];
     onSendMessage: (submitMessage: SubmitMessage) => void;
+    uploadImage: UploadImageHandler;
     onStop?: () => void;
     isTyping: boolean;
     mode: ChatMode;
@@ -20,6 +21,7 @@ interface ChatInterfaceProps {
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     messages,
     onSendMessage,
+    uploadImage,
     onStop,
     isTyping,
     mode,
@@ -27,8 +29,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     sessionId,
 }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { inputText, setInputText, handleSubmit } =
-        useChatInput(onSendMessage);
     const [model, setModel] = useState("qwen3-vl-235b-a22b-thinking");
 
     const lastMessage = messages[messages.length - 1];
@@ -46,9 +46,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             />
 
             <ChatInput
-                inputText={inputText}
-                setInputText={setInputText}
-                onSubmit={handleSubmit}
+                onSendMessage={onSendMessage}
+                uploadImage={uploadImage}
                 mode={mode}
                 setMode={setMode}
                 model={model}
@@ -59,3 +58,4 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
     );
 };
+

@@ -1,4 +1,4 @@
-import { UserProfile } from "../../types/user";
+import { UserProfile } from "./types/userProfile";
 
 export const DEFAULT_USER: UserProfile = {
     name: "张同学",

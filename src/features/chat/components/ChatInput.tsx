@@ -1,17 +1,11 @@
 import React from "react";
 import { UnifiedInputBar } from "./UnifiedInputBar";
-import { FileAttachment } from "../../../types/message";
-import { ChatMode } from "../types/chat";
+import { ChatMode, SubmitMessage } from "../types/message";
+import type { UploadImageHandler } from "../hooks/ui/useAttachmentUploadState";
 
 interface ChatInputProps {
-    inputText: string;
-    setInputText: (text: string) => void;
-    onSubmit: (
-        e: React.FormEvent,
-        imageUrls?: string[],
-        fileAttachments?: FileAttachment[],
-        model?: string,
-    ) => void;
+    onSendMessage: (payload: SubmitMessage) => void;
+    uploadImage: UploadImageHandler;
     mode: ChatMode;
     setMode: (mode: ChatMode) => void;
     model: string;
@@ -22,9 +16,8 @@ interface ChatInputProps {
 }
 
 export const ChatInput = ({
-    inputText,
-    setInputText,
-    onSubmit,
+    onSendMessage,
+    uploadImage,
     mode,
     setMode,
     model,
@@ -36,9 +29,8 @@ export const ChatInput = ({
     return (
         <div className="z-20 w-full bg-fill-muted p-4">
             <UnifiedInputBar
-                inputValue={inputText}
-                onInputChange={setInputText}
-                onSubmit={onSubmit}
+                onSendMessage={onSendMessage}
+                uploadImage={uploadImage}
                 mode={mode}
                 setMode={setMode}
                 model={model}
@@ -52,3 +44,4 @@ export const ChatInput = ({
         </div>
     );
 };
+

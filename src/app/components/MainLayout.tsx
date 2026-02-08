@@ -1,12 +1,18 @@
 import { Sidebar } from "../../features/sidebar";
-import { ChatInterface } from "../../features/chat";
+import {
+    ChatInterface,
+    ChatMode,
+    ChatSession,
+    DeleteChatResult,
+    FileAttachment,
+    Message,
+    SubmitMessage,
+} from "../../features/chat";
+import type { UploadImageHandler } from "../../features/chat";
 import { HomeView } from "../../features/home";
 import { ProfileView } from "../../features/profile";
-import { FileAttachment, Message, SubmitMessage } from "../../types/message";
-import { ChatSession } from "../../types/session";
-import { UserProfile } from "../../types/user";
-import { ActiveView } from "../../types/view";
-import { ChatMode, DeleteChatResult } from "../../features/chat";
+import { UserProfile } from "../../features/auth";
+import { ActiveView } from "../types/view";
 
 interface MainLayoutProps {
     activeView: ActiveView;
@@ -24,6 +30,7 @@ interface MainLayoutProps {
     isLoadingSessions: boolean;
     messages: Message[];
     onSendMessage: (submitMessage: SubmitMessage) => void;
+    uploadImage: UploadImageHandler;
     isTyping: boolean;
     handleStopGeneration: () => void;
     handleUpdateProfile: (name: string, role: string, avatar: string) => void;
@@ -32,6 +39,7 @@ interface MainLayoutProps {
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
         model?: string,
+        mode?: ChatMode,
     ) => void;
 }
 
@@ -51,6 +59,7 @@ export const MainLayout = ({
     isLoadingSessions,
     messages,
     onSendMessage,
+    uploadImage,
     isTyping,
     handleStopGeneration,
     handleUpdateProfile,
@@ -79,6 +88,7 @@ export const MainLayout = ({
                         mode={chatMode}
                         setMode={setChatMode}
                         userName={userProfile.name}
+                        uploadImage={uploadImage}
                     />
                 )}
 
@@ -86,6 +96,7 @@ export const MainLayout = ({
                     <ChatInterface
                         messages={messages}
                         onSendMessage={onSendMessage}
+                        uploadImage={uploadImage}
                         isTyping={isTyping}
                         onStop={handleStopGeneration}
                         mode={chatMode}

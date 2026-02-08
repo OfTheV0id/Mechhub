@@ -10,7 +10,7 @@ import {
     Eye,
     EyeOff,
 } from "lucide-react";
-import { useAuthPage } from "./hooks/useAuthPage";
+import { useAuthPageState } from "./hooks/ui/useAuthPageState";
 import { MechHubLogo } from "../../components";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -37,7 +37,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess }) => {
         handleSocialLogin,
         isVerificationPending,
         setIsVerificationPending,
-    } = useAuthPage(onLoginSuccess);
+    } = useAuthPageState(onLoginSuccess);
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-(--color-canvas) p-(--space-4)">
             <Card

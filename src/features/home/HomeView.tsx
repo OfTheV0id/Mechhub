@@ -2,9 +2,12 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { AIAvatar } from "../../components";
 import { UnifiedInputBar } from "../chat";
-import { FileAttachment } from "../../types/message";
-import { useHomeView } from "./hooks/useHomeView";
-import { ChatMode } from "../chat/types/chat";
+import type { UploadImageHandler } from "../chat";
+import {
+    ChatMode,
+    FileAttachment,
+    SubmitMessage,
+} from "../../features/chat";
 
 interface HomeViewProps {
     onStartChat: (
@@ -12,10 +15,12 @@ interface HomeViewProps {
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
         model?: string,
+        mode?: ChatMode,
     ) => void;
     mode?: ChatMode;
     setMode?: (mode: ChatMode) => void;
     userName?: string;
+    uploadImage: UploadImageHandler;
 }
 
 const TypewriterText = ({
@@ -52,10 +57,18 @@ export const HomeView = ({
     mode = "study",
     setMode = () => {},
     userName = "同学",
+    uploadImage,
 }: HomeViewProps) => {
-    const { inputValue, setInputValue, handleSubmit } =
-        useHomeView(onStartChat);
     const [model, setModel] = useState("qwen3-vl-235b-a22b-thinking");
+    const handleSendMessage = (payload: SubmitMessage) => {
+        onStartChat(
+            payload.text,
+            payload.imageUrls,
+            payload.fileAttachments,
+            payload.model,
+            payload.mode,
+        );
+    };
 
     return (
         <div className="relative flex h-full flex-1 flex-col items-center justify-center bg-white p-8">
@@ -87,9 +100,8 @@ export const HomeView = ({
 
                     {/* Bottom Search Bar */}
                     <UnifiedInputBar
-                        inputValue={inputValue}
-                        onInputChange={setInputValue}
-                        onSubmit={handleSubmit}
+                        onSendMessage={handleSendMessage}
+                        uploadImage={uploadImage}
                         mode={mode}
                         setMode={setMode}
                         model={model}

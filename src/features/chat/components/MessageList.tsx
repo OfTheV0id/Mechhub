@@ -1,7 +1,7 @@
 import React from "react";
-import { Message } from "../../../types/message";
+import { Message } from "../types/message";
 import { TextMessage, GradingResultView, ImagePreviewModal } from "./message";
-import { useMessageList } from "../hooks/useMessageList";
+import { useMessageListUiState } from "../hooks/ui/useMessageListUiState";
 
 interface MessageListProps {
     messages: Message[];
@@ -17,35 +17,44 @@ export const MessageList: React.FC<MessageListProps> = ({
     messagesEndRef,
     sessionId,
 }) => {
+    const isThinkingModel = (model?: string) =>
+        typeof model === "string" && model.includes("thinking");
+
     const {
         contentRef,
         previewImage,
         openPreview,
         closePreview,
         handleScroll,
-    } = useMessageList({ messages, isTyping, messagesEndRef, sessionId });
+    } = useMessageListUiState({ messages, isTyping, messagesEndRef, sessionId });
 
     const renderMessage = (msg: Message, index: number) => {
         const isLastMessage = index === messages.length - 1;
         const isGenerating =
             isTyping && isLastMessage && msg.role === "assistant";
-        const showGeneratingLabel =
-            isGenerating &&
-            msg.type === "text" &&
-            (!msg.text || msg.text.length === 0);
 
         if (msg.gradingResult) {
-            return <GradingResultView gradingResult={msg.gradingResult} />;
+            return (
+                <GradingResultView
+                    gradingResult={msg.gradingResult}
+                    reply={msg.text}
+                    reasoning={msg.reasoning}
+                    showThinking={isThinkingModel(msg.model)}
+                />
+            );
         }
         return (
             <TextMessage
                 role={msg.role}
                 text={msg.text}
+                reasoning={msg.reasoning}
+                showThinking={
+                    msg.role === "assistant" && isThinkingModel(msg.model)
+                }
                 imageUrls={msg.imageUrls}
                 fileAttachments={msg.fileAttachments}
                 onImageClick={openPreview}
                 isGenerating={isGenerating}
-                showGeneratingLabel={showGeneratingLabel}
             />
         );
     };
@@ -76,3 +85,4 @@ export const MessageList: React.FC<MessageListProps> = ({
         </div>
     );
 };
+

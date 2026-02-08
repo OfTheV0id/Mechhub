@@ -1,5 +1,21 @@
 export { ChatInterface } from "./ChatView";
-export { useChat } from "./hooks/useChat";
-export { useChatInput } from "./hooks/useChatInput";
 export { UnifiedInputBar } from "./components/UnifiedInputBar";
-export type { ChatMode, DeleteChatResult } from "./types/chat";
+export { createDefaultChatWiring } from "./composition/createDefaultChatWiring";
+export { useChatRuntimeFlow } from "./hooks/flow/useChatRuntimeFlow";
+export { useChatSessionsFlow } from "./hooks/flow/useChatSessionsFlow";
+export type { ChatQueryUseCases } from "./application/useCases/ChatQueryUseCases";
+export type { UploadImageHandler } from "./hooks/ui/useAttachmentUploadState";
+export type {
+    AICompletionRequest,
+    AICompletionResponse,
+    ChatMode,
+    DeleteChatResult,
+    FileAttachment,
+    GradingResult,
+    GradingStep,
+    ImageGradingResult,
+    Message,
+    SubmitMessage,
+} from "./types/message";
+export type { ChatSession } from "./types/session";
+

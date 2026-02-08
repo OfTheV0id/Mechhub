@@ -1,10 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { FileAttachment } from "../../../../types/message";
-import { useFileAttachmentPreview } from "../../hooks/useFileAttachmentPreview";
+import { FileAttachment } from "../../types/message";
 
 interface FileAttachmentPreviewProps {
     file: FileAttachment;
@@ -15,7 +14,8 @@ export const FileAttachmentPreview: React.FC<FileAttachmentPreviewProps> = ({
     file,
     role,
 }) => {
-    const { isExpanded, toggleExpanded } = useFileAttachmentPreview();
+    const [isExpanded, setIsExpanded] = useState(false);
+    const toggleExpanded = () => setIsExpanded((prev) => !prev);
     const MAX_CHARS_PER_LINE = 100;
 
     const originalLines = file.content.split("\n");
@@ -130,3 +130,5 @@ export const FileAttachmentPreview: React.FC<FileAttachmentPreviewProps> = ({
         </div>
     );
 };
+
+

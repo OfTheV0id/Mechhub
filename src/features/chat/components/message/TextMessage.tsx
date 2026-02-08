@@ -1,33 +1,37 @@
 import React from "react";
 import { ZoomIn, Copy, Check } from "lucide-react";
-import { FileAttachment } from "../../../../types/message";
+import { FileAttachment } from "../../types/message";
 import { AIAvatar } from "../../../../components";
 import { MarkdownRenderer } from "../../../../components/MarkdownRenderer";
 import { FileAttachmentPreview } from "./FileAttachmentPreview";
-import { useTextMessage } from "../../hooks/useTextMessage";
+import { useTextCopyState } from "../../hooks/ui/useTextCopyState";
+import { ThinkingPanel } from "./ThinkingPanel";
 
 interface TextMessageProps {
     role: "user" | "assistant";
     text: string;
+    reasoning?: string;
+    showThinking?: boolean;
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
     isGenerating?: boolean;
-    showGeneratingLabel?: boolean;
 }
 
 export const TextMessage: React.FC<TextMessageProps> = ({
     role,
     text,
+    reasoning,
+    showThinking = false,
     imageUrls,
     fileAttachments,
     onImageClick,
     isGenerating = false,
-    showGeneratingLabel = false,
 }) => {
-    const { isCopied, handleCopyText } = useTextMessage(text);
+    const { isCopied, handleCopyText } = useTextCopyState(text);
 
     const displayImages = imageUrls && imageUrls.length > 0 ? imageUrls : [];
+    const canShowThinking = role === "assistant" && showThinking;
 
     return (
         <div
@@ -36,11 +40,6 @@ export const TextMessage: React.FC<TextMessageProps> = ({
             {role === "assistant" && (
                 <div className="absolute left-0 top-0 flex items-center gap-2">
                     <AIAvatar isThinking={isGenerating} />
-                    {showGeneratingLabel && (
-                        <div className="[font-size:var(--font-size-meta)] text-text-faint animate-pulse select-none">
-                            生成中...
-                        </div>
-                    )}
                 </div>
             )}
 
@@ -86,6 +85,13 @@ export const TextMessage: React.FC<TextMessageProps> = ({
                         ))}
                     </div>
                 )}
+
+                <ThinkingPanel
+                    label="思考过程"
+                    reasoning={reasoning}
+                    show={canShowThinking}
+                    className="group flex flex-col gap-2"
+                />
 
                 {text && text.trim() && (
                     <div className="group flex flex-col gap-2">
@@ -149,3 +155,5 @@ export const TextMessage: React.FC<TextMessageProps> = ({
         </div>
     );
 };
+
+

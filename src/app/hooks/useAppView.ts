@@ -1,6 +1,10 @@
 import { useState } from "react";
-import { FileAttachment, SubmitMessage } from "../../types/message";
-import { ActiveView } from "../../types/view";
+import {
+    ChatMode,
+    FileAttachment,
+    SubmitMessage,
+} from "../../features/chat";
+import { ActiveView } from "../types/view";
 
 interface UseAppViewParams {
     handleSendMessage: (
@@ -23,8 +27,15 @@ export const useAppView = ({ handleSendMessage }: UseAppViewParams) => {
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
         model?: string,
+        mode: ChatMode = "study",
     ) => {
-        onSendMessage({ text, imageUrls, fileAttachments, model });
+        onSendMessage({
+            text,
+            imageUrls,
+            fileAttachments,
+            model: model || "qwen3-vl-235b-a22b-thinking",
+            mode,
+        });
     };
 
     const onStartChat = (
@@ -32,12 +43,14 @@ export const useAppView = ({ handleSendMessage }: UseAppViewParams) => {
         imageUrls?: string[],
         fileAttachments?: FileAttachment[],
         model?: string,
+        mode: ChatMode = "study",
     ) => {
         onSendMessageWrapper(
             message || (imageUrls || fileAttachments ? "" : "我们开始吧！"),
             imageUrls,
             fileAttachments,
             model,
+            mode,
         );
     };
 

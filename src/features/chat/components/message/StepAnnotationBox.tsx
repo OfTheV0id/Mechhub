@@ -1,5 +1,5 @@
 import React from "react";
-import { GradingStep } from "../../../../types/message";
+import { GradingStep } from "../../types/message";
 import { motion } from "motion/react";
 
 interface StepAnnotationBoxProps {
@@ -75,3 +75,5 @@ export const StepAnnotationBox: React.FC<StepAnnotationBoxProps> = ({
         </motion.div>
     );
 };
+
+

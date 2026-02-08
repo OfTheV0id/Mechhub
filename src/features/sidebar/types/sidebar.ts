@@ -1,6 +1,6 @@
-import { ChatSession } from "../../../types/session";
-import { UserProfile } from "../../../types/user";
-import { ActiveView } from "../../../types/view";
+import { ChatSession } from "../../chat";
+import { UserProfile } from "../../auth";
+import { ActiveView } from "../../../app/types/view";
 import { DeleteChatResult } from "../../chat";
 
 export interface SidebarHandlers {

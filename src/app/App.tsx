@@ -1,5 +1,10 @@
-import { useChat } from "../features/chat";
-import { useAuth } from "../features/auth";
+import { useMemo } from "react";
+import {
+    createDefaultChatWiring,
+    useChatRuntimeFlow,
+    useChatSessionsFlow,
+} from "../features/chat";
+import { useAuthFlow } from "../features/auth";
 import { LandingPage } from "../features/landing";
 import { Toaster } from "sonner";
 import { useAppView } from "./hooks/useAppView";
@@ -16,24 +21,32 @@ export default function App() {
         userProfile,
         handleUpdateProfile,
         handleSignOut,
-    } = useAuth();
+    } = useAuthFlow();
+    const chatWiring = useMemo(() => createDefaultChatWiring(), []);
     const {
-        messages,
-        isTyping,
         chatSessions,
+        isLoadingSessions,
         currentSessionId,
         chatMode,
         setChatMode,
         deleteChatSession,
         handleSelectSession,
         handleStartNewQuest,
-        handleSendMessage,
         handleRenameSession,
-        handleStopGeneration,
-        isLoadingSessions,
-    } = useChat(session);
+        messages,
+        setCurrentSessionId,
+    } = useChatSessionsFlow(session, chatWiring.chatQueryUseCases);
+    const { isTyping, handleSendMessage, handleStopGeneration } =
+        useChatRuntimeFlow({
+            currentSessionId,
+            setCurrentSessionId,
+            chatQueryUseCases: chatWiring.chatQueryUseCases,
+            aiGateway: chatWiring.aiGateway,
+            createChatCachePort: chatWiring.createChatCachePort,
+        });
     const { activeView, setActiveView, onSendMessage, onStartChat } =
         useAppView({ handleSendMessage });
+    const uploadImage = chatWiring.storagePort.uploadImage;
 
     if (loading) {
         return <AppLoading />;
@@ -77,6 +90,7 @@ export default function App() {
                 isLoadingSessions={isLoadingSessions}
                 messages={messages}
                 onSendMessage={onSendMessage}
+                uploadImage={uploadImage}
                 isTyping={isTyping}
                 handleStopGeneration={handleStopGeneration}
                 chatMode={chatMode}

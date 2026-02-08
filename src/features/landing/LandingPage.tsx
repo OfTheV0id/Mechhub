@@ -4,7 +4,7 @@ import { MechHubLogo } from "../../components";
 import { Button } from "../../components/ui/button";
 import { cardVariants } from "../../components/ui/card";
 import { cn } from "../../lib/utils";
-import { useLandingPage } from "./hooks/useLandingPage";
+import { useLandingPageState } from "./hooks/ui/useLandingPageState";
 
 interface LandingPageProps {
     onStart: () => void;
@@ -15,7 +15,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     onStart,
     onLogin,
 }) => {
-    const { handleStart, handleLogin } = useLandingPage(onStart, onLogin);
+    const { handleStart, handleLogin } = useLandingPageState(
+        onStart,
+        onLogin,
+    );
     return (
         <div className="min-h-screen bg-canvas-alt flex items-center justify-center p-(--space-4) md:p-(--space-8) font-sans">
             <motion.div

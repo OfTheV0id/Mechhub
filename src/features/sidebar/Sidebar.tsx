@@ -1,8 +1,8 @@
 import React from "react";
 import { Plus, Settings, MessageSquare, LogOut } from "lucide-react";
 import { MissionItem } from "./components/MissionItem";
-import { useSidebarResize } from "./hooks/useSidebarResize";
-import { useSidebarActions } from "./hooks/useSidebarActions";
+import { useSidebarResizeState } from "./hooks/ui/useSidebarResizeState";
+import { useSidebarActionsFlow } from "./hooks/flow/useSidebarActionsFlow";
 import { SidebarProps } from "./types/sidebar";
 import { MechHubLogo } from "../../components";
 import { Button } from "../../components/ui/button";
@@ -26,9 +26,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     handleSignOut,
     isLoading = false,
 }) => {
-    const { sidebarWidth, handleMouseDown } = useSidebarResize();
+    const { sidebarWidth, handleMouseDown } = useSidebarResizeState();
     const { onNewQuest, onSelectSession, handleDeleteSession } =
-        useSidebarActions({
+        useSidebarActionsFlow({
             setActiveView,
             handleSelectSession,
             handleStartNewQuest,

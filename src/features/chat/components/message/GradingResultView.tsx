@@ -1,17 +1,27 @@
 import React, { useState } from "react";
-import { GradingResult } from "../../../../types/message";
+import { GradingResult } from "../../types/message";
 import { AIAvatar, MarkdownRenderer } from "../../../../components";
 import { ImageGradingPanel } from "./ImageGradingPanel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ThinkingPanel } from "./ThinkingPanel";
 
 interface GradingResultViewProps {
     gradingResult: GradingResult;
+    reply?: string;
+    reasoning?: string;
+    showThinking?: boolean;
 }
 
 export const GradingResultView: React.FC<GradingResultViewProps> = ({
     gradingResult,
+    reply,
+    reasoning,
+    showThinking = false,
 }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [showAnalysis, setShowAnalysis] = useState(false);
+
+    const hasReply = !!reply && reply.trim().length > 0;
 
     // Debug logging
     console.log("[GradingResultView] gradingResult:", gradingResult);
@@ -66,6 +76,42 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
                 </div>
             </div>
 
+            <div className="mt-4">
+                <button
+                    type="button"
+                    onClick={() => setShowAnalysis((prev) => !prev)}
+                    className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-sm hover:border-slate-300 hover:text-slate-800 transition-colors"
+                >
+                    {showAnalysis ? "隐藏思考与正文" : "查看思考与正文"}
+                </button>
+
+                {showAnalysis && (
+                    <div className="mt-3 space-y-3">
+                        <ThinkingPanel
+                            label="思考过程"
+                            reasoning={reasoning}
+                            show={showThinking}
+                            defaultOpen={true}
+                        />
+
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                            <div className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                                正文回复
+                            </div>
+                            {hasReply ? (
+                                <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono">
+                                    {reply}
+                                </pre>
+                            ) : (
+                                <div className="text-sm text-slate-500">
+                                    暂无正文回复
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Image Navigation Section */}
             {hasMultipleImages && (
                 <div className="flex items-center justify-center gap-6 mb-8 px-4 py-3 bg-slate-50 rounded-2xl">
@@ -105,3 +151,5 @@ export const GradingResultView: React.FC<GradingResultViewProps> = ({
         </div>
     );
 };
+
+

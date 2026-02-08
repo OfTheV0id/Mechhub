@@ -1,5 +1,5 @@
 import React from "react";
-import { ImageGradingResult } from "../../../../types/message";
+import { ImageGradingResult } from "../../types/message";
 import { StepAnnotationBox } from "./StepAnnotationBox";
 import { StepFeedbackList } from "./StepFeedbackList";
 import {
@@ -12,7 +12,7 @@ import {
     RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useImageGradingPanel } from "../../hooks/useImageGradingPanel";
+import { useImageGradingPanelState } from "../../hooks/ui/useImageGradingPanelState";
 
 interface ImageGradingPanelProps {
     imageGrading: ImageGradingResult;
@@ -41,7 +41,7 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
         handleMouseDown,
         handleMouseMove,
         handleMouseUp,
-    } = useImageGradingPanel();
+    } = useImageGradingPanelState();
 
     return (
         <>
@@ -284,3 +284,5 @@ export const ImageGradingPanel: React.FC<ImageGradingPanelProps> = ({
         </>
     );
 };
+
+
