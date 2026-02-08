@@ -6,6 +6,7 @@ export default defineConfig({
     plugins: [tailwindcss(), react()],
     resolve: {
         extensions: [".js", ".jsx", ".ts", ".tsx", ".json"],
+        preserveSymlinks: true,
     },
     build: {
         target: "esnext",
