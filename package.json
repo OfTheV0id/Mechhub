@@ -1,6 +1,6 @@
 {
     "name": "mechhub",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "private": true,
     "dependencies": {
         "@jsr/supabase__supabase-js": "^2.49.8",
@@ -42,7 +42,7 @@
         "input-otp": "^1.4.2",
         "katex": "^0.16.28",
         "lucide-react": "^0.487.0",
-        "motion": "*",
+        "framer-motion": "^12.10.4",
         "next-themes": "^0.4.6",
         "react": "^18.3.1",
         "react-day-picker": "^8.10.1",

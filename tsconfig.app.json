@@ -7,6 +7,12 @@
         "module": "ESNext",
         "skipLibCheck": true,
         "moduleResolution": "Bundler",
+        "baseUrl": ".",
+        "paths": {
+            "@hooks": ["src/hooks/index.ts"],
+            "@hooks/*": ["src/hooks/*"],
+            "@views/*": ["src/views/*"]
+        },
         "allowImportingTsExtensions": true,
         "resolveJsonModule": true,
         "isolatedModules": true,
