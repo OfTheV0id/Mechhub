@@ -1,10 +1,10 @@
 import React from "react";
 import { useMessageListUiState } from "../../hooks";
 import { MessageListView } from "../../views/chat/parts/MessageListView";
-import { GradingResultView } from "../../views/chat/message/GradingResultView";
 import type { Message } from "../../views/chat/types";
 import { TextMessagePresenter } from "./TextMessagePresenter";
 import { ImageGradingPanelPresenter } from "./ImageGradingPanelPresenter";
+import { GradingResultPresenter } from "./GradingResultPresenter";
 
 interface MessageListPresenterProps {
     messages: Message[];
@@ -36,7 +36,7 @@ export const MessageListPresenter = ({
         if (msg.gradingResult) {
             return (
                 <div key={msg.id} className="w-full">
-                    <GradingResultView
+                    <GradingResultPresenter
                         gradingResult={msg.gradingResult}
                         reply={msg.text}
                         reasoning={msg.reasoning}

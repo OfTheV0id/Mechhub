@@ -25,6 +25,24 @@ export const TextMessagePresenter = ({
     isGenerating,
 }: TextMessagePresenterProps) => {
     const { isCopied, handleCopyText } = useTextCopyState(text);
+    const [thinkingOpen, setThinkingOpen] = React.useState(false);
+    const [expandedAttachmentMap, setExpandedAttachmentMap] = React.useState<
+        Record<number, boolean>
+    >({});
+
+    const handleToggleThinking = () => {
+        setThinkingOpen((prev) => !prev);
+    };
+
+    const handleToggleAttachment = (index: number) => {
+        setExpandedAttachmentMap((prev) => ({
+            ...prev,
+            [index]: !prev[index],
+        }));
+    };
+
+    const isAttachmentExpanded = (index: number) =>
+        Boolean(expandedAttachmentMap[index]);
 
     return (
         <TextMessageView
@@ -32,8 +50,12 @@ export const TextMessagePresenter = ({
             text={text}
             reasoning={reasoning}
             showThinking={showThinking}
+            thinkingOpen={thinkingOpen}
+            onToggleThinking={handleToggleThinking}
             imageUrls={imageUrls}
             fileAttachments={fileAttachments}
+            isAttachmentExpanded={isAttachmentExpanded}
+            onToggleAttachment={handleToggleAttachment}
             onImageClick={onImageClick}
             isGenerating={isGenerating}
             isCopied={isCopied}

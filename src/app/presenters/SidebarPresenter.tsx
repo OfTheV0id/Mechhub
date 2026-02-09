@@ -1,4 +1,5 @@
 import React from "react";
+import { MessageSquare } from "lucide-react";
 import {
     useSidebarActionsFlow,
     useSidebarResizeState,
@@ -7,6 +8,7 @@ import {
 import { SidebarView } from "../../views/sidebar/SidebarView";
 import type { ActiveView, UserProfile } from "../../views/shared/types";
 import type { ChatSession } from "../../views/chat/types";
+import { SessionItemPresenter } from "./SessionItemPresenter";
 
 interface SidebarPresenterProps {
     activeView: ActiveView;
@@ -48,6 +50,18 @@ export const SidebarPresenter = ({
         handleSelectSession(id);
     };
 
+    const renderSession = (session: ChatSession, active: boolean) => (
+        <SessionItemPresenter
+            label={session.title}
+            icon={MessageSquare}
+            active={active}
+            onClick={() => handleSessionSelect(session.id)}
+            onDelete={() => handleDeleteSession(session.id)}
+            onRename={(newTitle) => handleRenameSession(session.id, newTitle)}
+            isGeneratingTitle={session.isGeneratingTitle}
+        />
+    );
+
     return (
         <SidebarView
             activeView={activeView}
@@ -63,9 +77,7 @@ export const SidebarPresenter = ({
                 setActiveView("landing");
             }}
             onNewQuest={onNewQuest}
-            onSelectSession={handleSessionSelect}
-            onDeleteSession={handleDeleteSession}
-            onRenameSession={handleRenameSession}
+            renderSession={renderSession}
             onOpenProfile={() => setActiveView("profile")}
             onSignOut={handleSignOut}
         />
