@@ -1,5 +1,5 @@
-﻿import type { UserProfile as HookUserProfile } from "../../hooks";
-import type { UserProfile as ViewUserProfile } from "../../views/shared/types";
+import type { UserProfile as HookUserProfile } from "@hooks";
+import type { UserProfile as ViewUserProfile } from "@views/shared/types";
 
 export const mapUserProfile = (
     profile: HookUserProfile,
@@ -8,3 +8,5 @@ export const mapUserProfile = (
     avatar: profile.avatar,
     role: profile.role,
 });
+
+

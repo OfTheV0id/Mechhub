@@ -1,7 +1,11 @@
-﻿import React, { useState } from "react";
+import { useChatModelState } from "@hooks";
 import { UnifiedInputBarPresenter } from "./UnifiedInputBarPresenter";
-import { HomeView } from "../../views/home/HomeView";
-import type { ChatMode, SubmitMessage, UploadImageHandler } from "../../views/chat/types";
+import { HomeView } from "@views/home/HomeView";
+import type {
+    ChatMode,
+    SubmitMessage,
+    UploadImageHandler,
+} from "@views/chat/types";
 
 interface HomePresenterProps {
     onStartChat: (
@@ -24,7 +28,7 @@ export const HomePresenter = ({
     userName,
     uploadImage,
 }: HomePresenterProps) => {
-    const [model, setModel] = useState("qwen3-vl-235b-a22b-thinking");
+    const { model, setModel } = useChatModelState();
 
     const handleSendMessage = (payload: SubmitMessage) => {
         onStartChat(

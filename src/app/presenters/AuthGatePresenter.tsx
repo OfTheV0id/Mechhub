@@ -1,5 +1,4 @@
-﻿import React from "react";
-import { AuthGateView } from "../../views/layout/AuthGateView";
+import { AuthGateView } from "@views/layout/AuthGateView";
 import { AuthPagePresenter } from "./AuthPagePresenter";
 import { LandingPagePresenter } from "./LandingPagePresenter";
 
@@ -25,3 +24,4 @@ export const AuthGatePresenter = ({
         />
     );
 };
+

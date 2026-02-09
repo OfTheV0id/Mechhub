@@ -1,7 +1,6 @@
-import React from "react";
-import { useMessageListUiState } from "../../hooks";
-import { MessageListView } from "../../views/chat/parts/MessageListView";
-import type { Message } from "../../views/chat/types";
+import { useMessageListUiState } from "@hooks";
+import { MessageListView } from "@views/chat/parts/MessageListView";
+import type { Message } from "@views/chat/types";
 import { TextMessagePresenter } from "./TextMessagePresenter";
 import { ImageGradingPanelPresenter } from "./ImageGradingPanelPresenter";
 import { GradingResultPresenter } from "./GradingResultPresenter";
@@ -17,14 +16,18 @@ export const MessageListPresenter = ({
     isTyping,
     sessionId,
 }: MessageListPresenterProps) => {
-    const messagesEndRef = React.useRef<HTMLDivElement | null>(null);
-    const { contentRef, previewImage, openPreview, closePreview, handleScroll } =
-        useMessageListUiState({
-            messages,
-            isTyping,
-            sessionId,
-            messagesEndRef,
-        });
+    const {
+        contentRef,
+        messagesEndRef,
+        previewImage,
+        openPreview,
+        closePreview,
+        handleScroll,
+    } = useMessageListUiState({
+        messages,
+        isTyping,
+        sessionId,
+    });
 
     const isThinkingModel = (model?: string) =>
         typeof model === "string" && model.includes("thinking");
@@ -78,3 +81,4 @@ export const MessageListPresenter = ({
         />
     );
 };
+

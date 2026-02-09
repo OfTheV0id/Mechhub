@@ -1,11 +1,10 @@
-﻿import React from "react";
 import {
     useAttachmentUploadState,
     useSendState,
     type UploadImageHandler,
-} from "../../hooks";
-import { UnifiedInputBarView } from "../../views/chat/parts/UnifiedInputBarView";
-import type { ChatMode, SubmitMessage } from "../../views/chat/types";
+} from "@hooks";
+import { UnifiedInputBarView } from "@views/chat/parts/UnifiedInputBarView";
+import type { ChatMode, SubmitMessage } from "@views/chat/types";
 
 interface UnifiedInputBarPresenterProps {
     onSendMessage: (payload: SubmitMessage) => void;

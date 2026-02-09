@@ -1,7 +1,6 @@
-﻿import React from "react";
-import { useImageGradingPanelState } from "../../hooks";
-import { ImageGradingPanelView } from "../../views/chat/message/ImageGradingPanelView";
-import type { ImageGradingResult } from "../../views/chat/types";
+import { useImageGradingPanelState } from "@hooks";
+import { ImageGradingPanelView } from "@views/chat/message/ImageGradingPanelView";
+import type { ImageGradingResult } from "@views/chat/types";
 
 interface ImageGradingPanelPresenterProps {
     imageGrading: ImageGradingResult;

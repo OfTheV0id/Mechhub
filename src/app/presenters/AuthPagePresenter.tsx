@@ -1,6 +1,5 @@
-﻿import React from "react";
-import { useAuthPageState } from "../../hooks";
-import { AuthPageView } from "../../views/auth/AuthPageView";
+import { useAuthPageState } from "@hooks";
+import { AuthPageView } from "@views/auth/AuthPageView";
 
 interface AuthPagePresenterProps {
     onLoginSuccess: () => void;
@@ -13,3 +12,4 @@ export const AuthPagePresenter = ({
 
     return <AuthPageView {...authState} />;
 };
+

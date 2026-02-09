@@ -1,5 +1,4 @@
-﻿import React from "react";
-import { MainLayoutView } from "../../views/layout/MainLayoutView";
+import { MainLayoutView } from "@views/layout/MainLayoutView";
 import { HomePresenter } from "./HomePresenter";
 import { ChatPresenter } from "./ChatPresenter";
 import { SidebarPresenter } from "./SidebarPresenter";
@@ -13,8 +12,8 @@ import type {
     SubmitMessage,
     UploadImageHandler,
     UserProfile as HookUserProfile,
-} from "../../hooks";
-import type { ActiveView } from "../../views/shared/types";
+} from "@hooks";
+import type { ActiveView } from "@views/shared/types";
 import { mapChatSession, mapMessage } from "../mappers/chat";
 import { mapUserProfile } from "../mappers/user";
 

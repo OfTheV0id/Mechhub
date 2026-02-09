@@ -1,9 +1,14 @@
-﻿import React, { useState } from "react";
-import { ChatView } from "../../views/chat/ChatView";
-import { ChatInputView } from "../../views/chat/parts/ChatInputView";
+import { useChatModelState } from "@hooks";
+import { ChatView } from "@views/chat/ChatView";
+import { ChatInputView } from "@views/chat/parts/ChatInputView";
 import { MessageListPresenter } from "./MessageListPresenter";
 import { UnifiedInputBarPresenter } from "./UnifiedInputBarPresenter";
-import type { ChatMode, Message, SubmitMessage, UploadImageHandler } from "../../views/chat/types";
+import type {
+    ChatMode,
+    Message,
+    SubmitMessage,
+    UploadImageHandler,
+} from "@views/chat/types";
 
 interface ChatPresenterProps {
     messages: Message[];
@@ -26,7 +31,7 @@ export const ChatPresenter = ({
     setMode,
     onStop,
 }: ChatPresenterProps) => {
-    const [model, setModel] = useState("qwen3-vl-235b-a22b-thinking");
+    const { model, setModel } = useChatModelState();
 
     return (
         <ChatView

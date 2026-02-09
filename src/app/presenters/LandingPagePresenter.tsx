@@ -1,6 +1,5 @@
-﻿import React from "react";
-import { useLandingPageState } from "../../hooks";
-import { LandingPageView } from "../../views/landing/LandingPageView";
+import { useLandingPageState } from "@hooks";
+import { LandingPageView } from "@views/landing/LandingPageView";
 
 interface LandingPagePresenterProps {
     onStart: () => void;

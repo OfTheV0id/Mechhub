@@ -1,13 +1,12 @@
-import React from "react";
 import { MessageSquare } from "lucide-react";
 import {
     useSidebarActionsFlow,
     useSidebarResizeState,
     type DeleteChatResult,
-} from "../../hooks";
-import { SidebarView } from "../../views/sidebar/SidebarView";
-import type { ActiveView, UserProfile } from "../../views/shared/types";
-import type { ChatSession } from "../../views/chat/types";
+} from "@hooks";
+import { SidebarView } from "@views/sidebar/SidebarView";
+import type { ActiveView, UserProfile } from "@views/shared/types";
+import type { ChatSession } from "@views/chat/types";
 import { SessionItemPresenter } from "./SessionItemPresenter";
 
 interface SidebarPresenterProps {

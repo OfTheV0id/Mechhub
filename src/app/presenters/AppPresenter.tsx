@@ -1,13 +1,12 @@
-﻿import React, { useMemo } from "react";
 import { Toaster } from "sonner";
 import {
-    createDefaultChatWiring,
+    useDefaultChatWiring,
     useAuthFlow,
     useChatRuntimeFlow,
     useChatSessionsFlow,
     useAppView,
-} from "../../hooks";
-import { AppLoadingView } from "../../views/layout/AppLoadingView";
+} from "@hooks";
+import { AppLoadingView } from "@views/layout/AppLoadingView";
 import { AuthGatePresenter } from "./AuthGatePresenter";
 import { LandingPagePresenter } from "./LandingPagePresenter";
 import { MainLayoutPresenter } from "./MainLayoutPresenter";
@@ -23,7 +22,7 @@ export const AppPresenter = () => {
         handleSignOut,
     } = useAuthFlow();
 
-    const chatWiring = useMemo(() => createDefaultChatWiring(), []);
+    const chatWiring = useDefaultChatWiring();
 
     const {
         chatSessions,
@@ -109,3 +108,4 @@ export const AppPresenter = () => {
         </>
     );
 };
+

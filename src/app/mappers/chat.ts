@@ -1,11 +1,11 @@
-﻿import type {
+import type {
     ChatSession as HookChatSession,
     Message as HookMessage,
-} from "../../hooks";
+} from "@hooks";
 import type {
     ChatSession as ViewChatSession,
     Message as ViewMessage,
-} from "../../views/chat/types";
+} from "@views/chat/types";
 
 export const mapMessage = (message: HookMessage): ViewMessage => ({
     ...message,
@@ -17,3 +17,5 @@ export const mapChatSession = (
     ...session,
     messages: session.messages ? session.messages.map(mapMessage) : undefined,
 });
+
+

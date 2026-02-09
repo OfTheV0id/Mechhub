@@ -1,7 +1,6 @@
-﻿import React from "react";
-import { useProfileState } from "../../hooks";
-import { ProfileView } from "../../views/profile/ProfileView";
-import type { UserProfile } from "../../hooks";
+import { useProfileState } from "@hooks";
+import { ProfileView } from "@views/profile/ProfileView";
+import type { UserProfile } from "@hooks";
 
 interface ProfilePresenterProps {
     user: UserProfile;
@@ -16,3 +15,4 @@ export const ProfilePresenter = ({
 
     return <ProfileView {...profileState} />;
 };
+
