@@ -24,28 +24,28 @@ export const GradingResultPresenter = ({
     const images = gradingResult.imageGradingResult || [];
     const {
         currentImageIndex,
-        showAnalysis,
         thinkingOpen,
+        bodyOpen,
         handlePrevImage,
         handleNextImage,
-        handleToggleAnalysis,
         handleToggleThinking,
+        handleToggleBody,
     } = useGradingResultUiState(images);
 
     return (
         <GradingResultView
             gradingResult={gradingResult}
-            reply={reply}
+            body={reply}
             reasoning={reasoning}
             showThinking={showThinking}
             renderImagePanel={renderImagePanel}
             currentImageIndex={currentImageIndex}
             onPrevImage={handlePrevImage}
             onNextImage={handleNextImage}
-            showAnalysis={showAnalysis}
-            onToggleAnalysis={handleToggleAnalysis}
             thinkingOpen={thinkingOpen}
             onToggleThinking={handleToggleThinking}
+            bodyOpen={bodyOpen}
+            onToggleBody={handleToggleBody}
         />
     );
 };
