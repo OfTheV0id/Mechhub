@@ -12,4 +12,3 @@ export const AuthPagePresenter = ({
 
     return <AuthPageView {...authState} />;
 };
-
