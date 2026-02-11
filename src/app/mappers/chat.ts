@@ -11,11 +11,7 @@ export const mapMessage = (message: HookMessage): ViewMessage => ({
     ...message,
 });
 
-export const mapChatSession = (
-    session: HookChatSession,
-): ViewChatSession => ({
+export const mapChatSession = (session: HookChatSession): ViewChatSession => ({
     ...session,
     messages: session.messages ? session.messages.map(mapMessage) : undefined,
 });
-
-

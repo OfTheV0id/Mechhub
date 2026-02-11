@@ -1,10 +1,7 @@
 import type { ReactNode } from "react";
 import { useGradingResultUiState } from "@hooks";
 import { GradingResultView } from "@views/chat/message/GradingResultView";
-import type {
-    GradingResult,
-    ImageGradingResult,
-} from "@views/chat/types";
+import type { GradingResult, ImageGradingResult } from "@views/chat/types";
 
 interface GradingResultPresenterProps {
     gradingResult: GradingResult;

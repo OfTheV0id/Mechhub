@@ -35,7 +35,8 @@ export const MessageListPresenter = ({
 
     const items = messages.map((msg, index) => {
         const isLastMessage = index === messages.length - 1;
-        const isGenerating = isTyping && isLastMessage && msg.role === "assistant";
+        const isGenerating =
+            isTyping && isLastMessage && msg.role === "assistant";
         const shouldAutoOpenThinking =
             msg.id === autoOpenThinkingMessageId &&
             msg.role === "assistant" &&
@@ -88,4 +89,3 @@ export const MessageListPresenter = ({
         />
     );
 };
-
