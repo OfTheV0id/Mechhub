@@ -23,6 +23,7 @@ export const MessageListPresenter = ({
         openPreview,
         closePreview,
         handleScroll,
+        autoOpenThinkingMessageId,
     } = useMessageListUiState({
         messages,
         isTyping,
@@ -35,6 +36,10 @@ export const MessageListPresenter = ({
     const items = messages.map((msg, index) => {
         const isLastMessage = index === messages.length - 1;
         const isGenerating = isTyping && isLastMessage && msg.role === "assistant";
+        const shouldAutoOpenThinking =
+            msg.id === autoOpenThinkingMessageId &&
+            msg.role === "assistant" &&
+            msg.mode === "study";
 
         if (msg.gradingResult) {
             return (
@@ -61,6 +66,8 @@ export const MessageListPresenter = ({
                     showThinking={
                         msg.role === "assistant" && isThinkingModel(msg.model)
                     }
+                    autoOpenThinking={shouldAutoOpenThinking}
+                    autoScrollThinking={shouldAutoOpenThinking}
                     imageUrls={msg.imageUrls}
                     fileAttachments={msg.fileAttachments}
                     onImageClick={openPreview}

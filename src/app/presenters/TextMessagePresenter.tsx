@@ -7,6 +7,8 @@ interface TextMessagePresenterProps {
     text: string;
     reasoning?: string;
     showThinking?: boolean;
+    autoOpenThinking?: boolean;
+    autoScrollThinking?: boolean;
     imageUrls?: string[];
     fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
@@ -18,6 +20,8 @@ export const TextMessagePresenter = ({
     text,
     reasoning,
     showThinking,
+    autoOpenThinking,
+    autoScrollThinking,
     imageUrls,
     fileAttachments,
     onImageClick,
@@ -30,7 +34,7 @@ export const TextMessagePresenter = ({
         handleToggleThinking,
         isAttachmentExpanded,
         handleToggleAttachment,
-    } = useTextMessageUiState(text);
+    } = useTextMessageUiState(text, { autoOpenThinking });
 
     return (
         <TextMessageView
@@ -40,6 +44,7 @@ export const TextMessagePresenter = ({
             showThinking={showThinking}
             thinkingOpen={thinkingOpen}
             onToggleThinking={handleToggleThinking}
+            autoScrollThinking={autoScrollThinking}
             imageUrls={imageUrls}
             fileAttachments={fileAttachments}
             isAttachmentExpanded={isAttachmentExpanded}
