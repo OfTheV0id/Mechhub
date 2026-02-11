@@ -1,10 +1,10 @@
 import { Toaster } from "sonner";
 import {
-    useDefaultChatWiring,
     useAuthFlow,
     useChatRuntimeFlow,
     useChatSessionsFlow,
     useAppView,
+    chatUseCases,
 } from "@hooks";
 import { AppLoadingView } from "@views/layout/AppLoadingView";
 import { AuthGatePresenter } from "./AuthGatePresenter";
@@ -22,8 +22,6 @@ export const AppPresenter = () => {
         handleSignOut,
     } = useAuthFlow();
 
-    const chatWiring = useDefaultChatWiring();
-
     const {
         chatSessions,
         isLoadingSessions,
@@ -36,21 +34,18 @@ export const AppPresenter = () => {
         handleRenameSession,
         messages,
         setCurrentSessionId,
-    } = useChatSessionsFlow(session, chatWiring.chatQueryUseCases);
+    } = useChatSessionsFlow(session);
 
     const { isTyping, handleSendMessage, handleStopGeneration } =
         useChatRuntimeFlow({
             currentSessionId,
             setCurrentSessionId,
-            chatQueryUseCases: chatWiring.chatQueryUseCases,
-            aiGateway: chatWiring.aiGateway,
-            createChatCachePort: chatWiring.createChatCachePort,
         });
 
     const { activeView, setActiveView, onSendMessage, onStartChat } =
         useAppView({ handleSendMessage });
 
-    const uploadImage = chatWiring.storagePort.uploadImage;
+    const uploadImage = chatUseCases.storagePort.uploadImage;
 
     if (loading) {
         return <AppLoadingView />;
