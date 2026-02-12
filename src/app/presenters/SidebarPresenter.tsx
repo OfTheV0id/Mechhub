@@ -79,6 +79,10 @@ export const SidebarPresenter = ({
             renderSession={renderSession}
             onOpenProfile={() => setActiveView("profile")}
             onSignOut={handleSignOut}
+            onSubmitAssignment={() => setActiveView("submitAssignment")}
+            onViewFeedback={() => setActiveView("viewFeedback")}
+            onPublishAssignment={() => setActiveView("publishAssignment")}
+            onGradeAssignment={() => setActiveView("gradeAssignment")}
         />
     );
 };
