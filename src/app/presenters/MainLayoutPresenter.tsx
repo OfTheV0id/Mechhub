@@ -44,6 +44,10 @@ interface MainLayoutPresenterProps {
         model?: string,
         mode?: HookChatMode,
     ) => void;
+    submitAssignment?: React.ReactNode;
+    viewFeedback?: React.ReactNode;
+    publishAssignment?: React.ReactNode;
+    gradeAssignment?: React.ReactNode;
 }
 
 export const MainLayoutPresenter = ({
@@ -67,6 +71,10 @@ export const MainLayoutPresenter = ({
     handleStopGeneration,
     handleUpdateProfile,
     onStartChat,
+    submitAssignment,
+    viewFeedback,
+    publishAssignment,
+    gradeAssignment,
 }: MainLayoutPresenterProps) => {
     const viewUserProfile = mapUserProfile(userProfile);
     const viewSessions = chatSessions.map(mapChatSession);
@@ -117,6 +125,10 @@ export const MainLayoutPresenter = ({
                     onUpdateProfile={handleUpdateProfile}
                 />
             }
+            submitAssignment={submitAssignment}
+            viewFeedback={viewFeedback}
+            publishAssignment={publishAssignment}
+            gradeAssignment={gradeAssignment}
         />
     );
 };
