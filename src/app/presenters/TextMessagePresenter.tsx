@@ -3,6 +3,7 @@ import { TextMessageView } from "@views/chat/message/TextMessageView";
 import type { FileAttachment } from "@views/chat/types";
 
 interface TextMessagePresenterProps {
+    messageId: string;
     role: "user" | "assistant";
     text: string;
     reasoning?: string;
@@ -13,9 +14,11 @@ interface TextMessagePresenterProps {
     fileAttachments?: FileAttachment[];
     onImageClick: (url: string) => void;
     isGenerating?: boolean;
+    onShareToClass?: (messageId: string) => void;
 }
 
 export const TextMessagePresenter = ({
+    messageId,
     role,
     text,
     reasoning,
@@ -26,6 +29,7 @@ export const TextMessagePresenter = ({
     fileAttachments,
     onImageClick,
     isGenerating,
+    onShareToClass,
 }: TextMessagePresenterProps) => {
     const {
         isCopied,
@@ -53,6 +57,9 @@ export const TextMessagePresenter = ({
             isGenerating={isGenerating}
             isCopied={isCopied}
             onCopy={handleCopyText}
+            onShareToClass={
+                onShareToClass ? () => onShareToClass(messageId) : undefined
+            }
         />
     );
 };

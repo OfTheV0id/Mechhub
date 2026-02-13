@@ -19,6 +19,7 @@ interface ChatPresenterProps {
     mode: ChatMode;
     setMode: (mode: ChatMode) => void;
     onStop?: () => void;
+    onShareToClassMessage?: (messageId: string) => void;
 }
 
 export const ChatPresenter = ({
@@ -30,6 +31,7 @@ export const ChatPresenter = ({
     mode,
     setMode,
     onStop,
+    onShareToClassMessage,
 }: ChatPresenterProps) => {
     const { model, setModel } = useChatModelState();
 
@@ -40,6 +42,7 @@ export const ChatPresenter = ({
                     messages={messages}
                     isTyping={isTyping}
                     sessionId={sessionId}
+                    onShareToClassMessage={onShareToClassMessage}
                 />
             }
             chatInput={
