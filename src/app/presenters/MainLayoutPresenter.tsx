@@ -3,6 +3,7 @@ import { HomePresenter } from "./HomePresenter";
 import { ChatPresenter } from "./ChatPresenter";
 import { SidebarPresenter } from "./SidebarPresenter";
 import { ProfilePresenter } from "./ProfilePresenter";
+import { ClassThreadChatPresenter } from "./ClassThreadChatPresenter";
 import type {
     ChatMode as HookChatMode,
     ChatSession as HookChatSession,
@@ -14,6 +15,7 @@ import type {
     UserProfile as HookUserProfile,
 } from "@hooks";
 import type { ActiveView } from "@views/shared/types";
+import type { SidebarClassGroup, SidebarClassThread } from "@views/sidebar/types";
 import { mapChatSession, mapMessage } from "../mappers/chat";
 import { mapUserProfile } from "../mappers/user";
 
@@ -27,6 +29,8 @@ interface MainLayoutPresenterProps {
     canAccessTeacherAssignments: boolean;
     userProfile: HookUserProfile;
     chatSessions: HookChatSession[];
+    classSessionGroups: SidebarClassGroup[];
+    activeClassThreadId?: string;
     currentSessionId: string | null;
     chatMode: HookChatMode;
     setChatMode: (mode: HookChatMode) => void;
@@ -34,6 +38,10 @@ interface MainLayoutPresenterProps {
     handleSelectSession: (id: string) => boolean;
     handleStartNewQuest: () => void;
     handleRenameSession: (id: string, newTitle: string) => Promise<boolean>;
+    onCreateClassThread?: (classId: string) => void;
+    creatingClassThreadId?: string | null;
+    onSelectClassThread?: (thread: SidebarClassThread) => void;
+    onShareSessionToClass?: (sessionId: string) => void;
     handleSignOut: () => void;
     isLoadingSessions: boolean;
     messages: HookMessage[];
@@ -50,6 +58,13 @@ interface MainLayoutPresenterProps {
         mode?: HookChatMode,
     ) => void;
     onShareChatMessageToClass?: (messageId: string) => void;
+    chatTargetType: "private" | "class";
+    classChatTarget?: {
+        threadId: string;
+        className: string;
+        threadTitle: string;
+        currentUserId: string;
+    };
     classHub?: React.ReactNode;
     submitAssignment?: React.ReactNode;
     viewFeedback?: React.ReactNode;
@@ -67,6 +82,8 @@ export const MainLayoutPresenter = ({
     canAccessTeacherAssignments,
     userProfile,
     chatSessions,
+    classSessionGroups,
+    activeClassThreadId,
     currentSessionId,
     chatMode,
     setChatMode,
@@ -74,6 +91,10 @@ export const MainLayoutPresenter = ({
     handleSelectSession,
     handleStartNewQuest,
     handleRenameSession,
+    onCreateClassThread,
+    creatingClassThreadId,
+    onSelectClassThread,
+    onShareSessionToClass,
     handleSignOut,
     isLoadingSessions,
     messages,
@@ -84,6 +105,8 @@ export const MainLayoutPresenter = ({
     handleUpdateProfile,
     onStartChat,
     onShareChatMessageToClass,
+    chatTargetType,
+    classChatTarget,
     classHub,
     submitAssignment,
     viewFeedback,
@@ -108,12 +131,18 @@ export const MainLayoutPresenter = ({
                     setActiveView={setActiveView}
                     userProfile={viewUserProfile}
                     sessions={viewSessions}
+                    classGroups={classSessionGroups}
+                    activeClassThreadId={activeClassThreadId}
                     currentSessionId={currentSessionId}
                     isLoading={isLoadingSessions}
                     handleSelectSession={handleSelectSession}
                     handleStartNewQuest={handleStartNewQuest}
                     deleteChatSession={deleteChatSession}
                     handleRenameSession={handleRenameSession}
+                    onCreateClassThread={onCreateClassThread}
+                    creatingClassThreadId={creatingClassThreadId}
+                    onSelectClassThread={onSelectClassThread}
+                    onShareSessionToClass={onShareSessionToClass}
                     handleSignOut={handleSignOut}
                 />
             }
@@ -130,17 +159,26 @@ export const MainLayoutPresenter = ({
             }
             chat={
                 canAccessChat ? (
-                    <ChatPresenter
-                        messages={viewMessages}
-                        onSendMessage={onSendMessage}
-                        uploadImage={uploadImage}
-                        isTyping={isTyping}
-                        onStop={handleStopGeneration}
-                        mode={chatMode}
-                        setMode={setChatMode}
-                        sessionId={currentSessionId}
-                        onShareToClassMessage={onShareChatMessageToClass}
-                    />
+                    chatTargetType === "class" && classChatTarget ? (
+                        <ClassThreadChatPresenter
+                            threadId={classChatTarget.threadId}
+                            className={classChatTarget.className}
+                            threadTitle={classChatTarget.threadTitle}
+                            currentUserId={classChatTarget.currentUserId}
+                        />
+                    ) : (
+                        <ChatPresenter
+                            messages={viewMessages}
+                            onSendMessage={onSendMessage}
+                            uploadImage={uploadImage}
+                            isTyping={isTyping}
+                            onStop={handleStopGeneration}
+                            mode={chatMode}
+                            setMode={setChatMode}
+                            sessionId={currentSessionId}
+                            onShareToClassMessage={onShareChatMessageToClass}
+                        />
+                    )
                 ) : undefined
             }
             profile={

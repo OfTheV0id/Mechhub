@@ -1,21 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ClassHubView } from "@views/class";
 import {
     useClassMembers,
-    useClassThreadMessages,
     useClassThreads,
     useCreateClass,
     useCreateGroupThread,
-    useCreateInviteCode,
-    useInviteCodes,
     useJoinClassByInviteCode,
     useMyClassContext,
-    usePostClassMessage,
-    useRemoveStudentFromClass,
-    useRevokeInviteCode,
 } from "@hooks";
 
-type HubTab = "overview" | "members" | "invites" | "chat";
+type HubScreen = "collection" | "dashboard";
+type HubThreadType = "group" | "shared_chat";
+
+const isHubThreadType = (
+    threadType: "group" | "shared_chat" | "shared_grade",
+): threadType is HubThreadType =>
+    threadType === "group" || threadType === "shared_chat";
 
 interface ClassHubPresenterProps {
     requesterEmail?: string;
@@ -23,6 +23,12 @@ interface ClassHubPresenterProps {
     canJoinClass: boolean;
     selectedClassId: string | null;
     onSelectedClassIdChange: (classId: string | null) => void;
+    onEnterClassChat?: (payload: {
+        classId: string;
+        className: string;
+        threadId: string;
+        threadTitle: string;
+    }) => void;
 }
 
 export const ClassHubPresenter = ({
@@ -31,22 +37,15 @@ export const ClassHubPresenter = ({
     canJoinClass,
     selectedClassId,
     onSelectedClassIdChange,
+    onEnterClassChat,
 }: ClassHubPresenterProps) => {
-    const [activeTab, setActiveTab] = useState<HubTab>("overview");
-    const [memberSearch, setMemberSearch] = useState("");
-    const [threadSearch, setThreadSearch] = useState("");
+    const [screen, setScreen] = useState<HubScreen>("collection");
 
     const [createClassName, setCreateClassName] = useState("");
     const [createClassDescription, setCreateClassDescription] = useState("");
     const [createTeacherUserId, setCreateTeacherUserId] = useState("");
 
     const [inviteCodeInput, setInviteCodeInput] = useState("");
-    const [inviteExpiresHours, setInviteExpiresHours] = useState(168);
-    const [inviteMaxUsesInput, setInviteMaxUsesInput] = useState("");
-    const [latestCreatedInviteCode, setLatestCreatedInviteCode] = useState<string>();
-
-    const [selectedThreadId, setSelectedThreadId] = useState<string>();
-    const [threadInput, setThreadInput] = useState("");
     const [message, setMessage] = useState<string>();
 
     const classContextQuery = useMyClassContext();
@@ -56,10 +55,7 @@ export const ClassHubPresenter = ({
         const joined = classContextQuery.data?.joinedClasses ?? [];
         const map = new Map<string, (typeof teaching)[number] | (typeof joined)[number]>();
 
-        teaching.forEach((item) => {
-            map.set(item.id, item);
-        });
-
+        teaching.forEach((item) => map.set(item.id, item));
         joined.forEach((item) => {
             if (!map.has(item.id)) {
                 map.set(item.id, item);
@@ -70,130 +66,58 @@ export const ClassHubPresenter = ({
     }, [classContextQuery.data]);
 
     useEffect(() => {
-        if (classOptions.length === 0) {
-            if (selectedClassId) {
-                onSelectedClassIdChange(null);
-            }
+        if (screen !== "dashboard") {
             return;
         }
 
-        if (!selectedClassId || !classOptions.some((item) => item.id === selectedClassId)) {
-            onSelectedClassIdChange(classOptions[0].id);
+        const selectedExists = !!selectedClassId && classOptions.some((item) => item.id === selectedClassId);
+        if (!selectedExists) {
+            setScreen("collection");
         }
-    }, [classOptions, selectedClassId, onSelectedClassIdChange]);
+    }, [classOptions, screen, selectedClassId]);
 
     const selectedClass = classOptions.find((item) => item.id === selectedClassId);
-    const canManageMembers =
-        !!selectedClass &&
-        (selectedClass.role === "teacher" || classContextQuery.data?.isAdmin);
+    const isDashboardEnabled = screen === "dashboard" && !!selectedClassId;
 
-    const classMembersQuery = useClassMembers(selectedClassId ?? undefined, !!selectedClassId);
-    const inviteCodesQuery = useInviteCodes(
-        selectedClassId ?? undefined,
-        !!selectedClassId && canManageMembers,
-    );
-    const classThreadsQuery = useClassThreads(selectedClassId ?? undefined, !!selectedClassId);
+    const classMembersQuery = useClassMembers(selectedClassId ?? undefined, isDashboardEnabled);
+    const classThreadsQuery = useClassThreads(selectedClassId ?? undefined, isDashboardEnabled);
 
-    const previousClassIdRef = useRef<string | null>(null);
-
-    useEffect(() => {
-        if (!selectedClassId) {
-            previousClassIdRef.current = null;
-            return;
-        }
-
-        if (previousClassIdRef.current === selectedClassId) {
-            return;
-        }
-
-        previousClassIdRef.current = selectedClassId;
-        setMemberSearch("");
-        setThreadSearch("");
-
-        const isStudentOnly =
-            selectedClass?.role === "student" && !classContextQuery.data?.isAdmin;
-        setActiveTab(isStudentOnly ? "chat" : "overview");
-    }, [selectedClassId, selectedClass?.role, classContextQuery.data?.isAdmin]);
-
-    useEffect(() => {
-        const threads = classThreadsQuery.data ?? [];
-        if (!threads.length) {
-            setSelectedThreadId(undefined);
-            return;
-        }
-
-        if (!selectedThreadId || !threads.some((item) => item.id === selectedThreadId)) {
-            setSelectedThreadId(threads[0].id);
-        }
-    }, [classThreadsQuery.data, selectedThreadId]);
-
-    useEffect(() => {
-        const isStudentOnly =
-            selectedClass?.role === "student" && !classContextQuery.data?.isAdmin;
-        const hasThreads = (classThreadsQuery.data?.length ?? 0) > 0;
-
-        if (isStudentOnly && hasThreads && activeTab === "overview") {
-            setActiveTab("chat");
-        }
-    }, [
-        activeTab,
-        classThreadsQuery.data?.length,
-        classContextQuery.data?.isAdmin,
-        selectedClass?.role,
-    ]);
-
-    const normalizedMemberSearch = memberSearch.trim().toLowerCase();
     const teachers = classMembersQuery.data?.teachers ?? [];
     const students = classMembersQuery.data?.students ?? [];
-
-    const filteredTeachers = useMemo(() => {
-        if (!normalizedMemberSearch) {
-            return teachers;
-        }
-
-        return teachers.filter((teacher) => {
-            const hitTarget = `${teacher.name} ${teacher.email}`.toLowerCase();
-            return hitTarget.includes(normalizedMemberSearch);
-        });
-    }, [teachers, normalizedMemberSearch]);
-
-    const filteredStudents = useMemo(() => {
-        if (!normalizedMemberSearch) {
-            return students;
-        }
-
-        return students.filter((student) => {
-            const hitTarget = `${student.name} ${student.email}`.toLowerCase();
-            return hitTarget.includes(normalizedMemberSearch);
-        });
-    }, [students, normalizedMemberSearch]);
-
-    const normalizedThreadSearch = threadSearch.trim().toLowerCase();
-    const allThreads = classThreadsQuery.data ?? [];
-
-    const filteredThreads = useMemo(() => {
-        if (!normalizedThreadSearch) {
-            return allThreads;
-        }
-
-        return allThreads.filter((thread) => {
-            const hitTarget = `${thread.title} ${thread.threadType}`.toLowerCase();
-            return hitTarget.includes(normalizedThreadSearch);
-        });
-    }, [allThreads, normalizedThreadSearch]);
-
-    const threadMessagesQuery = useClassThreadMessages(
-        selectedThreadId,
-        !!selectedThreadId,
+    const threads = (classThreadsQuery.data ?? []).filter(
+        (thread) => isHubThreadType(thread.threadType),
     );
 
     const createClassMutation = useCreateClass();
     const joinClassMutation = useJoinClassByInviteCode();
-    const createInviteCodeMutation = useCreateInviteCode();
-    const revokeInviteCodeMutation = useRevokeInviteCode();
-    const removeStudentMutation = useRemoveStudentFromClass();
     const createGroupThreadMutation = useCreateGroupThread();
-    const postClassMessageMutation = usePostClassMessage();
+
+    const openThreadChat = (threadId: string, threadTitle?: string) => {
+        if (!selectedClass) {
+            return;
+        }
+        const thread = threads.find((item) => item.id === threadId);
+        const resolvedTitle = threadTitle ?? thread?.title;
+        if (!resolvedTitle) {
+            return;
+        }
+
+        onEnterClassChat?.({
+            classId: selectedClass.id,
+            className: selectedClass.name,
+            threadId,
+            threadTitle: resolvedTitle,
+        });
+    };
+
+    const handleOpenGeneralChat = () => {
+        const groupThread = threads.find((thread) => thread.threadType === "group") ?? threads[0];
+        if (!groupThread) {
+            setMessage("当前班级还没有可用话题，请先创建话题。");
+            return;
+        }
+        openThreadChat(groupThread.id);
+    };
 
     const handleCreateClass = async () => {
         if (!createClassName.trim()) {
@@ -212,7 +136,7 @@ export const ClassHubPresenter = ({
             setCreateClassName("");
             setCreateClassDescription("");
             setCreateTeacherUserId("");
-            setActiveTab("overview");
+            setScreen("dashboard");
             setMessage("班级创建成功");
         } catch (error) {
             setMessage(error instanceof Error ? error.message : "创建班级失败");
@@ -232,100 +156,28 @@ export const ClassHubPresenter = ({
             });
             onSelectedClassIdChange(result.classSummary.id);
             setInviteCodeInput("");
-            setActiveTab("overview");
+            setScreen("dashboard");
             setMessage(result.alreadyJoined ? "你已经在该班级中" : "加入班级成功");
         } catch (error) {
             setMessage(error instanceof Error ? error.message : "加入班级失败");
         }
     };
 
-    const handleCreateInviteCode = async () => {
+    const handleCreateThread = async () => {
         if (!selectedClassId) {
             return;
         }
 
-        const maxUsesParsed = Number(inviteMaxUsesInput);
-        const maxUses =
-            inviteMaxUsesInput.trim() && Number.isFinite(maxUsesParsed) && maxUsesParsed > 0
-                ? Math.floor(maxUsesParsed)
-                : null;
-
         try {
             setMessage(undefined);
-            const result = await createInviteCodeMutation.mutateAsync({
+            const newThread = await createGroupThreadMutation.mutateAsync({
                 classId: selectedClassId,
-                expiresInHours: inviteExpiresHours,
-                maxUses,
+                title: `班级讨论 ${threads.filter((thread) => thread.threadType === "group").length + 1}`,
             });
-            setLatestCreatedInviteCode(result.inviteCode);
-            setActiveTab("invites");
-            setMessage("邀请码创建成功");
+            setMessage("话题已创建");
+            openThreadChat(newThread.id, newThread.title);
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "创建邀请码失败");
-        }
-    };
-
-    const handleRevokeInviteCode = async (inviteCodeId: string) => {
-        if (!selectedClassId) {
-            return;
-        }
-
-        try {
-            setMessage(undefined);
-            await revokeInviteCodeMutation.mutateAsync({ classId: selectedClassId, inviteCodeId });
-            setMessage("邀请码已撤销");
-        } catch (error) {
-            setMessage(error instanceof Error ? error.message : "撤销邀请码失败");
-        }
-    };
-
-    const handleRemoveStudent = async (studentUserId: string) => {
-        if (!selectedClassId) {
-            return;
-        }
-
-        try {
-            setMessage(undefined);
-            await removeStudentMutation.mutateAsync({ classId: selectedClassId, studentUserId });
-            setMessage("已移出学生");
-        } catch (error) {
-            setMessage(error instanceof Error ? error.message : "移除学生失败");
-        }
-    };
-
-    const handleCreateGroupThread = async () => {
-        if (!selectedClassId) {
-            return;
-        }
-
-        try {
-            setMessage(undefined);
-            const thread = await createGroupThreadMutation.mutateAsync({
-                classId: selectedClassId,
-                title: "班级讨论",
-            });
-            setSelectedThreadId(thread.id);
-            setActiveTab("chat");
-            setMessage("已创建讨论频道");
-        } catch (error) {
-            setMessage(error instanceof Error ? error.message : "创建频道失败");
-        }
-    };
-
-    const handlePostThreadMessage = async () => {
-        if (!selectedThreadId || !threadInput.trim()) {
-            return;
-        }
-
-        try {
-            setMessage(undefined);
-            await postClassMessageMutation.mutateAsync({
-                threadId: selectedThreadId,
-                content: { text: threadInput.trim() },
-            });
-            setThreadInput("");
-        } catch (error) {
-            setMessage(error instanceof Error ? error.message : "发送消息失败");
+            setMessage(error instanceof Error ? error.message : "创建话题失败");
         }
     };
 
@@ -333,9 +185,14 @@ export const ClassHubPresenter = ({
         <ClassHubView
             requesterEmail={requesterEmail}
             isAdmin={!!classContextQuery.data?.isAdmin}
+            screen={screen}
             classOptions={classOptions}
             selectedClassId={selectedClassId ?? undefined}
-            onSelectClass={(classId) => onSelectedClassIdChange(classId)}
+            onOpenClassDashboard={(classId) => {
+                onSelectedClassIdChange(classId);
+                setScreen("dashboard");
+            }}
+            onBackToCollection={() => setScreen("collection")}
             canCreateClass={canCreateClass}
             canJoinClass={canJoinClass}
             createClassName={createClassName}
@@ -350,38 +207,18 @@ export const ClassHubPresenter = ({
             onInviteCodeInputChange={setInviteCodeInput}
             onJoinByInviteCode={handleJoinByInviteCode}
             isJoiningClass={joinClassMutation.isPending}
-            inviteExpiresHours={inviteExpiresHours}
-            onInviteExpiresHoursChange={setInviteExpiresHours}
-            inviteMaxUsesInput={inviteMaxUsesInput}
-            onInviteMaxUsesInputChange={setInviteMaxUsesInput}
-            onCreateInviteCode={handleCreateInviteCode}
-            isCreatingInviteCode={createInviteCodeMutation.isPending}
-            latestCreatedInviteCode={latestCreatedInviteCode}
-            inviteCodes={inviteCodesQuery.data ?? []}
-            onRevokeInviteCode={handleRevokeInviteCode}
-            isRevokingInviteCode={revokeInviteCodeMutation.isPending}
-            teachers={filteredTeachers}
-            students={filteredStudents}
-            onRemoveStudent={handleRemoveStudent}
-            isRemovingStudent={removeStudentMutation.isPending}
-            canManageMembers={!!canManageMembers}
-            threads={filteredThreads}
-            selectedThreadId={selectedThreadId}
-            onSelectThread={setSelectedThreadId}
-            onCreateGroupThread={handleCreateGroupThread}
+            teachers={teachers}
+            students={students}
+            threads={threads.map((thread) => ({
+                id: thread.id,
+                title: thread.title,
+                threadType: thread.threadType as "group" | "shared_chat",
+            }))}
+            onCreateThread={handleCreateThread}
             isCreatingThread={createGroupThreadMutation.isPending}
-            threadMessages={threadMessagesQuery.data ?? []}
-            threadInput={threadInput}
-            onThreadInputChange={setThreadInput}
-            onPostThreadMessage={handlePostThreadMessage}
-            isPostingThreadMessage={postClassMessageMutation.isPending}
+            onEnterGeneralChat={handleOpenGeneralChat}
+            onEnterThreadChat={openThreadChat}
             message={message}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            memberSearch={memberSearch}
-            onMemberSearchChange={setMemberSearch}
-            threadSearch={threadSearch}
-            onThreadSearchChange={setThreadSearch}
         />
     );
 };

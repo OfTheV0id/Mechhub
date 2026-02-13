@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { toast, Toaster } from "sonner";
 import {
     chatUseCases,
@@ -8,13 +9,17 @@ import {
     useAuthFlow,
     useChatRuntimeFlow,
     useChatSessionsFlow,
+    useCreateGroupThread,
     useMyClassContext,
     useMyAuthorization,
     useShareGradeResultToClass,
     useSharePrivateChatToClass,
 } from "@hooks";
 import { AppLoadingView } from "@views/layout/AppLoadingView";
-import { ClassMembershipNoticeView } from "@views/class";
+import { ClassMembershipNoticeView, ClassPickerPopover } from "@views/class";
+import type { SidebarClassThread } from "@views/sidebar/types";
+import { classKeys } from "@hooks/class/queries/classKeys";
+import { listClassThreads } from "@hooks/class/implementation/supabaseClassService";
 import { AuthGatePresenter } from "./AuthGatePresenter";
 import { ClassHubPresenter } from "./ClassHubPresenter";
 import { GradeAssignmentPresenter } from "./GradeAssignmentPresenter";
@@ -72,8 +77,33 @@ const FALLBACK_USER_PROFILE = {
     role: "工程力学专业学生",
 };
 
+type ActiveChatTarget =
+    | { type: "private" }
+    | {
+          type: "class";
+          classId: string;
+          className: string;
+          threadId: string;
+          threadTitle: string;
+          currentUserId: string;
+      };
+
+type ShareIntent =
+    | { kind: "chatMessage"; messageId: string }
+    | { kind: "chatSession"; sessionId: string }
+    | { kind: "gradeFeedback" };
+
+const isSidebarThread = (thread: { threadType: "group" | "shared_chat" | "shared_grade" }): thread is {
+    threadType: "group" | "shared_chat";
+} & typeof thread => thread.threadType === "group" || thread.threadType === "shared_chat";
+
 export const AppPresenter = () => {
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+    const [activeChatTarget, setActiveChatTarget] = useState<ActiveChatTarget>({
+        type: "private",
+    });
+    const [shareIntent, setShareIntent] = useState<ShareIntent | null>(null);
+    const [creatingClassThreadId, setCreatingClassThreadId] = useState<string | null>(null);
 
     const {
         session,
@@ -147,6 +177,38 @@ export const AppPresenter = () => {
     );
     const hasStudentClassMembership = joinedClasses.length > 0;
     const hasTeacherClassMembership = teachingClasses.length > 0;
+
+    const classThreadsQueries = useQueries({
+        queries: classOptions.map((classItem) => ({
+            queryKey: classKeys.threads(classItem.id),
+            queryFn: () => listClassThreads(classItem.id),
+            enabled: !!session && canAccessClassHub,
+            staleTime: 5_000,
+        })),
+    });
+
+    const classSessionGroups = useMemo(
+        () =>
+            classOptions.map((classItem, index) => {
+                const threadRows = classThreadsQueries[index]?.data ?? [];
+                const threads = threadRows
+                    .filter(isSidebarThread)
+                    .map((thread) => ({
+                        id: thread.id,
+                        classId: classItem.id,
+                        title: thread.title,
+                        threadType: thread.threadType as "group" | "shared_chat",
+                    }));
+
+                return {
+                    classId: classItem.id,
+                    className: classItem.name,
+                    role: classItem.role,
+                    threads,
+                };
+            }),
+        [classOptions, classThreadsQueries],
+    );
 
     const canAccessView = (view: ActiveView) => {
         if (view === "landing") return true;
@@ -232,8 +294,24 @@ export const AppPresenter = () => {
     const safeIsLoadingSessions = canAccessChat ? isLoadingSessions : false;
     const safeIsTyping = canAccessChat ? isTyping : false;
     const safeSetChatMode = canAccessChat ? setChatMode : () => undefined;
-    const safeOnSendMessage = canAccessChat ? onSendMessage : () => undefined;
-    const safeOnStartChat = canAccessChat ? onStartChat : () => undefined;
+    const safeOnSendMessage = canAccessChat
+        ? (payload: Parameters<typeof onSendMessage>[0]) => {
+              setActiveChatTarget({ type: "private" });
+              onSendMessage(payload);
+          }
+        : () => undefined;
+    const safeOnStartChat = canAccessChat
+        ? (
+              message?: string,
+              imageUrls?: string[],
+              fileAttachments?: Parameters<typeof onStartChat>[2],
+              model?: string,
+              mode?: Parameters<typeof onStartChat>[4],
+          ) => {
+              setActiveChatTarget({ type: "private" });
+              onStartChat(message, imageUrls, fileAttachments, model, mode);
+          }
+        : () => undefined;
     const safeHandleStopGeneration = canAccessChat
         ? handleStopGeneration
         : () => undefined;
@@ -241,10 +319,16 @@ export const AppPresenter = () => {
         ? deleteChatSession
         : async () => ({ success: false, wasCurrentSession: false });
     const safeHandleSelectSession = canAccessChat
-        ? handleSelectSession
+        ? (id: string) => {
+              setActiveChatTarget({ type: "private" });
+              return handleSelectSession(id);
+          }
         : () => false;
     const safeHandleStartNewQuest = canAccessChat
-        ? handleStartNewQuest
+        ? () => {
+              setActiveChatTarget({ type: "private" });
+              handleStartNewQuest();
+          }
         : () => undefined;
     const safeHandleRenameSession = canAccessChat
         ? handleRenameSession
@@ -252,80 +336,146 @@ export const AppPresenter = () => {
 
     const sharePrivateChatToClassMutation = useSharePrivateChatToClass();
     const shareGradeResultToClassMutation = useShareGradeResultToClass();
+    const createGroupThreadMutation = useCreateGroupThread();
 
-    const handleShareChatMessageToClass = useCallback(
-        async (messageId: string) => {
-            if (!selectedClassId) {
-                toast.error("Open Class Hub and select a class first.");
+    const getClassNameById = useCallback(
+        (classId: string) =>
+            classOptions.find((item) => item.id === classId)?.name ?? classId,
+        [classOptions],
+    );
+
+    const openSharePicker = useCallback(
+        (intent: ShareIntent) => {
+            if (classOptions.length === 0) {
+                toast.error("Open Class Hub and join a class first.");
                 return;
             }
+            setShareIntent(intent);
+        },
+        [classOptions.length],
+    );
 
-            if (!currentSessionId) {
-                toast.error("Open a private chat session before sharing.");
+    const handleShareChatMessageToClass = useCallback(
+        (messageId: string) => {
+            openSharePicker({ kind: "chatMessage", messageId });
+        },
+        [openSharePicker],
+    );
+
+    const handleShareChatSessionToClass = useCallback(
+        (sessionId: string) => {
+            openSharePicker({ kind: "chatSession", sessionId });
+        },
+        [openSharePicker],
+    );
+
+    const handleShareFeedbackToClass = useCallback(() => {
+        openSharePicker({ kind: "gradeFeedback" });
+    }, [openSharePicker]);
+
+    const handleConfirmClassShare = useCallback(
+        async (classId: string) => {
+            if (!shareIntent) {
                 return;
             }
 
             try {
-                await sharePrivateChatToClassMutation.mutateAsync({
-                    classId: selectedClassId,
-                    chatId: currentSessionId,
-                    messageIds: [messageId],
-                });
-                toast.success(
-                    `Shared to class ${selectedClass?.name ?? selectedClassId}.`,
-                );
+                if (shareIntent.kind === "chatMessage") {
+                    if (!currentSessionId) {
+                        toast.error("Open a private chat session before sharing.");
+                        return;
+                    }
+                    await sharePrivateChatToClassMutation.mutateAsync({
+                        classId,
+                        chatId: currentSessionId,
+                        messageIds: [shareIntent.messageId],
+                    });
+                    toast.success(`Shared to class ${getClassNameById(classId)}.`);
+                } else if (shareIntent.kind === "chatSession") {
+                    await sharePrivateChatToClassMutation.mutateAsync({
+                        classId,
+                        chatId: shareIntent.sessionId,
+                    });
+                    toast.success(`Shared to class ${getClassNameById(classId)}.`);
+                } else {
+                    await shareGradeResultToClassMutation.mutateAsync({
+                        classId,
+                        gradePayload: {
+                            assignmentTitle: SAMPLE_ASSIGNMENT_TITLE,
+                            overallScore: 85,
+                            maxScore: 100,
+                            submittedDate: "Oct 12, 2023",
+                            teacherName: "Prof. Sarah Chen",
+                            studentName: safeUserProfile.name,
+                            sharedAt: new Date().toISOString(),
+                        },
+                    });
+                    toast.success(`Feedback shared to class ${getClassNameById(classId)}.`);
+                }
+                setShareIntent(null);
             } catch (error) {
                 toast.error(
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to share chat message to class",
+                    error instanceof Error ? error.message : "Failed to share to class",
                 );
             }
         },
         [
             currentSessionId,
-            selectedClass?.name,
-            selectedClassId,
+            getClassNameById,
+            safeUserProfile.name,
+            shareIntent,
+            shareGradeResultToClassMutation,
             sharePrivateChatToClassMutation,
         ],
     );
 
-    const handleShareFeedbackToClass = useCallback(async () => {
-        if (!selectedClassId) {
-            toast.error("Open Class Hub and select a class first.");
-            return;
-        }
-
-        try {
-            await shareGradeResultToClassMutation.mutateAsync({
-                classId: selectedClassId,
-                gradePayload: {
-                    assignmentTitle: SAMPLE_ASSIGNMENT_TITLE,
-                    overallScore: 85,
-                    maxScore: 100,
-                    submittedDate: "Oct 12, 2023",
-                    teacherName: "Prof. Sarah Chen",
-                    studentName: safeUserProfile.name,
-                    sharedAt: new Date().toISOString(),
-                },
+    const handleSelectClassThread = useCallback(
+        (thread: SidebarClassThread) => {
+            const className = getClassNameById(thread.classId);
+            setSelectedClassId(thread.classId);
+            setActiveChatTarget({
+                type: "class",
+                classId: thread.classId,
+                className,
+                threadId: thread.id,
+                threadTitle: thread.title,
+                currentUserId: session?.user.id ?? "",
             });
+            guardedSetActiveView("chat");
+        },
+        [getClassNameById, guardedSetActiveView, session?.user.id],
+    );
 
-            toast.success(
-                `Feedback shared to class ${selectedClass?.name ?? selectedClassId}.`,
-            );
-        } catch (error) {
-            toast.error(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to share feedback to class",
-            );
-        }
-    }, [
-        selectedClass?.name,
-        selectedClassId,
-        shareGradeResultToClassMutation,
-        safeUserProfile.name,
-    ]);
+    const handleCreateClassThread = useCallback(
+        async (classId: string) => {
+            try {
+                setCreatingClassThreadId(classId);
+                const thread = await createGroupThreadMutation.mutateAsync({
+                    classId,
+                    title: "班级讨论",
+                });
+                const className = getClassNameById(classId);
+                setSelectedClassId(classId);
+                setActiveChatTarget({
+                    type: "class",
+                    classId,
+                    className,
+                    threadId: thread.id,
+                    threadTitle: thread.title,
+                    currentUserId: session?.user.id ?? "",
+                });
+                guardedSetActiveView("chat");
+                toast.success("Class thread created.");
+            } catch (error) {
+                toast.error(
+                    error instanceof Error ? error.message : "Failed to create class thread",
+                );
+            } finally {
+                setCreatingClassThreadId(null);
+            }
+        },
+        [createGroupThreadMutation, getClassNameById, guardedSetActiveView, session?.user.id],
+    );
 
     const classHubNode = canAccessClassHub ? (
         <ClassHubPresenter
@@ -336,6 +486,18 @@ export const AppPresenter = () => {
             canJoinClass={canAccessStudentAssignments}
             selectedClassId={selectedClassId}
             onSelectedClassIdChange={setSelectedClassId}
+            onEnterClassChat={(payload) => {
+                setSelectedClassId(payload.classId);
+                setActiveChatTarget({
+                    type: "class",
+                    classId: payload.classId,
+                    className: payload.className,
+                    threadId: payload.threadId,
+                    threadTitle: payload.threadTitle,
+                    currentUserId: session?.user.id ?? "",
+                });
+                guardedSetActiveView("chat");
+            }}
         />
     ) : undefined;
 
@@ -403,9 +565,7 @@ export const AppPresenter = () => {
                 generalComments="Great work overall! See annotated notes."
                 privateNotes="Needs review on moments topic."
                 onDownloadPDF={() => {}}
-                onShareToClass={
-                    selectedClassId ? handleShareFeedbackToClass : undefined
-                }
+                onShareToClass={handleShareFeedbackToClass}
             />
         ) : (
             <ClassMembershipNoticeView
@@ -483,6 +643,17 @@ export const AppPresenter = () => {
         );
     }
 
+    const classChatTarget =
+        activeChatTarget.type === "class" ? activeChatTarget : undefined;
+    const activeClassThreadId =
+        activeChatTarget.type === "class" ? activeChatTarget.threadId : undefined;
+    const sharePickerDescription =
+        shareIntent?.kind === "chatMessage"
+            ? "Select a class to share this message."
+            : shareIntent?.kind === "chatSession"
+              ? "Select a class to share this private session."
+              : "Select a class to share this grade feedback.";
+
     return (
         <>
             <Toaster position="top-center" richColors />
@@ -496,6 +667,8 @@ export const AppPresenter = () => {
                 canAccessTeacherAssignments={canAccessTeacherAssignments}
                 userProfile={safeUserProfile}
                 chatSessions={safeChatSessions}
+                classSessionGroups={classSessionGroups}
+                activeClassThreadId={activeClassThreadId}
                 currentSessionId={safeCurrentSessionId}
                 chatMode={chatMode}
                 setChatMode={safeSetChatMode}
@@ -503,6 +676,10 @@ export const AppPresenter = () => {
                 handleSelectSession={safeHandleSelectSession}
                 handleStartNewQuest={safeHandleStartNewQuest}
                 handleRenameSession={safeHandleRenameSession}
+                onCreateClassThread={handleCreateClassThread}
+                creatingClassThreadId={creatingClassThreadId}
+                onSelectClassThread={handleSelectClassThread}
+                onShareSessionToClass={handleShareChatSessionToClass}
                 handleSignOut={handleSignOut}
                 isLoadingSessions={safeIsLoadingSessions}
                 messages={safeMessages}
@@ -512,14 +689,31 @@ export const AppPresenter = () => {
                 handleStopGeneration={safeHandleStopGeneration}
                 handleUpdateProfile={handleUpdateProfile}
                 onStartChat={safeOnStartChat}
-                onShareChatMessageToClass={
-                    selectedClassId ? handleShareChatMessageToClass : undefined
-                }
+                onShareChatMessageToClass={handleShareChatMessageToClass}
+                chatTargetType={activeChatTarget.type}
+                classChatTarget={classChatTarget}
                 classHub={classHubNode}
                 submitAssignment={submitAssignmentNode}
                 viewFeedback={viewFeedbackNode}
                 publishAssignment={publishAssignmentNode}
                 gradeAssignment={gradeAssignmentNode}
+            />
+
+            <ClassPickerPopover
+                open={!!shareIntent}
+                title="Share to class"
+                description={sharePickerDescription}
+                classOptions={classOptions.map((classItem) => ({
+                    id: classItem.id,
+                    name: classItem.name,
+                    role: classItem.role,
+                }))}
+                isSubmitting={
+                    sharePrivateChatToClassMutation.isPending ||
+                    shareGradeResultToClassMutation.isPending
+                }
+                onSelectClass={handleConfirmClassShare}
+                onClose={() => setShareIntent(null)}
             />
         </>
     );

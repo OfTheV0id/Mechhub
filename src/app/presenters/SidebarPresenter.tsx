@@ -1,4 +1,4 @@
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Share2 } from "lucide-react";
 import {
     useSidebarActionsFlow,
     useSidebarResizeState,
@@ -7,6 +7,7 @@ import {
 import { SidebarView } from "@views/sidebar/SidebarView";
 import type { ActiveView, UserProfile } from "@views/shared/types";
 import type { ChatSession } from "@views/chat/types";
+import type { SidebarClassGroup, SidebarClassThread } from "@views/sidebar/types";
 import { SessionItemPresenter } from "./SessionItemPresenter";
 
 interface SidebarPresenterProps {
@@ -19,12 +20,18 @@ interface SidebarPresenterProps {
     setActiveView: (view: ActiveView) => void;
     userProfile: UserProfile;
     sessions: ChatSession[];
+    classGroups: SidebarClassGroup[];
+    activeClassThreadId?: string;
     currentSessionId: string | null;
     isLoading: boolean;
     handleSelectSession: (id: string) => boolean;
     handleStartNewQuest: () => void;
     deleteChatSession: (id: string) => Promise<DeleteChatResult>;
     handleRenameSession: (id: string, newTitle: string) => Promise<boolean>;
+    onCreateClassThread?: (classId: string) => void;
+    creatingClassThreadId?: string | null;
+    onSelectClassThread?: (thread: SidebarClassThread) => void;
+    onShareSessionToClass?: (sessionId: string) => void;
     handleSignOut?: () => void;
 }
 
@@ -38,12 +45,18 @@ export const SidebarPresenter = ({
     setActiveView,
     userProfile,
     sessions,
+    classGroups,
+    activeClassThreadId,
     currentSessionId,
     isLoading,
     handleSelectSession,
     handleStartNewQuest,
     deleteChatSession,
     handleRenameSession,
+    onCreateClassThread,
+    creatingClassThreadId,
+    onSelectClassThread,
+    onShareSessionToClass,
     handleSignOut,
 }: SidebarPresenterProps) => {
     const { sidebarWidth, handleMouseDown } = useSidebarResizeState();
@@ -68,6 +81,18 @@ export const SidebarPresenter = ({
             onDelete={() => handleDeleteSession(session.id)}
             onRename={(newTitle) => handleRenameSession(session.id, newTitle)}
             isGeneratingTitle={session.isGeneratingTitle}
+            menuActions={
+                onShareSessionToClass
+                    ? [
+                          {
+                              key: "share_to_class",
+                              label: "分享到班级",
+                              icon: Share2,
+                              onClick: () => onShareSessionToClass(session.id),
+                          },
+                      ]
+                    : undefined
+            }
         />
     );
 
@@ -78,6 +103,8 @@ export const SidebarPresenter = ({
             sidebarWidth={sidebarWidth}
             user={userProfile}
             sessions={sessions}
+            classGroups={classGroups}
+            activeClassThreadId={activeClassThreadId}
             currentSessionId={currentSessionId}
             isLoading={isLoading}
             onResizeMouseDown={handleMouseDown}
@@ -87,6 +114,9 @@ export const SidebarPresenter = ({
                 setActiveView("landing");
             }}
             onNewQuest={canAccessChat ? onNewQuest : undefined}
+            onCreateClassThread={onCreateClassThread}
+            creatingClassThreadId={creatingClassThreadId}
+            onSelectClassThread={onSelectClassThread}
             renderSession={renderSession}
             onOpenProfile={
                 canAccessProfile
