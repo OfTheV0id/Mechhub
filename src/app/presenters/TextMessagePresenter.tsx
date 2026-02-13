@@ -35,10 +35,15 @@ export const TextMessagePresenter = ({
         isCopied,
         handleCopyText,
         thinkingOpen,
+        thinkingContentRef,
         handleToggleThinking,
         isAttachmentExpanded,
         handleToggleAttachment,
-    } = useTextMessageUiState(text, { autoOpenThinking });
+    } = useTextMessageUiState(text, {
+        autoOpenThinking,
+        autoScrollThinking,
+        reasoning,
+    });
 
     return (
         <TextMessageView
@@ -48,7 +53,7 @@ export const TextMessagePresenter = ({
             showThinking={showThinking}
             thinkingOpen={thinkingOpen}
             onToggleThinking={handleToggleThinking}
-            autoScrollThinking={autoScrollThinking}
+            thinkingContentRef={thinkingContentRef}
             imageUrls={imageUrls}
             fileAttachments={fileAttachments}
             isAttachmentExpanded={isAttachmentExpanded}

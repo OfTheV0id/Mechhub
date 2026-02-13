@@ -1,13 +1,18 @@
 import { MessageSquare, Share2 } from "lucide-react";
 import {
+    useSidebarFooterState,
     useSidebarActionsFlow,
     useSidebarResizeState,
+    useSidebarSessionsState,
     type DeleteChatResult,
 } from "@hooks";
 import { SidebarView } from "@views/sidebar/SidebarView";
 import type { ActiveView, UserProfile } from "@views/shared/types";
 import type { ChatSession } from "@views/chat/types";
-import type { SidebarClassGroup, SidebarClassThread } from "@views/sidebar/types";
+import type {
+    SidebarClassGroup,
+    SidebarClassThread,
+} from "@views/sidebar/types";
 import { SessionItemPresenter } from "./SessionItemPresenter";
 
 interface SidebarPresenterProps {
@@ -60,6 +65,34 @@ export const SidebarPresenter = ({
     handleSignOut,
 }: SidebarPresenterProps) => {
     const { sidebarWidth, handleMouseDown } = useSidebarResizeState();
+    const { openGroupIds, handleToggleGroup } =
+        useSidebarSessionsState(classGroups);
+
+    const onSubmitAssignment = canAccessStudentAssignments
+        ? () => setActiveView("submitAssignment")
+        : undefined;
+    const onViewFeedback = canAccessStudentAssignments
+        ? () => setActiveView("viewFeedback")
+        : undefined;
+    const onPublishAssignment = canAccessTeacherAssignments
+        ? () => setActiveView("publishAssignment")
+        : undefined;
+    const onGradeAssignment = canAccessTeacherAssignments
+        ? () => setActiveView("gradeAssignment")
+        : undefined;
+
+    const {
+        assignmentActions,
+        assignmentsTitle,
+        isAssignmentsOpen,
+        handleToggleAssignmentsOpen,
+    } = useSidebarFooterState({
+        onSubmitAssignment,
+        onViewFeedback,
+        onPublishAssignment,
+        onGradeAssignment,
+    });
+
     const { onNewQuest, handleDeleteSession } = useSidebarActionsFlow({
         setActiveView,
         handleSelectSession,
@@ -117,38 +150,20 @@ export const SidebarPresenter = ({
             onCreateClassThread={onCreateClassThread}
             creatingClassThreadId={creatingClassThreadId}
             onSelectClassThread={onSelectClassThread}
+            openGroupIds={openGroupIds}
+            onToggleGroup={handleToggleGroup}
             renderSession={renderSession}
             onOpenProfile={
-                canAccessProfile
-                    ? () => setActiveView("profile")
-                    : undefined
+                canAccessProfile ? () => setActiveView("profile") : undefined
             }
             onOpenClassHub={
-                canAccessClassHub
-                    ? () => setActiveView("classHub")
-                    : undefined
+                canAccessClassHub ? () => setActiveView("classHub") : undefined
             }
             onSignOut={handleSignOut}
-            onSubmitAssignment={
-                canAccessStudentAssignments
-                    ? () => setActiveView("submitAssignment")
-                    : undefined
-            }
-            onViewFeedback={
-                canAccessStudentAssignments
-                    ? () => setActiveView("viewFeedback")
-                    : undefined
-            }
-            onPublishAssignment={
-                canAccessTeacherAssignments
-                    ? () => setActiveView("publishAssignment")
-                    : undefined
-            }
-            onGradeAssignment={
-                canAccessTeacherAssignments
-                    ? () => setActiveView("gradeAssignment")
-                    : undefined
-            }
+            assignmentActions={assignmentActions}
+            assignmentsTitle={assignmentsTitle}
+            isAssignmentsOpen={isAssignmentsOpen}
+            onToggleAssignmentsOpen={handleToggleAssignmentsOpen}
         />
     );
 };
