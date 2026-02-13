@@ -20,6 +20,11 @@ import { mapUserProfile } from "../mappers/user";
 interface MainLayoutPresenterProps {
     activeView: ActiveView;
     setActiveView: (view: ActiveView) => void;
+    canAccessChat: boolean;
+    canAccessProfile: boolean;
+    canAccessClassHub: boolean;
+    canAccessStudentAssignments: boolean;
+    canAccessTeacherAssignments: boolean;
     userProfile: HookUserProfile;
     chatSessions: HookChatSession[];
     currentSessionId: string | null;
@@ -36,7 +41,7 @@ interface MainLayoutPresenterProps {
     uploadImage: UploadImageHandler;
     isTyping: boolean;
     handleStopGeneration: () => void;
-    handleUpdateProfile: (name: string, role: string, avatar: string) => void;
+    handleUpdateProfile: (name: string, avatar: string) => void;
     onStartChat: (
         message?: string,
         imageUrls?: string[],
@@ -44,6 +49,8 @@ interface MainLayoutPresenterProps {
         model?: string,
         mode?: HookChatMode,
     ) => void;
+    onShareChatMessageToClass?: (messageId: string) => void;
+    classHub?: React.ReactNode;
     submitAssignment?: React.ReactNode;
     viewFeedback?: React.ReactNode;
     publishAssignment?: React.ReactNode;
@@ -53,6 +60,11 @@ interface MainLayoutPresenterProps {
 export const MainLayoutPresenter = ({
     activeView,
     setActiveView,
+    canAccessChat,
+    canAccessProfile,
+    canAccessClassHub,
+    canAccessStudentAssignments,
+    canAccessTeacherAssignments,
     userProfile,
     chatSessions,
     currentSessionId,
@@ -71,6 +83,8 @@ export const MainLayoutPresenter = ({
     handleStopGeneration,
     handleUpdateProfile,
     onStartChat,
+    onShareChatMessageToClass,
+    classHub,
     submitAssignment,
     viewFeedback,
     publishAssignment,
@@ -86,6 +100,11 @@ export const MainLayoutPresenter = ({
             sidebar={
                 <SidebarPresenter
                     activeView={activeView}
+                    canAccessChat={canAccessChat}
+                    canAccessProfile={canAccessProfile}
+                    canAccessClassHub={canAccessClassHub}
+                    canAccessStudentAssignments={canAccessStudentAssignments}
+                    canAccessTeacherAssignments={canAccessTeacherAssignments}
                     setActiveView={setActiveView}
                     userProfile={viewUserProfile}
                     sessions={viewSessions}
@@ -99,32 +118,40 @@ export const MainLayoutPresenter = ({
                 />
             }
             home={
-                <HomePresenter
-                    onStartChat={onStartChat}
-                    mode={chatMode}
-                    setMode={setChatMode}
-                    userName={viewUserProfile.name}
-                    uploadImage={uploadImage}
-                />
+                canAccessChat ? (
+                    <HomePresenter
+                        onStartChat={onStartChat}
+                        mode={chatMode}
+                        setMode={setChatMode}
+                        userName={viewUserProfile.name}
+                        uploadImage={uploadImage}
+                    />
+                ) : undefined
             }
             chat={
-                <ChatPresenter
-                    messages={viewMessages}
-                    onSendMessage={onSendMessage}
-                    uploadImage={uploadImage}
-                    isTyping={isTyping}
-                    onStop={handleStopGeneration}
-                    mode={chatMode}
-                    setMode={setChatMode}
-                    sessionId={currentSessionId}
-                />
+                canAccessChat ? (
+                    <ChatPresenter
+                        messages={viewMessages}
+                        onSendMessage={onSendMessage}
+                        uploadImage={uploadImage}
+                        isTyping={isTyping}
+                        onStop={handleStopGeneration}
+                        mode={chatMode}
+                        setMode={setChatMode}
+                        sessionId={currentSessionId}
+                        onShareToClassMessage={onShareChatMessageToClass}
+                    />
+                ) : undefined
             }
             profile={
-                <ProfilePresenter
-                    user={userProfile}
-                    onUpdateProfile={handleUpdateProfile}
-                />
+                canAccessProfile ? (
+                    <ProfilePresenter
+                        user={userProfile}
+                        onUpdateProfile={handleUpdateProfile}
+                    />
+                ) : undefined
             }
+            classHub={classHub}
             submitAssignment={submitAssignment}
             viewFeedback={viewFeedback}
             publishAssignment={publishAssignment}

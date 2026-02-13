@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { usePublishAssignmentState } from "@hooks";
 import { PublishAssignmentView } from "@views/assignment";
 
 interface PublishAssignmentPresenterProps {
@@ -20,62 +20,29 @@ export const PublishAssignmentPresenter = ({
     onPublish,
     onCancel,
 }: PublishAssignmentPresenterProps) => {
-    const [assignmentName, setAssignmentName] = useState("");
-    const [selectedModule, setSelectedModule] = useState("");
-    const [dueDate, setDueDate] = useState("");
-    const [dueTime, setDueTime] = useState("");
-    const [instructions, setInstructions] = useState("");
-    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-    const [aiGradingEnabled, setAiGradingEnabled] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
-
-    const handleFileUpload = (file: File) => {
-        setAttachedFiles([...attachedFiles, file]);
-    };
-
-    const handleRemoveFile = (index: number) => {
-        setAttachedFiles(attachedFiles.filter((_, i) => i !== index));
-    };
-
-    const handlePublish = async () => {
-        if (!assignmentName || !selectedModule) return;
-        try {
-            setIsLoading(true);
-            await onPublish(
-                assignmentName,
-                selectedModule,
-                dueDate,
-                dueTime,
-                instructions,
-                attachedFiles,
-                aiGradingEnabled,
-            );
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const publishState = usePublishAssignmentState({ onPublish });
 
     return (
         <PublishAssignmentView
-            assignmentName={assignmentName}
-            setAssignmentName={setAssignmentName}
-            selectedModule={selectedModule}
-            setSelectedModule={setSelectedModule}
+            assignmentName={publishState.assignmentName}
+            setAssignmentName={publishState.setAssignmentName}
+            selectedModule={publishState.selectedModule}
+            setSelectedModule={publishState.setSelectedModule}
             modules={modules}
-            dueDate={dueDate}
-            setDueDate={setDueDate}
-            dueTime={dueTime}
-            setDueTime={setDueTime}
-            instructions={instructions}
-            setInstructions={setInstructions}
-            attachedFiles={attachedFiles}
-            onFileUpload={handleFileUpload}
-            onRemoveFile={handleRemoveFile}
-            aiGradingEnabled={aiGradingEnabled}
-            setAiGradingEnabled={setAiGradingEnabled}
-            onPublish={handlePublish}
+            dueDate={publishState.dueDate}
+            setDueDate={publishState.setDueDate}
+            dueTime={publishState.dueTime}
+            setDueTime={publishState.setDueTime}
+            instructions={publishState.instructions}
+            setInstructions={publishState.setInstructions}
+            attachedFiles={publishState.attachedFiles}
+            onFileUpload={publishState.handleFileUpload}
+            onRemoveFile={publishState.handleRemoveFile}
+            aiGradingEnabled={publishState.aiGradingEnabled}
+            setAiGradingEnabled={publishState.setAiGradingEnabled}
+            onPublish={publishState.handlePublish}
             onCancel={onCancel}
-            isLoading={isLoading}
+            isLoading={publishState.isLoading}
         />
     );
 };

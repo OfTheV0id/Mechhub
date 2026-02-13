@@ -9,12 +9,14 @@ interface MessageListPresenterProps {
     messages: Message[];
     isTyping: boolean;
     sessionId: string | null;
+    onShareToClassMessage?: (messageId: string) => void;
 }
 
 export const MessageListPresenter = ({
     messages,
     isTyping,
     sessionId,
+    onShareToClassMessage,
 }: MessageListPresenterProps) => {
     const {
         contentRef,
@@ -61,6 +63,7 @@ export const MessageListPresenter = ({
         return (
             <div key={msg.id} className="w-full">
                 <TextMessagePresenter
+                    messageId={msg.id}
                     role={msg.role}
                     text={msg.text}
                     reasoning={msg.reasoning}
@@ -73,6 +76,7 @@ export const MessageListPresenter = ({
                     fileAttachments={msg.fileAttachments}
                     onImageClick={openPreview}
                     isGenerating={isGenerating}
+                    onShareToClass={onShareToClassMessage}
                 />
             </div>
         );

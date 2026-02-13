@@ -4,7 +4,7 @@ import type { UserProfile } from "@hooks";
 
 interface ProfilePresenterProps {
     user: UserProfile;
-    onUpdateProfile: (name: string, role: string, avatar: string) => void;
+    onUpdateProfile: (name: string, avatar: string) => void;
 }
 
 export const ProfilePresenter = ({

@@ -11,6 +11,11 @@ import { SessionItemPresenter } from "./SessionItemPresenter";
 
 interface SidebarPresenterProps {
     activeView: ActiveView;
+    canAccessChat: boolean;
+    canAccessProfile: boolean;
+    canAccessClassHub: boolean;
+    canAccessStudentAssignments: boolean;
+    canAccessTeacherAssignments: boolean;
     setActiveView: (view: ActiveView) => void;
     userProfile: UserProfile;
     sessions: ChatSession[];
@@ -25,6 +30,11 @@ interface SidebarPresenterProps {
 
 export const SidebarPresenter = ({
     activeView,
+    canAccessChat,
+    canAccessProfile,
+    canAccessClassHub,
+    canAccessStudentAssignments,
+    canAccessTeacherAssignments,
     setActiveView,
     userProfile,
     sessions,
@@ -64,6 +74,7 @@ export const SidebarPresenter = ({
     return (
         <SidebarView
             activeView={activeView}
+            canAccessChat={canAccessChat}
             sidebarWidth={sidebarWidth}
             user={userProfile}
             sessions={sessions}
@@ -75,14 +86,39 @@ export const SidebarPresenter = ({
                 event.stopPropagation();
                 setActiveView("landing");
             }}
-            onNewQuest={onNewQuest}
+            onNewQuest={canAccessChat ? onNewQuest : undefined}
             renderSession={renderSession}
-            onOpenProfile={() => setActiveView("profile")}
+            onOpenProfile={
+                canAccessProfile
+                    ? () => setActiveView("profile")
+                    : undefined
+            }
+            onOpenClassHub={
+                canAccessClassHub
+                    ? () => setActiveView("classHub")
+                    : undefined
+            }
             onSignOut={handleSignOut}
-            onSubmitAssignment={() => setActiveView("submitAssignment")}
-            onViewFeedback={() => setActiveView("viewFeedback")}
-            onPublishAssignment={() => setActiveView("publishAssignment")}
-            onGradeAssignment={() => setActiveView("gradeAssignment")}
+            onSubmitAssignment={
+                canAccessStudentAssignments
+                    ? () => setActiveView("submitAssignment")
+                    : undefined
+            }
+            onViewFeedback={
+                canAccessStudentAssignments
+                    ? () => setActiveView("viewFeedback")
+                    : undefined
+            }
+            onPublishAssignment={
+                canAccessTeacherAssignments
+                    ? () => setActiveView("publishAssignment")
+                    : undefined
+            }
+            onGradeAssignment={
+                canAccessTeacherAssignments
+                    ? () => setActiveView("gradeAssignment")
+                    : undefined
+            }
         />
     );
 };
