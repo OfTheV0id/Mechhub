@@ -66,6 +66,12 @@ const SAMPLE_GRADE_STUDENTS = [
     },
 ];
 
+const FALLBACK_USER_PROFILE = {
+    name: "张同学",
+    avatar: "",
+    role: "工程力学专业学生",
+};
+
 export const AppPresenter = () => {
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
@@ -78,6 +84,8 @@ export const AppPresenter = () => {
         handleUpdateProfile,
         handleSignOut,
     } = useAuthFlow();
+
+    const safeUserProfile = userProfile ?? FALLBACK_USER_PROFILE;
 
     const {
         data: authorization,
@@ -297,7 +305,7 @@ export const AppPresenter = () => {
                     maxScore: 100,
                     submittedDate: "Oct 12, 2023",
                     teacherName: "Prof. Sarah Chen",
-                    studentName: userProfile.name,
+                    studentName: safeUserProfile.name,
                     sharedAt: new Date().toISOString(),
                 },
             });
@@ -316,7 +324,7 @@ export const AppPresenter = () => {
         selectedClass?.name,
         selectedClassId,
         shareGradeResultToClassMutation,
-        userProfile.name,
+        safeUserProfile.name,
     ]);
 
     const classHubNode = canAccessClassHub ? (
@@ -486,7 +494,7 @@ export const AppPresenter = () => {
                 canAccessClassHub={canAccessClassHub}
                 canAccessStudentAssignments={canAccessStudentAssignments}
                 canAccessTeacherAssignments={canAccessTeacherAssignments}
-                userProfile={userProfile}
+                userProfile={safeUserProfile}
                 chatSessions={safeChatSessions}
                 currentSessionId={safeCurrentSessionId}
                 chatMode={chatMode}
