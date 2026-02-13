@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ClassHubView } from "@views/class";
 import {
     useClassMembers,
@@ -15,6 +15,8 @@ import {
     useRevokeInviteCode,
 } from "@hooks";
 
+type HubTab = "overview" | "members" | "invites" | "chat";
+
 interface ClassHubPresenterProps {
     requesterEmail?: string;
     canCreateClass: boolean;
@@ -30,13 +32,19 @@ export const ClassHubPresenter = ({
     selectedClassId,
     onSelectedClassIdChange,
 }: ClassHubPresenterProps) => {
+    const [activeTab, setActiveTab] = useState<HubTab>("overview");
+    const [memberSearch, setMemberSearch] = useState("");
+    const [threadSearch, setThreadSearch] = useState("");
+
     const [createClassName, setCreateClassName] = useState("");
     const [createClassDescription, setCreateClassDescription] = useState("");
     const [createTeacherUserId, setCreateTeacherUserId] = useState("");
+
     const [inviteCodeInput, setInviteCodeInput] = useState("");
     const [inviteExpiresHours, setInviteExpiresHours] = useState(168);
     const [inviteMaxUsesInput, setInviteMaxUsesInput] = useState("");
     const [latestCreatedInviteCode, setLatestCreatedInviteCode] = useState<string>();
+
     const [selectedThreadId, setSelectedThreadId] = useState<string>();
     const [threadInput, setThreadInput] = useState("");
     const [message, setMessage] = useState<string>();
@@ -46,7 +54,7 @@ export const ClassHubPresenter = ({
     const classOptions = useMemo(() => {
         const teaching = classContextQuery.data?.teachingClasses ?? [];
         const joined = classContextQuery.data?.joinedClasses ?? [];
-        const map = new Map<string, (typeof teaching)[number]>();
+        const map = new Map<string, (typeof teaching)[number] | (typeof joined)[number]>();
 
         teaching.forEach((item) => {
             map.set(item.id, item);
@@ -86,6 +94,27 @@ export const ClassHubPresenter = ({
     );
     const classThreadsQuery = useClassThreads(selectedClassId ?? undefined, !!selectedClassId);
 
+    const previousClassIdRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!selectedClassId) {
+            previousClassIdRef.current = null;
+            return;
+        }
+
+        if (previousClassIdRef.current === selectedClassId) {
+            return;
+        }
+
+        previousClassIdRef.current = selectedClassId;
+        setMemberSearch("");
+        setThreadSearch("");
+
+        const isStudentOnly =
+            selectedClass?.role === "student" && !classContextQuery.data?.isAdmin;
+        setActiveTab(isStudentOnly ? "chat" : "overview");
+    }, [selectedClassId, selectedClass?.role, classContextQuery.data?.isAdmin]);
+
     useEffect(() => {
         const threads = classThreadsQuery.data ?? [];
         if (!threads.length) {
@@ -97,6 +126,61 @@ export const ClassHubPresenter = ({
             setSelectedThreadId(threads[0].id);
         }
     }, [classThreadsQuery.data, selectedThreadId]);
+
+    useEffect(() => {
+        const isStudentOnly =
+            selectedClass?.role === "student" && !classContextQuery.data?.isAdmin;
+        const hasThreads = (classThreadsQuery.data?.length ?? 0) > 0;
+
+        if (isStudentOnly && hasThreads && activeTab === "overview") {
+            setActiveTab("chat");
+        }
+    }, [
+        activeTab,
+        classThreadsQuery.data?.length,
+        classContextQuery.data?.isAdmin,
+        selectedClass?.role,
+    ]);
+
+    const normalizedMemberSearch = memberSearch.trim().toLowerCase();
+    const teachers = classMembersQuery.data?.teachers ?? [];
+    const students = classMembersQuery.data?.students ?? [];
+
+    const filteredTeachers = useMemo(() => {
+        if (!normalizedMemberSearch) {
+            return teachers;
+        }
+
+        return teachers.filter((teacher) => {
+            const hitTarget = `${teacher.name} ${teacher.email}`.toLowerCase();
+            return hitTarget.includes(normalizedMemberSearch);
+        });
+    }, [teachers, normalizedMemberSearch]);
+
+    const filteredStudents = useMemo(() => {
+        if (!normalizedMemberSearch) {
+            return students;
+        }
+
+        return students.filter((student) => {
+            const hitTarget = `${student.name} ${student.email}`.toLowerCase();
+            return hitTarget.includes(normalizedMemberSearch);
+        });
+    }, [students, normalizedMemberSearch]);
+
+    const normalizedThreadSearch = threadSearch.trim().toLowerCase();
+    const allThreads = classThreadsQuery.data ?? [];
+
+    const filteredThreads = useMemo(() => {
+        if (!normalizedThreadSearch) {
+            return allThreads;
+        }
+
+        return allThreads.filter((thread) => {
+            const hitTarget = `${thread.title} ${thread.threadType}`.toLowerCase();
+            return hitTarget.includes(normalizedThreadSearch);
+        });
+    }, [allThreads, normalizedThreadSearch]);
 
     const threadMessagesQuery = useClassThreadMessages(
         selectedThreadId,
@@ -113,7 +197,7 @@ export const ClassHubPresenter = ({
 
     const handleCreateClass = async () => {
         if (!createClassName.trim()) {
-            setMessage("Please input class name.");
+            setMessage("请输入班级名称");
             return;
         }
 
@@ -128,15 +212,16 @@ export const ClassHubPresenter = ({
             setCreateClassName("");
             setCreateClassDescription("");
             setCreateTeacherUserId("");
-            setMessage("Class created successfully.");
+            setActiveTab("overview");
+            setMessage("班级创建成功");
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Failed to create class");
+            setMessage(error instanceof Error ? error.message : "创建班级失败");
         }
     };
 
     const handleJoinByInviteCode = async () => {
         if (!inviteCodeInput.trim()) {
-            setMessage("Please input invite code.");
+            setMessage("请输入邀请码");
             return;
         }
 
@@ -147,9 +232,10 @@ export const ClassHubPresenter = ({
             });
             onSelectedClassIdChange(result.classSummary.id);
             setInviteCodeInput("");
-            setMessage(result.alreadyJoined ? "You already joined this class." : "Joined class successfully.");
+            setActiveTab("overview");
+            setMessage(result.alreadyJoined ? "你已经在该班级中" : "加入班级成功");
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Failed to join class");
+            setMessage(error instanceof Error ? error.message : "加入班级失败");
         }
     };
 
@@ -172,9 +258,10 @@ export const ClassHubPresenter = ({
                 maxUses,
             });
             setLatestCreatedInviteCode(result.inviteCode);
-            setMessage("Invite code created.");
+            setActiveTab("invites");
+            setMessage("邀请码创建成功");
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Failed to create invite code");
+            setMessage(error instanceof Error ? error.message : "创建邀请码失败");
         }
     };
 
@@ -186,9 +273,9 @@ export const ClassHubPresenter = ({
         try {
             setMessage(undefined);
             await revokeInviteCodeMutation.mutateAsync({ classId: selectedClassId, inviteCodeId });
-            setMessage("Invite code revoked.");
+            setMessage("邀请码已撤销");
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Failed to revoke invite code");
+            setMessage(error instanceof Error ? error.message : "撤销邀请码失败");
         }
     };
 
@@ -200,9 +287,9 @@ export const ClassHubPresenter = ({
         try {
             setMessage(undefined);
             await removeStudentMutation.mutateAsync({ classId: selectedClassId, studentUserId });
-            setMessage("Student removed from class.");
+            setMessage("已移出学生");
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Failed to remove student");
+            setMessage(error instanceof Error ? error.message : "移除学生失败");
         }
     };
 
@@ -215,12 +302,13 @@ export const ClassHubPresenter = ({
             setMessage(undefined);
             const thread = await createGroupThreadMutation.mutateAsync({
                 classId: selectedClassId,
-                title: "Class Group",
+                title: "班级讨论",
             });
             setSelectedThreadId(thread.id);
-            setMessage("Thread created.");
+            setActiveTab("chat");
+            setMessage("已创建讨论频道");
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Failed to create thread");
+            setMessage(error instanceof Error ? error.message : "创建频道失败");
         }
     };
 
@@ -237,7 +325,7 @@ export const ClassHubPresenter = ({
             });
             setThreadInput("");
         } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Failed to send message");
+            setMessage(error instanceof Error ? error.message : "发送消息失败");
         }
     };
 
@@ -272,12 +360,12 @@ export const ClassHubPresenter = ({
             inviteCodes={inviteCodesQuery.data ?? []}
             onRevokeInviteCode={handleRevokeInviteCode}
             isRevokingInviteCode={revokeInviteCodeMutation.isPending}
-            teachers={classMembersQuery.data?.teachers ?? []}
-            students={classMembersQuery.data?.students ?? []}
+            teachers={filteredTeachers}
+            students={filteredStudents}
             onRemoveStudent={handleRemoveStudent}
             isRemovingStudent={removeStudentMutation.isPending}
             canManageMembers={!!canManageMembers}
-            threads={classThreadsQuery.data ?? []}
+            threads={filteredThreads}
             selectedThreadId={selectedThreadId}
             onSelectThread={setSelectedThreadId}
             onCreateGroupThread={handleCreateGroupThread}
@@ -288,6 +376,12 @@ export const ClassHubPresenter = ({
             onPostThreadMessage={handlePostThreadMessage}
             isPostingThreadMessage={postClassMessageMutation.isPending}
             message={message}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            memberSearch={memberSearch}
+            onMemberSearchChange={setMemberSearch}
+            threadSearch={threadSearch}
+            onThreadSearchChange={setThreadSearch}
         />
     );
 };
