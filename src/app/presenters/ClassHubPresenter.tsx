@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { ClassHubView } from "@views/class";
 import {
     useClassMembersQuery,
     useClassThreadsQuery,
     useCreateClassMutation,
     useCreateGroupThreadMutation,
+    useInviteCodesQuery,
     useJoinClassByInviteCodeMutation,
     useMyClassContextQuery,
 } from "@hooks";
@@ -46,7 +48,6 @@ export const ClassHubPresenter = ({
     const [createTeacherUserId, setCreateTeacherUserId] = useState("");
 
     const [inviteCodeInput, setInviteCodeInput] = useState("");
-    const [message, setMessage] = useState<string>();
 
     const classContextQuery = useMyClassContextQuery();
 
@@ -94,12 +95,40 @@ export const ClassHubPresenter = ({
         selectedClassId ?? undefined,
         isDashboardEnabled,
     );
+    const canViewInviteCodes = isDashboardEnabled;
+    const inviteCodesQuery = useInviteCodesQuery(
+        selectedClassId ?? undefined,
+        canViewInviteCodes,
+    );
 
     const teachers = classMembersQuery.data?.teachers ?? [];
     const students = classMembersQuery.data?.students ?? [];
     const threads = (classThreadsQuery.data ?? []).filter((thread) =>
         isHubThreadType(thread.threadType),
     );
+    const inviteCodeDisplayText = useMemo(() => {
+        if (!canViewInviteCodes) {
+            return undefined;
+        }
+
+        if (inviteCodesQuery.isLoading) {
+            return "加载中...";
+        }
+
+        const latestActiveCode = (inviteCodesQuery.data ?? [])
+            .filter((code) => !code.isRevoked)
+            .sort((left, right) => {
+                const leftTime = left.createdAt
+                    ? new Date(left.createdAt).getTime()
+                    : 0;
+                const rightTime = right.createdAt
+                    ? new Date(right.createdAt).getTime()
+                    : 0;
+                return rightTime - leftTime;
+            })[0];
+
+        return latestActiveCode ? latestActiveCode.code : "暂无";
+    }, [canViewInviteCodes, inviteCodesQuery.data, inviteCodesQuery.isLoading]);
 
     const createClassMutation = useCreateClassMutation();
     const joinClassMutation = useJoinClassByInviteCodeMutation();
@@ -128,7 +157,7 @@ export const ClassHubPresenter = ({
             threads.find((thread) => thread.threadType === "group") ??
             threads[0];
         if (!groupThread) {
-            setMessage("当前班级还没有可用话题，请先创建话题。");
+            toast.error("当前班级还没有可用话题，请先创建话题。");
             return;
         }
         openThreadChat(groupThread.id);
@@ -136,48 +165,38 @@ export const ClassHubPresenter = ({
 
     const handleCreateClass = async () => {
         if (!createClassName.trim()) {
-            setMessage("请输入班级名称");
+            toast.error("请输入班级名称");
             return;
         }
 
         try {
-            setMessage(undefined);
             const createdClass = await createClassMutation.mutateAsync({
                 name: createClassName.trim(),
                 description: createClassDescription.trim(),
                 teacherUserId: createTeacherUserId.trim() || undefined,
             });
-            onSelectedClassIdChange(createdClass.id);
+            onSelectedClassIdChange(createdClass.classSummary.id);
             setCreateClassName("");
             setCreateClassDescription("");
             setCreateTeacherUserId("");
             setScreen("dashboard");
-            setMessage("班级创建成功");
-        } catch (error) {
-            setMessage(error instanceof Error ? error.message : "创建班级失败");
-        }
+        } catch {}
     };
 
     const handleJoinByInviteCode = async () => {
         if (!inviteCodeInput.trim()) {
-            setMessage("请输入邀请码");
+            toast.error("请输入邀请码");
             return;
         }
 
         try {
-            setMessage(undefined);
             const result = await joinClassMutation.mutateAsync({
                 inviteCode: inviteCodeInput.trim(),
             });
             onSelectedClassIdChange(result.classSummary.id);
             setInviteCodeInput("");
             setScreen("dashboard");
-            setMessage(
-                result.alreadyJoined ? "你已经在该班级中" : "加入班级成功",
-            );
-        } catch (error) {
-            setMessage(error instanceof Error ? error.message : "加入班级失败");
-        }
+        } catch {}
     };
 
     const handleCreateThread = async () => {
@@ -186,16 +205,12 @@ export const ClassHubPresenter = ({
         }
 
         try {
-            setMessage(undefined);
             const newThread = await createGroupThreadMutation.mutateAsync({
                 classId: selectedClassId,
                 title: `班级讨论 ${threads.filter((thread) => thread.threadType === "group").length + 1}`,
             });
-            setMessage("话题已创建");
             openThreadChat(newThread.id, newThread.title);
-        } catch (error) {
-            setMessage(error instanceof Error ? error.message : "创建话题失败");
-        }
+        } catch {}
     };
 
     return (
@@ -235,7 +250,7 @@ export const ClassHubPresenter = ({
             isCreatingThread={createGroupThreadMutation.isPending}
             onEnterGeneralChat={handleOpenGeneralChat}
             onEnterThreadChat={openThreadChat}
-            message={message}
+            inviteCodeDisplayText={inviteCodeDisplayText}
         />
     );
 };

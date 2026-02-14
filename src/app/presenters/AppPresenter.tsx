@@ -254,6 +254,7 @@ export const AppPresenter = () => {
         deleteChatSession,
         handleSelectSession,
         handleStartNewQuest,
+        handleClearCurrentSessionSelection,
         handleRenameSession,
         messages,
         setCurrentSessionId,
@@ -355,6 +356,36 @@ export const AppPresenter = () => {
         [classOptions],
     );
 
+    const enterClassChatTarget = useCallback(
+        (payload: {
+            classId: string;
+            threadId: string;
+            threadTitle: string;
+            className?: string;
+        }) => {
+            const className =
+                payload.className ?? getClassNameById(payload.classId);
+
+            handleClearCurrentSessionSelection();
+            setSelectedClassId(payload.classId);
+            setActiveChatTarget({
+                type: "class",
+                classId: payload.classId,
+                className,
+                threadId: payload.threadId,
+                threadTitle: payload.threadTitle,
+                currentUserId: session?.user.id ?? "",
+            });
+            guardedSetActiveView("chat");
+        },
+        [
+            getClassNameById,
+            guardedSetActiveView,
+            handleClearCurrentSessionSelection,
+            session?.user.id,
+        ],
+    );
+
     const openSharePicker = useCallback(
         (intent: ShareIntent) => {
             if (classOptions.length === 0) {
@@ -403,17 +434,11 @@ export const AppPresenter = () => {
                         chatId: currentSessionId,
                         messageIds: [shareIntent.messageId],
                     });
-                    toast.success(
-                        `Shared to class ${getClassNameById(classId)}.`,
-                    );
                 } else if (shareIntent.kind === "chatSession") {
                     await sharePrivateChatToClassMutation.mutateAsync({
                         classId,
                         chatId: shareIntent.sessionId,
                     });
-                    toast.success(
-                        `Shared to class ${getClassNameById(classId)}.`,
-                    );
                 } else {
                     await shareGradeResultToClassMutation.mutateAsync({
                         classId,
@@ -427,22 +452,12 @@ export const AppPresenter = () => {
                             sharedAt: new Date().toISOString(),
                         },
                     });
-                    toast.success(
-                        `Feedback shared to class ${getClassNameById(classId)}.`,
-                    );
                 }
                 setShareIntent(null);
-            } catch (error) {
-                toast.error(
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to share to class",
-                );
-            }
+            } catch {}
         },
         [
             currentSessionId,
-            getClassNameById,
             safeUserProfile.name,
             shareIntent,
             shareGradeResultToClassMutation,
@@ -452,19 +467,13 @@ export const AppPresenter = () => {
 
     const handleSelectClassThread = useCallback(
         (thread: SidebarClassThread) => {
-            const className = getClassNameById(thread.classId);
-            setSelectedClassId(thread.classId);
-            setActiveChatTarget({
-                type: "class",
+            enterClassChatTarget({
                 classId: thread.classId,
-                className,
                 threadId: thread.id,
                 threadTitle: thread.title,
-                currentUserId: session?.user.id ?? "",
             });
-            guardedSetActiveView("chat");
         },
-        [getClassNameById, guardedSetActiveView, session?.user.id],
+        [enterClassChatTarget],
     );
 
     const handleCreateClassThread = useCallback(
@@ -475,34 +484,18 @@ export const AppPresenter = () => {
                     classId,
                     title: "班级讨论",
                 });
-                const className = getClassNameById(classId);
-                setSelectedClassId(classId);
-                setActiveChatTarget({
-                    type: "class",
+
+                enterClassChatTarget({
                     classId,
-                    className,
                     threadId: thread.id,
                     threadTitle: thread.title,
-                    currentUserId: session?.user.id ?? "",
                 });
-                guardedSetActiveView("chat");
-                toast.success("Class thread created.");
-            } catch (error) {
-                toast.error(
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to create class thread",
-                );
+            } catch {
             } finally {
                 setCreatingClassThreadId(null);
             }
         },
-        [
-            createGroupThreadMutation,
-            getClassNameById,
-            guardedSetActiveView,
-            session?.user.id,
-        ],
+        [createGroupThreadMutation, enterClassChatTarget],
     );
 
     const classHubNode = canAccessClassHub ? (
@@ -511,20 +504,18 @@ export const AppPresenter = () => {
             canCreateClass={
                 !!classContext?.isAdmin || canAccessTeacherAssignments
             }
-            canJoinClass={canAccessStudentAssignments}
+            canJoinClass={
+                canAccessStudentAssignments || canAccessTeacherAssignments
+            }
             selectedClassId={selectedClassId}
             onSelectedClassIdChange={setSelectedClassId}
             onEnterClassChat={(payload) => {
-                setSelectedClassId(payload.classId);
-                setActiveChatTarget({
-                    type: "class",
+                enterClassChatTarget({
                     classId: payload.classId,
                     className: payload.className,
                     threadId: payload.threadId,
                     threadTitle: payload.threadTitle,
-                    currentUserId: session?.user.id ?? "",
                 });
-                guardedSetActiveView("chat");
             }}
         />
     ) : undefined;

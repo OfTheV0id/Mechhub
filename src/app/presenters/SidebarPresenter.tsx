@@ -85,8 +85,10 @@ export const SidebarPresenter = ({
         assignmentActions,
         assignmentsTitle,
         isAssignmentsOpen,
+        isAssignmentsActive,
         handleToggleAssignmentsOpen,
     } = useSidebarFooterState({
+        activeView,
         onSubmitAssignment,
         onViewFeedback,
         onPublishAssignment,
@@ -163,6 +165,7 @@ export const SidebarPresenter = ({
             assignmentActions={assignmentActions}
             assignmentsTitle={assignmentsTitle}
             isAssignmentsOpen={isAssignmentsOpen}
+            isAssignmentsActive={isAssignmentsActive}
             onToggleAssignmentsOpen={handleToggleAssignmentsOpen}
         />
     );

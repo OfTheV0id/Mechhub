@@ -77,9 +77,7 @@ export const ClassThreadChatPresenter = ({
                 content: { text },
             });
             setInputValue("");
-        } catch (error) {
-            console.error("Failed to send class thread message", error);
-        }
+        } catch {}
     };
 
     return (
