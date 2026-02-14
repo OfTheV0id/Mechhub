@@ -4,10 +4,10 @@ import { PermissionsConsoleView } from "@views/admin/PermissionsConsoleView";
 import {
     PERMISSION_LABELS,
     PERMISSION_KEYS,
-    useAdminUserAccess,
-    useAdminUserSearch,
+    useAdminUserAccessQuery,
+    useAdminUserSearchMutation,
     useAuthFlow,
-    useUpsertUserAccess,
+    useUpsertUserAccessMutation,
     isForbiddenError,
     type AdminUserSummary,
     type BaseRole,
@@ -15,7 +15,10 @@ import {
     type PermissionKey,
 } from "@hooks";
 
-const createDefaultPermissionEffects = (): Record<PermissionKey, PermissionEffect> =>
+const createDefaultPermissionEffects = (): Record<
+    PermissionKey,
+    PermissionEffect
+> =>
     PERMISSION_KEYS.reduce(
         (acc, permissionKey) => {
             acc[permissionKey] = "inherit";
@@ -48,10 +51,10 @@ export const PermissionsConsolePresenter = () => {
     const [message, setMessage] = useState<string>();
     const [didInitialLoad, setDidInitialLoad] = useState(false);
 
-    const probeQuery = useAdminUserAccess(session?.user.id, !!session);
-    const searchMutation = useAdminUserSearch();
-    const upsertMutation = useUpsertUserAccess();
-    const selectedUserAccessQuery = useAdminUserAccess(
+    const probeQuery = useAdminUserAccessQuery(session?.user.id, !!session);
+    const searchMutation = useAdminUserSearchMutation();
+    const upsertMutation = useUpsertUserAccessMutation();
+    const selectedUserAccessQuery = useAdminUserAccessQuery(
         selectedUser?.id,
         !!selectedUser && !!session,
     );
@@ -81,7 +84,10 @@ export const PermissionsConsolePresenter = () => {
                 }
 
                 setSelectedUser((current) => {
-                    if (current && users.some((user) => user.id === current.id)) {
+                    if (
+                        current &&
+                        users.some((user) => user.id === current.id)
+                    ) {
                         return current;
                     }
                     return users[0];
@@ -100,7 +106,9 @@ export const PermissionsConsolePresenter = () => {
 
         setBaseRole(selectedUserAccessQuery.data.baseRole);
         setPermissionEffects(
-            mapSnapshotToPermissionEffects(selectedUserAccessQuery.data.overrides),
+            mapSnapshotToPermissionEffects(
+                selectedUserAccessQuery.data.overrides,
+            ),
         );
     }, [selectedUserAccessQuery.data]);
 

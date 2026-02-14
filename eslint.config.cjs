@@ -19,19 +19,21 @@ const RESTRICTED_REACT_HOOKS = [
     "useInsertionEffect",
 ];
 
+const TS_LANGUAGE_OPTIONS = {
+    parser: tsParser,
+    parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        ecmaFeatures: {
+            jsx: true,
+        },
+    },
+};
+
 module.exports = [
     {
         files: ["src/views/**/*.{ts,tsx}"],
-        languageOptions: {
-            parser: tsParser,
-            parserOptions: {
-                ecmaVersion: "latest",
-                sourceType: "module",
-                ecmaFeatures: {
-                    jsx: true,
-                },
-            },
-        },
+        languageOptions: TS_LANGUAGE_OPTIONS,
         plugins: {
             "@typescript-eslint": tsPlugin,
             "react-hooks": reactHooksPlugin,
@@ -78,6 +80,51 @@ module.exports = [
                     selector: "CallExpression[callee.name=/^use[A-Z]/]",
                     message:
                         "Views must not call hooks directly. Use presenter/hooks layer and pass props.",
+                },
+            ],
+        },
+    },
+    {
+        files: ["src/app/**/*.{ts,tsx}"],
+        languageOptions: TS_LANGUAGE_OPTIONS,
+        plugins: {
+            "@typescript-eslint": tsPlugin,
+        },
+        rules: {
+            "no-restricted-imports": [
+                "error",
+                {
+                    patterns: [
+                        {
+                            group: ["@hooks/*"],
+                            message:
+                                "src/app must import hooks only from @hooks root entry.",
+                        },
+                    ],
+                },
+            ],
+        },
+    },
+    {
+        files: ["src/hooks/**/*.{ts,tsx}"],
+        languageOptions: TS_LANGUAGE_OPTIONS,
+        plugins: {
+            "@typescript-eslint": tsPlugin,
+        },
+        rules: {
+            "no-restricted-syntax": [
+                "error",
+                {
+                    selector:
+                        "ExportSpecifier[exported.name=/^use[A-Z]/]:not([local.name=/^use[A-Z]/])",
+                    message:
+                        "Hooks exports must not alias non-hook symbols as hooks (for example: createX as useX).",
+                },
+                {
+                    selector:
+                        "VariableDeclarator[id.name=/^use[A-Z]/][init.type='Identifier'][init.name=/^use[A-Z].*(Query|Mutation)$/]",
+                    message:
+                        "Do not create compatibility aliases like useX = useXQuery/useXMutation.",
                 },
             ],
         },

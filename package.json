@@ -80,6 +80,8 @@
         "build": "vite build",
         "typecheck": "tsc -b",
         "lint:views": "eslint \"src/views/**/*.{ts,tsx}\"",
+        "lint:hooks": "eslint \"src/hooks/**/*.{ts,tsx}\"",
+        "lint:architecture": "eslint \"src/app/**/*.{ts,tsx}\" \"src/hooks/**/*.{ts,tsx}\"",
         "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css}\"",
         "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css}\""
     }

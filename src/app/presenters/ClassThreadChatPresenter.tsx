@@ -1,6 +1,9 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Send } from "lucide-react";
-import { useClassThreadMessages, usePostClassMessage } from "@hooks";
+import {
+    useClassThreadMessagesQuery,
+    usePostClassMessageMutation,
+} from "@hooks";
 import { GroupTextMessageView } from "@views/chat/message";
 import styles from "@views/shared/scrollbar.module.css";
 
@@ -37,20 +40,27 @@ export const ClassThreadChatPresenter = ({
     const [inputValue, setInputValue] = useState("");
     const scrollAnchorRef = useRef<HTMLDivElement | null>(null);
 
-    const threadMessagesQuery = useClassThreadMessages(threadId, !!threadId);
-    const postClassMessageMutation = usePostClassMessage();
+    const threadMessagesQuery = useClassThreadMessagesQuery(
+        threadId,
+        !!threadId,
+    );
+    const postClassMessageMutation = usePostClassMessageMutation();
 
     const messages = threadMessagesQuery.data ?? [];
 
     useEffect(() => {
-        scrollAnchorRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        scrollAnchorRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+        });
     }, [messages.length]);
 
     const sortedMessages = useMemo(
         () =>
             [...messages].sort(
                 (left, right) =>
-                    new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
+                    new Date(left.createdAt).getTime() -
+                    new Date(right.createdAt).getTime(),
             ),
         [messages],
     );
@@ -78,7 +88,9 @@ export const ClassThreadChatPresenter = ({
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Class Group Chat
                 </p>
-                <h2 className="mt-1 text-xl font-bold text-slate-900">{className}</h2>
+                <h2 className="mt-1 text-xl font-bold text-slate-900">
+                    {className}
+                </h2>
                 <p className="text-sm text-slate-600">{threadTitle}</p>
             </header>
 
@@ -94,11 +106,17 @@ export const ClassThreadChatPresenter = ({
                         sortedMessages.map((message) => (
                             <GroupTextMessageView
                                 key={message.id}
-                                content={renderClassMessageContent(message.content)}
-                                senderName={message.senderName ?? "Class Member"}
+                                content={renderClassMessageContent(
+                                    message.content,
+                                )}
+                                senderName={
+                                    message.senderName ?? "Class Member"
+                                }
                                 senderAvatar={message.senderAvatar}
                                 createdAt={message.createdAt}
-                                isOwnMessage={message.senderUserId === currentUserId}
+                                isOwnMessage={
+                                    message.senderUserId === currentUserId
+                                }
                                 role={message.role}
                             />
                         ))
@@ -124,7 +142,9 @@ export const ClassThreadChatPresenter = ({
                         className="inline-flex items-center gap-1 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
                     >
                         <Send size={14} />
-                        {postClassMessageMutation.isPending ? "Sending..." : "Send"}
+                        {postClassMessageMutation.isPending
+                            ? "Sending..."
+                            : "Send"}
                     </button>
                 </div>
             </form>

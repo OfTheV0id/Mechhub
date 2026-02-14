@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { ClassHubView } from "@views/class";
 import {
-    useClassMembers,
-    useClassThreads,
-    useCreateClass,
-    useCreateGroupThread,
-    useJoinClassByInviteCode,
-    useMyClassContext,
+    useClassMembersQuery,
+    useClassThreadsQuery,
+    useCreateClassMutation,
+    useCreateGroupThreadMutation,
+    useJoinClassByInviteCodeMutation,
+    useMyClassContextQuery,
 } from "@hooks";
 
 type HubScreen = "collection" | "dashboard";
@@ -48,12 +48,15 @@ export const ClassHubPresenter = ({
     const [inviteCodeInput, setInviteCodeInput] = useState("");
     const [message, setMessage] = useState<string>();
 
-    const classContextQuery = useMyClassContext();
+    const classContextQuery = useMyClassContextQuery();
 
     const classOptions = useMemo(() => {
         const teaching = classContextQuery.data?.teachingClasses ?? [];
         const joined = classContextQuery.data?.joinedClasses ?? [];
-        const map = new Map<string, (typeof teaching)[number] | (typeof joined)[number]>();
+        const map = new Map<
+            string,
+            (typeof teaching)[number] | (typeof joined)[number]
+        >();
 
         teaching.forEach((item) => map.set(item.id, item));
         joined.forEach((item) => {
@@ -70,27 +73,37 @@ export const ClassHubPresenter = ({
             return;
         }
 
-        const selectedExists = !!selectedClassId && classOptions.some((item) => item.id === selectedClassId);
+        const selectedExists =
+            !!selectedClassId &&
+            classOptions.some((item) => item.id === selectedClassId);
         if (!selectedExists) {
             setScreen("collection");
         }
     }, [classOptions, screen, selectedClassId]);
 
-    const selectedClass = classOptions.find((item) => item.id === selectedClassId);
+    const selectedClass = classOptions.find(
+        (item) => item.id === selectedClassId,
+    );
     const isDashboardEnabled = screen === "dashboard" && !!selectedClassId;
 
-    const classMembersQuery = useClassMembers(selectedClassId ?? undefined, isDashboardEnabled);
-    const classThreadsQuery = useClassThreads(selectedClassId ?? undefined, isDashboardEnabled);
+    const classMembersQuery = useClassMembersQuery(
+        selectedClassId ?? undefined,
+        isDashboardEnabled,
+    );
+    const classThreadsQuery = useClassThreadsQuery(
+        selectedClassId ?? undefined,
+        isDashboardEnabled,
+    );
 
     const teachers = classMembersQuery.data?.teachers ?? [];
     const students = classMembersQuery.data?.students ?? [];
-    const threads = (classThreadsQuery.data ?? []).filter(
-        (thread) => isHubThreadType(thread.threadType),
+    const threads = (classThreadsQuery.data ?? []).filter((thread) =>
+        isHubThreadType(thread.threadType),
     );
 
-    const createClassMutation = useCreateClass();
-    const joinClassMutation = useJoinClassByInviteCode();
-    const createGroupThreadMutation = useCreateGroupThread();
+    const createClassMutation = useCreateClassMutation();
+    const joinClassMutation = useJoinClassByInviteCodeMutation();
+    const createGroupThreadMutation = useCreateGroupThreadMutation();
 
     const openThreadChat = (threadId: string, threadTitle?: string) => {
         if (!selectedClass) {
@@ -111,7 +124,9 @@ export const ClassHubPresenter = ({
     };
 
     const handleOpenGeneralChat = () => {
-        const groupThread = threads.find((thread) => thread.threadType === "group") ?? threads[0];
+        const groupThread =
+            threads.find((thread) => thread.threadType === "group") ??
+            threads[0];
         if (!groupThread) {
             setMessage("当前班级还没有可用话题，请先创建话题。");
             return;
@@ -157,7 +172,9 @@ export const ClassHubPresenter = ({
             onSelectedClassIdChange(result.classSummary.id);
             setInviteCodeInput("");
             setScreen("dashboard");
-            setMessage(result.alreadyJoined ? "你已经在该班级中" : "加入班级成功");
+            setMessage(
+                result.alreadyJoined ? "你已经在该班级中" : "加入班级成功",
+            );
         } catch (error) {
             setMessage(error instanceof Error ? error.message : "加入班级失败");
         }

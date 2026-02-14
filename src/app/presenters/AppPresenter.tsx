@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useQueries } from "@tanstack/react-query";
 import { toast, Toaster } from "sonner";
 import {
     chatUseCases,
@@ -7,19 +6,18 @@ import {
     type ActiveView,
     useAppView,
     useAuthFlow,
+    useClassThreadsBatchQuery,
     useChatRuntimeFlow,
     useChatSessionsFlow,
-    useCreateGroupThread,
-    useMyClassContext,
-    useMyAuthorization,
-    useShareGradeResultToClass,
-    useSharePrivateChatToClass,
+    useCreateGroupThreadMutation,
+    useMyAuthorizationQuery,
+    useMyClassContextQuery,
+    useShareGradeResultToClassMutation,
+    useSharePrivateChatToClassMutation,
 } from "@hooks";
 import { AppLoadingView } from "@views/layout/AppLoadingView";
 import { ClassMembershipNoticeView, ClassPickerPopover } from "@views/class";
 import type { SidebarClassThread } from "@views/sidebar/types";
-import { classKeys } from "@hooks/class/queries/classKeys";
-import { listClassThreads } from "@hooks/class/implementation/supabaseClassService";
 import { AuthGatePresenter } from "./AuthGatePresenter";
 import { ClassHubPresenter } from "./ClassHubPresenter";
 import { GradeAssignmentPresenter } from "./GradeAssignmentPresenter";
@@ -53,21 +51,24 @@ const SAMPLE_GRADE_STUDENTS = [
         studentName: "Oliver Thompson",
         submittedDate: "Submitted 2h ago",
         status: "pending" as const,
-        submission: "https://via.placeholder.com/800x600?text=Student+Submission",
+        submission:
+            "https://via.placeholder.com/800x600?text=Student+Submission",
     },
     {
         id: "2",
         studentName: "Jane Doe",
         submittedDate: "Graded",
         status: "graded" as const,
-        submission: "https://via.placeholder.com/800x600?text=Student+Submission",
+        submission:
+            "https://via.placeholder.com/800x600?text=Student+Submission",
     },
     {
         id: "3",
         studentName: "Li Wei",
         submittedDate: "Not submitted",
         status: "pending" as const,
-        submission: "https://via.placeholder.com/800x600?text=Student+Submission",
+        submission:
+            "https://via.placeholder.com/800x600?text=Student+Submission",
     },
 ];
 
@@ -93,9 +94,12 @@ type ShareIntent =
     | { kind: "chatSession"; sessionId: string }
     | { kind: "gradeFeedback" };
 
-const isSidebarThread = (thread: { threadType: "group" | "shared_chat" | "shared_grade" }): thread is {
+const isSidebarThread = (thread: {
+    threadType: "group" | "shared_chat" | "shared_grade";
+}): thread is {
     threadType: "group" | "shared_chat";
-} & typeof thread => thread.threadType === "group" || thread.threadType === "shared_chat";
+} & typeof thread =>
+    thread.threadType === "group" || thread.threadType === "shared_chat";
 
 export const AppPresenter = () => {
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -103,7 +107,9 @@ export const AppPresenter = () => {
         type: "private",
     });
     const [shareIntent, setShareIntent] = useState<ShareIntent | null>(null);
-    const [creatingClassThreadId, setCreatingClassThreadId] = useState<string | null>(null);
+    const [creatingClassThreadId, setCreatingClassThreadId] = useState<
+        string | null
+    >(null);
 
     const {
         session,
@@ -121,11 +127,9 @@ export const AppPresenter = () => {
         data: authorization,
         isLoading: isAuthorizationLoading,
         isFetching: isAuthorizationFetching,
-    } = useMyAuthorization();
-    const {
-        data: classContext,
-        isLoading: isClassContextLoading,
-    } = useMyClassContext();
+    } = useMyAuthorizationQuery();
+    const { data: classContext, isLoading: isClassContextLoading } =
+        useMyClassContextQuery();
 
     const canAccessChat = hasPermission(authorization, "chat.access");
     const canAccessProfile = hasPermission(authorization, "profile.access");
@@ -150,7 +154,9 @@ export const AppPresenter = () => {
             (typeof teachingClasses)[number] | (typeof joinedClasses)[number]
         >();
 
-        teachingClasses.forEach((classItem) => map.set(classItem.id, classItem));
+        teachingClasses.forEach((classItem) =>
+            map.set(classItem.id, classItem),
+        );
         joinedClasses.forEach((classItem) => {
             if (!map.has(classItem.id)) {
                 map.set(classItem.id, classItem);
@@ -166,7 +172,10 @@ export const AppPresenter = () => {
             return;
         }
 
-        if (!selectedClassId || !classOptions.some((item) => item.id === selectedClassId)) {
+        if (
+            !selectedClassId ||
+            !classOptions.some((item) => item.id === selectedClassId)
+        ) {
             setSelectedClassId(classOptions[0].id);
         }
     }, [classOptions, selectedClassId]);
@@ -178,26 +187,25 @@ export const AppPresenter = () => {
     const hasStudentClassMembership = joinedClasses.length > 0;
     const hasTeacherClassMembership = teachingClasses.length > 0;
 
-    const classThreadsQueries = useQueries({
-        queries: classOptions.map((classItem) => ({
-            queryKey: classKeys.threads(classItem.id),
-            queryFn: () => listClassThreads(classItem.id),
-            enabled: !!session && canAccessClassHub,
-            staleTime: 5_000,
-        })),
-    });
+    const classThreadsBatchQuery = useClassThreadsBatchQuery(
+        classOptions.map((classItem) => classItem.id),
+        !!session && canAccessClassHub,
+    );
 
     const classSessionGroups = useMemo(
         () =>
-            classOptions.map((classItem, index) => {
-                const threadRows = classThreadsQueries[index]?.data ?? [];
+            classOptions.map((classItem) => {
+                const threadRows =
+                    classThreadsBatchQuery.dataByClassId[classItem.id] ?? [];
                 const threads = threadRows
                     .filter(isSidebarThread)
                     .map((thread) => ({
                         id: thread.id,
                         classId: classItem.id,
                         title: thread.title,
-                        threadType: thread.threadType as "group" | "shared_chat",
+                        threadType: thread.threadType as
+                            | "group"
+                            | "shared_chat",
                     }));
 
                 return {
@@ -207,7 +215,7 @@ export const AppPresenter = () => {
                     threads,
                 };
             }),
-        [classOptions, classThreadsQueries],
+        [classOptions, classThreadsBatchQuery.dataByClassId],
     );
 
     const canAccessView = (view: ActiveView) => {
@@ -226,7 +234,8 @@ export const AppPresenter = () => {
 
     const fallbackView = useMemo(
         () =>
-            FALLBACK_VIEW_ORDER.find((view) => canAccessView(view)) ?? "landing",
+            FALLBACK_VIEW_ORDER.find((view) => canAccessView(view)) ??
+            "landing",
         [
             canAccessChat,
             canAccessProfile,
@@ -334,9 +343,11 @@ export const AppPresenter = () => {
         ? handleRenameSession
         : async () => false;
 
-    const sharePrivateChatToClassMutation = useSharePrivateChatToClass();
-    const shareGradeResultToClassMutation = useShareGradeResultToClass();
-    const createGroupThreadMutation = useCreateGroupThread();
+    const sharePrivateChatToClassMutation =
+        useSharePrivateChatToClassMutation();
+    const shareGradeResultToClassMutation =
+        useShareGradeResultToClassMutation();
+    const createGroupThreadMutation = useCreateGroupThreadMutation();
 
     const getClassNameById = useCallback(
         (classId: string) =>
@@ -382,7 +393,9 @@ export const AppPresenter = () => {
             try {
                 if (shareIntent.kind === "chatMessage") {
                     if (!currentSessionId) {
-                        toast.error("Open a private chat session before sharing.");
+                        toast.error(
+                            "Open a private chat session before sharing.",
+                        );
                         return;
                     }
                     await sharePrivateChatToClassMutation.mutateAsync({
@@ -390,13 +403,17 @@ export const AppPresenter = () => {
                         chatId: currentSessionId,
                         messageIds: [shareIntent.messageId],
                     });
-                    toast.success(`Shared to class ${getClassNameById(classId)}.`);
+                    toast.success(
+                        `Shared to class ${getClassNameById(classId)}.`,
+                    );
                 } else if (shareIntent.kind === "chatSession") {
                     await sharePrivateChatToClassMutation.mutateAsync({
                         classId,
                         chatId: shareIntent.sessionId,
                     });
-                    toast.success(`Shared to class ${getClassNameById(classId)}.`);
+                    toast.success(
+                        `Shared to class ${getClassNameById(classId)}.`,
+                    );
                 } else {
                     await shareGradeResultToClassMutation.mutateAsync({
                         classId,
@@ -410,12 +427,16 @@ export const AppPresenter = () => {
                             sharedAt: new Date().toISOString(),
                         },
                     });
-                    toast.success(`Feedback shared to class ${getClassNameById(classId)}.`);
+                    toast.success(
+                        `Feedback shared to class ${getClassNameById(classId)}.`,
+                    );
                 }
                 setShareIntent(null);
             } catch (error) {
                 toast.error(
-                    error instanceof Error ? error.message : "Failed to share to class",
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to share to class",
                 );
             }
         },
@@ -468,13 +489,20 @@ export const AppPresenter = () => {
                 toast.success("Class thread created.");
             } catch (error) {
                 toast.error(
-                    error instanceof Error ? error.message : "Failed to create class thread",
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to create class thread",
                 );
             } finally {
                 setCreatingClassThreadId(null);
             }
         },
-        [createGroupThreadMutation, getClassNameById, guardedSetActiveView, session?.user.id],
+        [
+            createGroupThreadMutation,
+            getClassNameById,
+            guardedSetActiveView,
+            session?.user.id,
+        ],
     );
 
     const classHubNode = canAccessClassHub ? (
@@ -534,7 +562,12 @@ export const AppPresenter = () => {
                 teacherSummary="Strong conceptual understanding. Minor sign error in the uniform load moment calculation."
                 aiAnalysis="The Free Body Diagram is well-drawn and correctly identifies all external forces and moments. The moment equation for the uniform load shows good understanding but had a sign convention error."
                 gradeBreakdown={[
-                    { category: "Method", score: 30, maxScore: 30, color: "green" },
+                    {
+                        category: "Method",
+                        score: 30,
+                        maxScore: 30,
+                        color: "green",
+                    },
                     {
                         category: "Accuracy",
                         score: 35,
@@ -626,7 +659,10 @@ export const AppPresenter = () => {
         return (
             <>
                 <Toaster position="top-center" richColors />
-                <AuthGatePresenter showAuth={showAuth} setShowAuth={setShowAuth} />
+                <AuthGatePresenter
+                    showAuth={showAuth}
+                    setShowAuth={setShowAuth}
+                />
             </>
         );
     }
@@ -646,7 +682,9 @@ export const AppPresenter = () => {
     const classChatTarget =
         activeChatTarget.type === "class" ? activeChatTarget : undefined;
     const activeClassThreadId =
-        activeChatTarget.type === "class" ? activeChatTarget.threadId : undefined;
+        activeChatTarget.type === "class"
+            ? activeChatTarget.threadId
+            : undefined;
     const sharePickerDescription =
         shareIntent?.kind === "chatMessage"
             ? "Select a class to share this message."
