@@ -1,4 +1,4 @@
-import { useLandingPageState } from "@hooks";
+import { createLandingPageHandlers } from "@hooks";
 import { LandingPageView } from "@views/landing/LandingPageView";
 
 interface LandingPagePresenterProps {
@@ -10,7 +10,10 @@ export const LandingPagePresenter = ({
     onStart,
     onLogin,
 }: LandingPagePresenterProps) => {
-    const { handleStart, handleLogin } = useLandingPageState(onStart, onLogin);
+    const { handleStart, handleLogin } = createLandingPageHandlers(
+        onStart,
+        onLogin,
+    );
 
     return <LandingPageView onStart={handleStart} onLogin={handleLogin} />;
 };

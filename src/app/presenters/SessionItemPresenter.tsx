@@ -2,6 +2,14 @@ import type { LucideIcon } from "lucide-react";
 import { useSessionItemUiState } from "@hooks";
 import { SessionItem } from "@views/sidebar/parts/SessionItem";
 
+interface SessionItemMenuAction {
+    key: string;
+    label: string;
+    icon: LucideIcon;
+    variant?: "default" | "danger";
+    onClick: () => void;
+}
+
 interface SessionItemPresenterProps {
     label: string;
     icon: LucideIcon;
@@ -10,6 +18,7 @@ interface SessionItemPresenterProps {
     onDelete?: () => void;
     onRename?: (newTitle: string) => Promise<boolean>;
     isGeneratingTitle?: boolean;
+    menuActions?: SessionItemMenuAction[];
 }
 
 export const SessionItemPresenter = ({
@@ -20,6 +29,7 @@ export const SessionItemPresenter = ({
     onDelete,
     onRename,
     isGeneratingTitle = false,
+    menuActions = [],
 }: SessionItemPresenterProps) => {
     const {
         isEditing,
@@ -32,6 +42,7 @@ export const SessionItemPresenter = ({
         handleStartEdit,
         handleToggleMenu,
         handleDelete,
+        closeMenu,
         setEditTitle,
         canRename,
     } = useSessionItemUiState({
@@ -57,7 +68,9 @@ export const SessionItemPresenter = ({
             onSave={handleSaveRename}
             onCancel={handleCancelRename}
             onToggleMenu={handleToggleMenu}
+            onCloseMenu={closeMenu}
             onDelete={onDelete ? handleDelete : undefined}
+            menuActions={menuActions}
         />
     );
 };

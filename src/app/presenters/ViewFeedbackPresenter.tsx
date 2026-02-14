@@ -1,5 +1,5 @@
 import {
-    useViewFeedbackState,
+    deriveViewFeedbackModel,
     type AssignmentGradeBreakdown,
     type AssignmentKeyInsight,
 } from "@hooks";
@@ -38,7 +38,7 @@ export const ViewFeedbackPresenter = ({
     onDownloadPDF,
     onShareToClass,
 }: ViewFeedbackPresenterProps) => {
-    const feedbackState = useViewFeedbackState({
+    const feedbackState = deriveViewFeedbackModel({
         assignmentTitle,
         overallScore,
         maxScore,

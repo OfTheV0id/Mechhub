@@ -25,33 +25,22 @@ export const MessageListPresenter = ({
         openPreview,
         closePreview,
         handleScroll,
-        autoOpenThinkingMessageId,
+        messageRenderItems,
     } = useMessageListUiState({
         messages,
         isTyping,
         sessionId,
     });
 
-    const isThinkingModel = (model?: string) =>
-        typeof model === "string" && model.includes("thinking");
-
-    const items = messages.map((msg, index) => {
-        const isLastMessage = index === messages.length - 1;
-        const isGenerating =
-            isTyping && isLastMessage && msg.role === "assistant";
-        const shouldAutoOpenThinking =
-            msg.id === autoOpenThinkingMessageId &&
-            msg.role === "assistant" &&
-            msg.mode === "study";
-
-        if (msg.gradingResult) {
+    const items = messageRenderItems.map((item) => {
+        if (item.renderKind === "grading" && item.message.gradingResult) {
             return (
-                <div key={msg.id} className="w-full">
+                <div key={item.message.id} className="w-full">
                     <GradingResultPresenter
-                        gradingResult={msg.gradingResult}
-                        reply={msg.text}
-                        reasoning={msg.reasoning}
-                        showThinking={isThinkingModel(msg.model)}
+                        gradingResult={item.message.gradingResult}
+                        reply={item.message.text}
+                        reasoning={item.message.reasoning}
+                        showThinking={item.showThinking}
                         renderImagePanel={(image) => (
                             <ImageGradingPanelPresenter imageGrading={image} />
                         )}
@@ -61,21 +50,19 @@ export const MessageListPresenter = ({
         }
 
         return (
-            <div key={msg.id} className="w-full">
+            <div key={item.message.id} className="w-full">
                 <TextMessagePresenter
-                    messageId={msg.id}
-                    role={msg.role}
-                    text={msg.text}
-                    reasoning={msg.reasoning}
-                    showThinking={
-                        msg.role === "assistant" && isThinkingModel(msg.model)
-                    }
-                    autoOpenThinking={shouldAutoOpenThinking}
-                    autoScrollThinking={shouldAutoOpenThinking}
-                    imageUrls={msg.imageUrls}
-                    fileAttachments={msg.fileAttachments}
+                    messageId={item.message.id}
+                    role={item.message.role}
+                    text={item.message.text}
+                    reasoning={item.message.reasoning}
+                    showThinking={item.showThinking}
+                    autoOpenThinking={item.shouldAutoOpenThinking}
+                    autoScrollThinking={item.shouldAutoOpenThinking}
+                    imageUrls={item.message.imageUrls}
+                    fileAttachments={item.message.fileAttachments}
                     onImageClick={openPreview}
-                    isGenerating={isGenerating}
+                    isGenerating={item.isGenerating}
                     onShareToClass={onShareToClassMessage}
                 />
             </div>

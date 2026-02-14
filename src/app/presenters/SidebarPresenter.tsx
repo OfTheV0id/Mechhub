@@ -1,12 +1,18 @@
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Share2 } from "lucide-react";
 import {
+    useSidebarFooterState,
     useSidebarActionsFlow,
     useSidebarResizeState,
+    useSidebarSessionsState,
     type DeleteChatResult,
 } from "@hooks";
 import { SidebarView } from "@views/sidebar/SidebarView";
 import type { ActiveView, UserProfile } from "@views/shared/types";
 import type { ChatSession } from "@views/chat/types";
+import type {
+    SidebarClassGroup,
+    SidebarClassThread,
+} from "@views/sidebar/types";
 import { SessionItemPresenter } from "./SessionItemPresenter";
 
 interface SidebarPresenterProps {
@@ -19,12 +25,28 @@ interface SidebarPresenterProps {
     setActiveView: (view: ActiveView) => void;
     userProfile: UserProfile;
     sessions: ChatSession[];
+    classGroups: SidebarClassGroup[];
+    isClassAdmin?: boolean;
+    activeClassThreadId?: string;
     currentSessionId: string | null;
     isLoading: boolean;
     handleSelectSession: (id: string) => boolean;
     handleStartNewQuest: () => void;
     deleteChatSession: (id: string) => Promise<DeleteChatResult>;
     handleRenameSession: (id: string, newTitle: string) => Promise<boolean>;
+    onCreateClassThread?: (classId: string) => void;
+    creatingClassThreadId?: string | null;
+    onSelectClassThread?: (thread: SidebarClassThread) => void;
+    onRenameClassThread?: (
+        classId: string,
+        threadId: string,
+        title: string,
+    ) => Promise<boolean>;
+    onDeleteClassThread?: (
+        classId: string,
+        threadId: string,
+    ) => Promise<boolean>;
+    onShareSessionToClass?: (sessionId: string) => void;
     handleSignOut?: () => void;
 }
 
@@ -38,15 +60,54 @@ export const SidebarPresenter = ({
     setActiveView,
     userProfile,
     sessions,
+    classGroups,
+    isClassAdmin,
+    activeClassThreadId,
     currentSessionId,
     isLoading,
     handleSelectSession,
     handleStartNewQuest,
     deleteChatSession,
     handleRenameSession,
+    onCreateClassThread,
+    creatingClassThreadId,
+    onSelectClassThread,
+    onRenameClassThread,
+    onDeleteClassThread,
+    onShareSessionToClass,
     handleSignOut,
 }: SidebarPresenterProps) => {
     const { sidebarWidth, handleMouseDown } = useSidebarResizeState();
+    const { openGroupIds, handleToggleGroup } =
+        useSidebarSessionsState(classGroups);
+
+    const onSubmitAssignment = canAccessStudentAssignments
+        ? () => setActiveView("submitAssignment")
+        : undefined;
+    const onViewFeedback = canAccessStudentAssignments
+        ? () => setActiveView("viewFeedback")
+        : undefined;
+    const onPublishAssignment = canAccessTeacherAssignments
+        ? () => setActiveView("publishAssignment")
+        : undefined;
+    const onGradeAssignment = canAccessTeacherAssignments
+        ? () => setActiveView("gradeAssignment")
+        : undefined;
+
+    const {
+        assignmentActions,
+        assignmentsTitle,
+        isAssignmentsOpen,
+        isAssignmentsActive,
+        handleToggleAssignmentsOpen,
+    } = useSidebarFooterState({
+        activeView,
+        onSubmitAssignment,
+        onViewFeedback,
+        onPublishAssignment,
+        onGradeAssignment,
+    });
+
     const { onNewQuest, handleDeleteSession } = useSidebarActionsFlow({
         setActiveView,
         handleSelectSession,
@@ -68,8 +129,57 @@ export const SidebarPresenter = ({
             onDelete={() => handleDeleteSession(session.id)}
             onRename={(newTitle) => handleRenameSession(session.id, newTitle)}
             isGeneratingTitle={session.isGeneratingTitle}
+            menuActions={
+                onShareSessionToClass
+                    ? [
+                          {
+                              key: "share_to_class",
+                              label: "分享到班级",
+                              icon: Share2,
+                              onClick: () => onShareSessionToClass(session.id),
+                          },
+                      ]
+                    : undefined
+            }
         />
     );
+
+    const renderClassThread = (
+        thread: SidebarClassThread,
+        active: boolean,
+        canManage: boolean,
+    ) => {
+        const canManageThread = canManage && thread.threadType === "group";
+
+        return (
+            <SessionItemPresenter
+                label={thread.title}
+                icon={MessageSquare}
+                active={active}
+                onClick={() => onSelectClassThread?.(thread)}
+                onRename={
+                    canManageThread && onRenameClassThread
+                        ? (newTitle) =>
+                              onRenameClassThread(
+                                  thread.classId,
+                                  thread.id,
+                                  newTitle,
+                              )
+                        : undefined
+                }
+                onDelete={
+                    canManageThread && onDeleteClassThread
+                        ? () => {
+                              void onDeleteClassThread(
+                                  thread.classId,
+                                  thread.id,
+                              );
+                          }
+                        : undefined
+                }
+            />
+        );
+    };
 
     return (
         <SidebarView
@@ -78,6 +188,9 @@ export const SidebarPresenter = ({
             sidebarWidth={sidebarWidth}
             user={userProfile}
             sessions={sessions}
+            classGroups={classGroups}
+            isClassAdmin={isClassAdmin}
+            activeClassThreadId={activeClassThreadId}
             currentSessionId={currentSessionId}
             isLoading={isLoading}
             onResizeMouseDown={handleMouseDown}
@@ -87,38 +200,27 @@ export const SidebarPresenter = ({
                 setActiveView("landing");
             }}
             onNewQuest={canAccessChat ? onNewQuest : undefined}
+            onCreateClassThread={onCreateClassThread}
+            creatingClassThreadId={creatingClassThreadId}
+            onSelectClassThread={onSelectClassThread}
+            onRenameClassThread={onRenameClassThread}
+            onDeleteClassThread={onDeleteClassThread}
+            openGroupIds={openGroupIds}
+            onToggleGroup={handleToggleGroup}
             renderSession={renderSession}
+            renderClassThread={renderClassThread}
             onOpenProfile={
-                canAccessProfile
-                    ? () => setActiveView("profile")
-                    : undefined
+                canAccessProfile ? () => setActiveView("profile") : undefined
             }
             onOpenClassHub={
-                canAccessClassHub
-                    ? () => setActiveView("classHub")
-                    : undefined
+                canAccessClassHub ? () => setActiveView("classHub") : undefined
             }
             onSignOut={handleSignOut}
-            onSubmitAssignment={
-                canAccessStudentAssignments
-                    ? () => setActiveView("submitAssignment")
-                    : undefined
-            }
-            onViewFeedback={
-                canAccessStudentAssignments
-                    ? () => setActiveView("viewFeedback")
-                    : undefined
-            }
-            onPublishAssignment={
-                canAccessTeacherAssignments
-                    ? () => setActiveView("publishAssignment")
-                    : undefined
-            }
-            onGradeAssignment={
-                canAccessTeacherAssignments
-                    ? () => setActiveView("gradeAssignment")
-                    : undefined
-            }
+            assignmentActions={assignmentActions}
+            assignmentsTitle={assignmentsTitle}
+            isAssignmentsOpen={isAssignmentsOpen}
+            isAssignmentsActive={isAssignmentsActive}
+            onToggleAssignmentsOpen={handleToggleAssignmentsOpen}
         />
     );
 };
