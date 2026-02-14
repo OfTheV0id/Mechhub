@@ -30,6 +30,7 @@ interface MainLayoutPresenterProps {
     userProfile: HookUserProfile;
     chatSessions: HookChatSession[];
     classSessionGroups: SidebarClassGroup[];
+    isClassAdmin?: boolean;
     activeClassThreadId?: string;
     currentSessionId: string | null;
     chatMode: HookChatMode;
@@ -41,6 +42,15 @@ interface MainLayoutPresenterProps {
     onCreateClassThread?: (classId: string) => void;
     creatingClassThreadId?: string | null;
     onSelectClassThread?: (thread: SidebarClassThread) => void;
+    onRenameClassThread?: (
+        classId: string,
+        threadId: string,
+        title: string,
+    ) => Promise<boolean>;
+    onDeleteClassThread?: (
+        classId: string,
+        threadId: string,
+    ) => Promise<boolean>;
     onShareSessionToClass?: (sessionId: string) => void;
     handleSignOut: () => void;
     isLoadingSessions: boolean;
@@ -65,6 +75,9 @@ interface MainLayoutPresenterProps {
         threadTitle: string;
         currentUserId: string;
     };
+    onCopySharedClassMessageToNewSession?: (
+        content: Record<string, unknown>,
+    ) => void;
     classHub?: React.ReactNode;
     submitAssignment?: React.ReactNode;
     viewFeedback?: React.ReactNode;
@@ -83,6 +96,7 @@ export const MainLayoutPresenter = ({
     userProfile,
     chatSessions,
     classSessionGroups,
+    isClassAdmin,
     activeClassThreadId,
     currentSessionId,
     chatMode,
@@ -94,6 +108,8 @@ export const MainLayoutPresenter = ({
     onCreateClassThread,
     creatingClassThreadId,
     onSelectClassThread,
+    onRenameClassThread,
+    onDeleteClassThread,
     onShareSessionToClass,
     handleSignOut,
     isLoadingSessions,
@@ -107,6 +123,7 @@ export const MainLayoutPresenter = ({
     onShareChatMessageToClass,
     chatTargetType,
     classChatTarget,
+    onCopySharedClassMessageToNewSession,
     classHub,
     submitAssignment,
     viewFeedback,
@@ -132,6 +149,7 @@ export const MainLayoutPresenter = ({
                     userProfile={viewUserProfile}
                     sessions={viewSessions}
                     classGroups={classSessionGroups}
+                    isClassAdmin={isClassAdmin}
                     activeClassThreadId={activeClassThreadId}
                     currentSessionId={currentSessionId}
                     isLoading={isLoadingSessions}
@@ -142,6 +160,8 @@ export const MainLayoutPresenter = ({
                     onCreateClassThread={onCreateClassThread}
                     creatingClassThreadId={creatingClassThreadId}
                     onSelectClassThread={onSelectClassThread}
+                    onRenameClassThread={onRenameClassThread}
+                    onDeleteClassThread={onDeleteClassThread}
                     onShareSessionToClass={onShareSessionToClass}
                     handleSignOut={handleSignOut}
                 />
@@ -165,6 +185,9 @@ export const MainLayoutPresenter = ({
                             className={classChatTarget.className}
                             threadTitle={classChatTarget.threadTitle}
                             currentUserId={classChatTarget.currentUserId}
+                            onCopySharedChatToNewSession={
+                                onCopySharedClassMessageToNewSession
+                            }
                         />
                     ) : (
                         <ChatPresenter

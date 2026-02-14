@@ -79,7 +79,6 @@ export const AppPresenter = () => {
                     derived.assignmentFixtures.viewFeedback.privateNotes
                 }
                 onDownloadPDF={() => {}}
-                onShareToClass={actions.handleShareFeedbackToClass}
             />
         ) : (
             <ClassMembershipNoticeView
@@ -167,6 +166,7 @@ export const AppPresenter = () => {
                 userProfile={derived.safeUserProfile}
                 chatSessions={derived.chatSessions}
                 classSessionGroups={derived.classSessionGroups}
+                isClassAdmin={derived.isClassAdmin}
                 activeClassThreadId={derived.activeClassThreadId}
                 currentSessionId={derived.currentSessionId}
                 chatMode={state.chatMode}
@@ -178,6 +178,8 @@ export const AppPresenter = () => {
                 onCreateClassThread={actions.handleCreateClassThread}
                 creatingClassThreadId={meta.creatingClassThreadId}
                 onSelectClassThread={actions.handleSelectClassThread}
+                onRenameClassThread={actions.handleRenameClassThread}
+                onDeleteClassThread={actions.handleDeleteClassThread}
                 onShareSessionToClass={actions.handleShareChatSessionToClass}
                 handleSignOut={actions.handleSignOut}
                 isLoadingSessions={derived.isLoadingSessions}
@@ -193,6 +195,9 @@ export const AppPresenter = () => {
                 }
                 chatTargetType={derived.chatTargetType}
                 classChatTarget={derived.classChatTarget}
+                onCopySharedClassMessageToNewSession={
+                    actions.handleCopySharedClassMessageToNewSession
+                }
                 classHub={classHubNode}
                 submitAssignment={submitAssignmentNode}
                 viewFeedback={viewFeedbackNode}
@@ -202,15 +207,22 @@ export const AppPresenter = () => {
 
             <ClassPickerPopover
                 open={!!state.shareIntent}
-                title="Share to class"
+                title="Share to class thread"
                 description={derived.sharePickerDescription}
-                classOptions={derived.classOptions.map((classItem) => ({
-                    id: classItem.id,
-                    name: classItem.name,
+                classOptions={derived.shareableThreadGroups.map((classItem) => ({
+                    id: classItem.classId,
+                    name: classItem.className,
                     role: classItem.role,
+                    threads: classItem.threads.map((thread) => ({
+                        id: thread.id,
+                        title: thread.title,
+                        threadType: thread.threadType,
+                    })),
                 }))}
                 isSubmitting={meta.isSharing}
-                onSelectClass={actions.handleConfirmClassShare}
+                onSelectThread={({ classId, threadId }) =>
+                    actions.handleConfirmThreadShare(classId, threadId)
+                }
                 onClose={() => actions.setShareIntent(null)}
             />
         </>

@@ -13,6 +13,15 @@ interface ClassHubPresenterProps {
         threadId: string;
         threadTitle: string;
     }) => void;
+    onRenameClassThread?: (
+        classId: string,
+        threadId: string,
+        title: string,
+    ) => Promise<boolean>;
+    onDeleteClassThread?: (
+        classId: string,
+        threadId: string,
+    ) => Promise<boolean>;
 }
 
 export const ClassHubPresenter = ({
@@ -22,6 +31,8 @@ export const ClassHubPresenter = ({
     selectedClassId,
     onSelectedClassIdChange,
     onEnterClassChat,
+    onRenameClassThread,
+    onDeleteClassThread,
 }: ClassHubPresenterProps) => {
     const {
         screen,
@@ -44,14 +55,19 @@ export const ClassHubPresenter = ({
         students,
         threads,
         handleCreateThread,
+        canCreateThread,
+        canManageThreads,
+        handleRenameThread,
+        handleDeleteThread,
         isCreatingThread,
-        handleOpenGeneralChat,
         openThreadChat,
         inviteCodeDisplayText,
     } = useClassHubState({
         selectedClassId,
         onSelectedClassIdChange,
         onEnterClassChat,
+        onRenameClassThread,
+        onDeleteClassThread,
     });
 
     return (
@@ -88,8 +104,11 @@ export const ClassHubPresenter = ({
                 threadType: thread.threadType as "group" | "shared_chat",
             }))}
             onCreateThread={handleCreateThread}
+            canCreateThread={canCreateThread}
+            canManageThreads={canManageThreads}
+            onRenameThread={handleRenameThread}
+            onDeleteThread={handleDeleteThread}
             isCreatingThread={isCreatingThread}
-            onEnterGeneralChat={handleOpenGeneralChat}
             onEnterThreadChat={openThreadChat}
             inviteCodeDisplayText={inviteCodeDisplayText}
         />

@@ -1,11 +1,19 @@
-import { useClassThreadChatState } from "@hooks";
-import { ClassThreadChatView } from "@views/chat/ClassThreadChatView";
+import { useState } from "react";
+import {
+    chatUseCases,
+    useClassThreadChatState,
+    useChatModelState,
+    type ChatMode,
+} from "@hooks";
+import { ClassThreadChatView } from "@views/class";
+import { UnifiedInputBarPresenter } from "./UnifiedInputBarPresenter";
 
 interface ClassThreadChatPresenterProps {
     threadId: string;
     className: string;
     threadTitle: string;
     currentUserId: string;
+    onCopySharedChatToNewSession?: (content: Record<string, unknown>) => void;
 }
 
 export const ClassThreadChatPresenter = ({
@@ -13,8 +21,11 @@ export const ClassThreadChatPresenter = ({
     className,
     threadTitle,
     currentUserId,
+    onCopySharedChatToNewSession,
 }: ClassThreadChatPresenterProps) => {
     const classThreadChatState = useClassThreadChatState(threadId);
+    const [mode, setMode] = useState<ChatMode>("study");
+    const { model, setModel } = useChatModelState();
 
     return (
         <ClassThreadChatView
@@ -22,14 +33,24 @@ export const ClassThreadChatPresenter = ({
             threadTitle={threadTitle}
             messages={classThreadChatState.state.messages}
             currentUserId={currentUserId}
-            inputValue={classThreadChatState.state.inputValue}
-            onInputChange={classThreadChatState.actions.handleInputChange}
-            onSendMessage={classThreadChatState.actions.handleSubmit}
             isSending={classThreadChatState.meta.isSending}
             renderMessageContent={
                 classThreadChatState.derived.renderMessageContent
             }
             scrollAnchorRef={classThreadChatState.state.scrollAnchorRef}
+            inputBar={
+                <UnifiedInputBarPresenter
+                    onSendMessage={classThreadChatState.actions.handleSendDraft}
+                    uploadImage={chatUseCases.storagePort.uploadImage}
+                    mode={mode}
+                    setMode={setMode}
+                    model={model}
+                    setModel={setModel}
+                    placeholder="输入消息，使用 @ai 才会触发 AI 助教"
+                    isTyping={classThreadChatState.meta.isSending}
+                />
+            }
+            onCopySharedChatToNewSession={onCopySharedChatToNewSession}
         />
     );
 };

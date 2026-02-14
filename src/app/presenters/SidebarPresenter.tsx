@@ -26,6 +26,7 @@ interface SidebarPresenterProps {
     userProfile: UserProfile;
     sessions: ChatSession[];
     classGroups: SidebarClassGroup[];
+    isClassAdmin?: boolean;
     activeClassThreadId?: string;
     currentSessionId: string | null;
     isLoading: boolean;
@@ -36,6 +37,15 @@ interface SidebarPresenterProps {
     onCreateClassThread?: (classId: string) => void;
     creatingClassThreadId?: string | null;
     onSelectClassThread?: (thread: SidebarClassThread) => void;
+    onRenameClassThread?: (
+        classId: string,
+        threadId: string,
+        title: string,
+    ) => Promise<boolean>;
+    onDeleteClassThread?: (
+        classId: string,
+        threadId: string,
+    ) => Promise<boolean>;
     onShareSessionToClass?: (sessionId: string) => void;
     handleSignOut?: () => void;
 }
@@ -51,6 +61,7 @@ export const SidebarPresenter = ({
     userProfile,
     sessions,
     classGroups,
+    isClassAdmin,
     activeClassThreadId,
     currentSessionId,
     isLoading,
@@ -61,6 +72,8 @@ export const SidebarPresenter = ({
     onCreateClassThread,
     creatingClassThreadId,
     onSelectClassThread,
+    onRenameClassThread,
+    onDeleteClassThread,
     onShareSessionToClass,
     handleSignOut,
 }: SidebarPresenterProps) => {
@@ -131,6 +144,43 @@ export const SidebarPresenter = ({
         />
     );
 
+    const renderClassThread = (
+        thread: SidebarClassThread,
+        active: boolean,
+        canManage: boolean,
+    ) => {
+        const canManageThread = canManage && thread.threadType === "group";
+
+        return (
+            <SessionItemPresenter
+                label={thread.title}
+                icon={MessageSquare}
+                active={active}
+                onClick={() => onSelectClassThread?.(thread)}
+                onRename={
+                    canManageThread && onRenameClassThread
+                        ? (newTitle) =>
+                              onRenameClassThread(
+                                  thread.classId,
+                                  thread.id,
+                                  newTitle,
+                              )
+                        : undefined
+                }
+                onDelete={
+                    canManageThread && onDeleteClassThread
+                        ? () => {
+                              void onDeleteClassThread(
+                                  thread.classId,
+                                  thread.id,
+                              );
+                          }
+                        : undefined
+                }
+            />
+        );
+    };
+
     return (
         <SidebarView
             activeView={activeView}
@@ -139,6 +189,7 @@ export const SidebarPresenter = ({
             user={userProfile}
             sessions={sessions}
             classGroups={classGroups}
+            isClassAdmin={isClassAdmin}
             activeClassThreadId={activeClassThreadId}
             currentSessionId={currentSessionId}
             isLoading={isLoading}
@@ -152,9 +203,12 @@ export const SidebarPresenter = ({
             onCreateClassThread={onCreateClassThread}
             creatingClassThreadId={creatingClassThreadId}
             onSelectClassThread={onSelectClassThread}
+            onRenameClassThread={onRenameClassThread}
+            onDeleteClassThread={onDeleteClassThread}
             openGroupIds={openGroupIds}
             onToggleGroup={handleToggleGroup}
             renderSession={renderSession}
+            renderClassThread={renderClassThread}
             onOpenProfile={
                 canAccessProfile ? () => setActiveView("profile") : undefined
             }
