@@ -5,15 +5,14 @@ import {
     useAssignmentSubmissionsQuery,
     useClassAssignmentDashboardQuery,
     useClassMembersQuery,
-    type Assignment,
+    type ClassSummary,
     type SaveGradeReviewPayload,
 } from "@hooks";
 import { GradeAssignmentView } from "@views/assignment";
 import { MessageListPresenter } from "./MessageListPresenter";
 
 interface GradeAssignmentPresenterProps {
-    classId?: string;
-    assignments: Assignment[];
+    teacherClasses: ClassSummary[];
     onGenerateGradeDraft: (
         submissionId: string,
         model?: string,
@@ -27,8 +26,7 @@ interface GradeAssignmentPresenterProps {
 }
 
 export const GradeAssignmentPresenter = ({
-    classId,
-    assignments,
+    teacherClasses,
     onGenerateGradeDraft,
     onSaveGradeReview,
     onReleaseGrade,
@@ -36,11 +34,12 @@ export const GradeAssignmentPresenter = ({
     isSavingReview,
     isReleasingGrade,
 }: GradeAssignmentPresenterProps) => {
-    const [viewMode, setViewMode] = useState<"dashboard" | "detail">(
-        "dashboard",
-    );
+    const [viewMode, setViewMode] = useState<
+        "classList" | "classDashboard" | "detail"
+    >("classList");
+    const [activeClassId, setActiveClassId] = useState<string | null>(null);
     const [activeAssignmentId, setActiveAssignmentId] = useState<string | null>(
-        assignments[0]?.id ?? null,
+        null,
     );
     const [activeSubmissionId, setActiveSubmissionId] = useState<string | null>(
         null,
@@ -51,20 +50,50 @@ export const GradeAssignmentPresenter = ({
     const autoDraftedRef = useRef<Set<string>>(new Set());
 
     const dashboardQuery = useClassAssignmentDashboardQuery(
-        classId,
-        !!classId,
+        activeClassId ?? undefined,
+        !!activeClassId,
     );
-    const classMembersQuery = useClassMembersQuery(classId, !!classId);
+    const classMembersQuery = useClassMembersQuery(
+        activeClassId ?? undefined,
+        !!activeClassId,
+    );
     const dashboardItems = dashboardQuery.data ?? [];
 
-    const assignmentOptions = useMemo(() => {
-        if (dashboardItems.length > 0) {
-            return dashboardItems.map((item) => item.assignment);
-        }
-        return assignments;
-    }, [assignments, dashboardItems]);
+    const activeClass = useMemo(
+        () => teacherClasses.find((item) => item.id === activeClassId) ?? null,
+        [activeClassId, teacherClasses],
+    );
+
+    const assignmentOptions = useMemo(
+        () => dashboardItems.map((item) => item.assignment),
+        [dashboardItems],
+    );
 
     useEffect(() => {
+        if (!teacherClasses.length) {
+            setActiveClassId(null);
+            setViewMode("classList");
+            setActiveAssignmentId(null);
+            setActiveSubmissionId(null);
+            return;
+        }
+
+        if (
+            activeClassId &&
+            !teacherClasses.some((item) => item.id === activeClassId)
+        ) {
+            setActiveClassId(null);
+            setViewMode("classList");
+            setActiveAssignmentId(null);
+            setActiveSubmissionId(null);
+        }
+    }, [activeClassId, teacherClasses]);
+
+    useEffect(() => {
+        if (viewMode !== "detail") {
+            return;
+        }
+
         if (!assignmentOptions.length) {
             setActiveAssignmentId(null);
             return;
@@ -78,12 +107,12 @@ export const GradeAssignmentPresenter = ({
         ) {
             setActiveAssignmentId(assignmentOptions[0].id);
         }
-    }, [activeAssignmentId, assignmentOptions]);
+    }, [activeAssignmentId, assignmentOptions, viewMode]);
 
     const submissionsQuery = useAssignmentSubmissionsQuery(
         activeAssignmentId ?? undefined,
-        classId,
-        viewMode === "detail" && !!activeAssignmentId,
+        activeClassId ?? undefined,
+        viewMode === "detail" && !!activeAssignmentId && !!activeClassId,
     );
     const submissions = submissionsQuery.data?.submissions ?? [];
 
@@ -123,17 +152,10 @@ export const GradeAssignmentPresenter = ({
         const closedCount = assignmentOptions.filter(
             (assignment) => assignment.status === "closed",
         ).length;
-        const submissionCount =
-            dashboardItems.length > 0
-                ? dashboardItems.reduce(
-                      (total, item) => total + item.submissions.length,
-                      0,
-                  )
-                : assignmentOptions.reduce(
-                      (total, assignment) =>
-                          total + (assignment.submissionCount ?? 0),
-                      0,
-                  );
+        const submissionCount = dashboardItems.reduce(
+            (total, item) => total + item.submissions.length,
+            0,
+        );
         return { publishedCount, closedCount, submissionCount };
     }, [assignmentOptions, dashboardItems]);
 
@@ -288,12 +310,35 @@ export const GradeAssignmentPresenter = ({
             summary={summary}
             dashboardAssignments={dashboardCards}
             isDashboardLoading={dashboardQuery.isLoading}
+            teacherClasses={teacherClasses.map((classItem) => ({
+                id: classItem.id,
+                name: classItem.name,
+                studentCount: classItem.studentCount,
+                teacherCount: classItem.teacherCount,
+            }))}
+            activeClassName={activeClass?.name ?? null}
+            onEnterClass={(classId) => {
+                setActiveClassId(classId);
+                setActiveAssignmentId(null);
+                setActiveSubmissionId(null);
+                setViewMode("classDashboard");
+            }}
+            onBackToClassList={() => {
+                setViewMode("classList");
+                setActiveClassId(null);
+                setActiveAssignmentId(null);
+                setActiveSubmissionId(null);
+            }}
             onEnterDetail={(assignmentId) => {
                 setActiveAssignmentId(assignmentId);
                 setActiveSubmissionId(null);
                 setViewMode("detail");
             }}
-            onBackToDashboard={() => setViewMode("dashboard")}
+            onBackToClassDashboard={() => {
+                setViewMode("classDashboard");
+                setActiveAssignmentId(null);
+                setActiveSubmissionId(null);
+            }}
             assignments={assignmentOptions.map((assignment) => ({
                 id: assignment.id,
                 title: assignment.title,
@@ -301,7 +346,6 @@ export const GradeAssignmentPresenter = ({
                     dashboardItems.find(
                         (item) => item.assignment.id === assignment.id,
                     )?.submissions.length ??
-                    assignment.submissionCount ??
                     0,
             }))}
             activeAssignmentId={activeAssignmentId}

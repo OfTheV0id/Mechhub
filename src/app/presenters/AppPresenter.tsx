@@ -153,11 +153,7 @@ export const AppPresenter = () => {
         .canAccessTeacherAssignments ? (
         derived.hasTeacherClassMembership ? (
             <GradeAssignmentPresenter
-                classId={
-                    derived.selectedClass?.id ??
-                    derived.teacherAssignments[0]?.classId
-                }
-                assignments={derived.teacherAssignments}
+                teacherClasses={derived.teacherClassOptions}
                 onGenerateGradeDraft={actions.handleGenerateGradeDraft}
                 onSaveGradeReview={actions.handleSaveGradeReview}
                 onReleaseGrade={actions.handleReleaseGrade}
