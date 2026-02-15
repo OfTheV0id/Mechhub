@@ -1,33 +1,53 @@
-import { useSubmitAssignmentState } from "@hooks";
+import type { Assignment } from "@hooks";
 import { SubmitAssignmentView } from "@views/assignment";
 
 interface SubmitAssignmentPresenterProps {
-    assignmentTitle: string;
-    assignmentDescription: string;
-    onSubmit: (file: File, comments: string) => Promise<void>;
-    onCancel: () => void;
+    assignments: Assignment[];
+    classNameById: Record<string, string>;
+    hasCurrentSession: boolean;
+    isSubmitting: boolean;
+    onSubmitFromCurrentSession: (assignmentId: string) => void;
+    onOpenChat: () => void;
 }
 
-export const SubmitAssignmentPresenter = ({
-    assignmentTitle,
-    assignmentDescription,
-    onSubmit,
-    onCancel,
-}: SubmitAssignmentPresenterProps) => {
-    const submitState = useSubmitAssignmentState({ onSubmit });
+const toDashboardStatus = (assignment: Assignment) => {
+    const dueAt = assignment.dueAt ? new Date(assignment.dueAt) : null;
+    const isOverdue = !!dueAt && dueAt.getTime() < Date.now();
+    const submitted = !!assignment.latestSubmission;
 
+    if (isOverdue && !submitted) {
+        return "overdue" as const;
+    }
+
+    return submitted ? ("submitted" as const) : ("pending" as const);
+};
+
+export const SubmitAssignmentPresenter = ({
+    assignments,
+    classNameById,
+    hasCurrentSession,
+    isSubmitting,
+    onSubmitFromCurrentSession,
+    onOpenChat,
+}: SubmitAssignmentPresenterProps) => {
     return (
         <SubmitAssignmentView
-            title={assignmentTitle}
-            description={assignmentDescription}
-            fileName={submitState.fileName}
-            fileUrl={submitState.fileUrl}
-            comments={submitState.comments}
-            onFileSelect={submitState.handleFileSelect}
-            onCommentsChange={submitState.setComments}
-            onSubmit={submitState.handleSubmit}
-            onCancel={onCancel}
-            isLoading={submitState.isLoading}
+            assignments={assignments.map((assignment) => ({
+                id: assignment.id,
+                title: assignment.title,
+                className: classNameById[assignment.classId] ?? "未命名班级",
+                dueAt: assignment.dueAt,
+                status: toDashboardStatus(assignment),
+                latestAttemptNo: assignment.latestSubmission?.attemptNo ?? 0,
+                latestSubmittedAt: assignment.latestSubmission?.submittedAt ?? null,
+                latestGrade: assignment.latestGrade
+                    ? `${assignment.latestGrade.score}/${assignment.latestGrade.maxScore}`
+                    : null,
+            }))}
+            hasCurrentSession={hasCurrentSession}
+            isSubmitting={isSubmitting}
+            onSubmitFromCurrentSession={onSubmitFromCurrentSession}
+            onOpenChat={onOpenChat}
         />
     );
 };

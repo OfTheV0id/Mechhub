@@ -1,5 +1,6 @@
 import { Toaster } from "sonner";
 import { useAppShellState } from "@hooks";
+import { AssignmentSubmitPopover } from "@views/assignment";
 import { AppLoadingView } from "@views/layout/AppLoadingView";
 import { ClassMembershipNoticeView, ClassPickerPopover } from "@views/class";
 import { AuthGatePresenter } from "./AuthGatePresenter";
@@ -23,20 +24,22 @@ export const AppPresenter = () => {
         <ClassHubPresenter {...derived.classHubProps} />
     ) : undefined;
 
+    const classNameById = Object.fromEntries(
+        derived.classOptions.map((classItem) => [classItem.id, classItem.name]),
+    );
+
     const submitAssignmentNode = derived.permissions
         .canAccessStudentAssignments ? (
         derived.hasStudentClassMembership ? (
             <SubmitAssignmentPresenter
-                assignmentTitle={
-                    derived.selectedClass
-                        ? `${derived.assignmentFixtures.assignmentTitle} · ${derived.selectedClass.name}`
-                        : derived.assignmentFixtures.assignmentTitle
+                assignments={derived.studentAssignments}
+                classNameById={classNameById}
+                hasCurrentSession={!!derived.currentSessionId}
+                isSubmitting={meta.isSubmittingAssignment}
+                onSubmitFromCurrentSession={(assignmentId) =>
+                    actions.handleSubmitCurrentSessionToAssignment(assignmentId)
                 }
-                assignmentDescription={
-                    derived.assignmentFixtures.assignmentDescription
-                }
-                onSubmit={async () => {}}
-                onCancel={() => actions.setActiveView("home")}
+                onOpenChat={() => actions.setActiveView("chat")}
             />
         ) : (
             <ClassMembershipNoticeView
@@ -55,30 +58,8 @@ export const AppPresenter = () => {
     const viewFeedbackNode = derived.permissions.canAccessStudentAssignments ? (
         derived.hasStudentClassMembership ? (
             <ViewFeedbackPresenter
-                assignmentTitle={derived.assignmentFixtures.assignmentTitle}
-                overallScore={
-                    derived.assignmentFixtures.viewFeedback.overallScore
-                }
-                maxScore={derived.assignmentFixtures.viewFeedback.maxScore}
-                submittedDate={
-                    derived.assignmentFixtures.viewFeedback.submittedDate
-                }
-                teacherName={
-                    derived.assignmentFixtures.viewFeedback.teacherName
-                }
-                teacherSummary={
-                    derived.assignmentFixtures.viewFeedback.teacherSummary
-                }
-                aiAnalysis={derived.assignmentFixtures.viewFeedback.aiAnalysis}
-                gradeBreakdown={derived.assignmentFixtures.gradeBreakdown}
-                keyInsights={derived.assignmentFixtures.keyInsights}
-                generalComments={
-                    derived.assignmentFixtures.viewFeedback.generalComments
-                }
-                privateNotes={
-                    derived.assignmentFixtures.viewFeedback.privateNotes
-                }
-                onDownloadPDF={() => {}}
+                feedbackList={derived.feedbackSummaries}
+                onOpenChat={() => actions.setActiveView("chat")}
             />
         ) : (
             <ClassMembershipNoticeView
@@ -98,8 +79,49 @@ export const AppPresenter = () => {
         .canAccessTeacherAssignments ? (
         derived.hasTeacherClassMembership ? (
             <PublishAssignmentPresenter
-                modules={derived.assignmentFixtures.modules}
-                onPublish={async () => {}}
+                modules={
+                    derived.classOptions
+                        .filter((classItem) => classItem.role === "teacher")
+                        .map((classItem) => classItem.name)
+                }
+                onPublish={async (
+                    name,
+                    module,
+                    dueDate,
+                    dueTime,
+                    instructions,
+                    _files,
+                    aiGradingEnabled,
+                ) => {
+                    const targetClass = derived.classOptions.find(
+                        (item) =>
+                            item.role === "teacher" && item.name === module,
+                    );
+
+                    if (!targetClass) {
+                        return;
+                    }
+
+                    const dueAt =
+                        dueDate && dueTime
+                            ? new Date(`${dueDate}T${dueTime}`).toISOString()
+                            : dueDate
+                              ? new Date(dueDate).toISOString()
+                              : null;
+
+                    const success = await actions.handleCreateAssignment({
+                        classId: targetClass.id,
+                        title: name,
+                        instructions,
+                        dueAt,
+                        aiGradingEnabled,
+                        status: "published",
+                    });
+
+                    if (success) {
+                        actions.setActiveView("gradeAssignment");
+                    }
+                }}
                 onCancel={() => actions.setActiveView("home")}
             />
         ) : (
@@ -120,10 +142,17 @@ export const AppPresenter = () => {
         .canAccessTeacherAssignments ? (
         derived.hasTeacherClassMembership ? (
             <GradeAssignmentPresenter
-                assignmentTitle={derived.assignmentFixtures.assignmentTitle}
-                students={derived.assignmentFixtures.gradeStudents}
-                onSaveGrade={async () => {}}
-                onCancel={() => actions.setActiveView("home")}
+                classId={
+                    derived.selectedClass?.id ??
+                    derived.teacherAssignments[0]?.classId
+                }
+                assignments={derived.teacherAssignments}
+                onGenerateGradeDraft={actions.handleGenerateGradeDraft}
+                onSaveGradeReview={actions.handleSaveGradeReview}
+                onReleaseGrade={actions.handleReleaseGrade}
+                isGeneratingDraft={meta.isGeneratingGradeDraft}
+                isSavingReview={meta.isSavingGradeReview}
+                isReleasingGrade={meta.isReleasingGrade}
             />
         ) : (
             <ClassMembershipNoticeView
@@ -181,6 +210,11 @@ export const AppPresenter = () => {
                 onRenameClassThread={actions.handleRenameClassThread}
                 onDeleteClassThread={actions.handleDeleteClassThread}
                 onShareSessionToClass={actions.handleShareChatSessionToClass}
+                onSubmitSessionToAssignment={
+                    derived.permissions.canAccessStudentAssignments
+                        ? actions.handleSubmitChatSessionToAssignment
+                        : undefined
+                }
                 handleSignOut={actions.handleSignOut}
                 isLoadingSessions={derived.isLoadingSessions}
                 messages={derived.messages}
@@ -192,6 +226,11 @@ export const AppPresenter = () => {
                 onStartChat={actions.onStartChat}
                 onShareChatMessageToClass={
                     actions.handleShareChatMessageToClass
+                }
+                onSubmitChatMessageToAssignment={
+                    derived.permissions.canAccessStudentAssignments
+                        ? actions.handleSubmitChatMessageToAssignment
+                        : undefined
                 }
                 chatTargetType={derived.chatTargetType}
                 classChatTarget={derived.classChatTarget}
@@ -224,6 +263,25 @@ export const AppPresenter = () => {
                     actions.handleConfirmThreadShare(classId, threadId)
                 }
                 onClose={() => actions.setShareIntent(null)}
+            />
+
+            <AssignmentSubmitPopover
+                open={!!state.submitToAssignmentIntent}
+                intentKind={state.submitToAssignmentIntent?.kind ?? null}
+                options={derived.submitTargetAssignments.map((assignment) => ({
+                    id: assignment.id,
+                    title: assignment.title,
+                    className: classNameById[assignment.classId],
+                    dueAt: assignment.dueAt,
+                }))}
+                isSubmitting={meta.isSubmittingAssignment}
+                onConfirm={(assignmentId, reflectionText) =>
+                    void actions.handleConfirmSubmitToAssignment(
+                        assignmentId,
+                        reflectionText,
+                    )
+                }
+                onClose={() => actions.setSubmitToAssignmentIntent(null)}
             />
         </>
     );

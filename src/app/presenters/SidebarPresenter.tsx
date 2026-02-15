@@ -1,4 +1,4 @@
-import { MessageSquare, Share2 } from "lucide-react";
+import { MessageSquare, Share2, Upload } from "lucide-react";
 import {
     useSidebarFooterState,
     useSidebarActionsFlow,
@@ -47,6 +47,7 @@ interface SidebarPresenterProps {
         threadId: string,
     ) => Promise<boolean>;
     onShareSessionToClass?: (sessionId: string) => void;
+    onSubmitSessionToAssignment?: (sessionId: string) => void;
     handleSignOut?: () => void;
 }
 
@@ -75,6 +76,7 @@ export const SidebarPresenter = ({
     onRenameClassThread,
     onDeleteClassThread,
     onShareSessionToClass,
+    onSubmitSessionToAssignment,
     handleSignOut,
 }: SidebarPresenterProps) => {
     const { sidebarWidth, handleMouseDown } = useSidebarResizeState();
@@ -129,8 +131,19 @@ export const SidebarPresenter = ({
             onDelete={() => handleDeleteSession(session.id)}
             onRename={(newTitle) => handleRenameSession(session.id, newTitle)}
             isGeneratingTitle={session.isGeneratingTitle}
-            menuActions={
-                onShareSessionToClass
+            menuActions={[
+                ...(onSubmitSessionToAssignment
+                    ? [
+                          {
+                              key: "submit_to_assignment",
+                              label: "提交到作业",
+                              icon: Upload,
+                              onClick: () =>
+                                  onSubmitSessionToAssignment(session.id),
+                          },
+                      ]
+                    : []),
+                ...(onShareSessionToClass
                     ? [
                           {
                               key: "share_to_class",
@@ -139,8 +152,8 @@ export const SidebarPresenter = ({
                               onClick: () => onShareSessionToClass(session.id),
                           },
                       ]
-                    : undefined
-            }
+                    : []),
+            ]}
         />
     );
 

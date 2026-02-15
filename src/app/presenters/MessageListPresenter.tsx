@@ -10,6 +10,7 @@ interface MessageListPresenterProps {
     isTyping: boolean;
     sessionId: string | null;
     onShareToClassMessage?: (messageId: string) => void;
+    onSubmitToAssignmentMessage?: (messageId: string) => void;
 }
 
 export const MessageListPresenter = ({
@@ -17,6 +18,7 @@ export const MessageListPresenter = ({
     isTyping,
     sessionId,
     onShareToClassMessage,
+    onSubmitToAssignmentMessage,
 }: MessageListPresenterProps) => {
     const {
         contentRef,
@@ -64,6 +66,7 @@ export const MessageListPresenter = ({
                     onImageClick={openPreview}
                     isGenerating={item.isGenerating}
                     onShareToClass={onShareToClassMessage}
+                    onSubmitToAssignment={onSubmitToAssignmentMessage}
                 />
             </div>
         );

@@ -20,6 +20,7 @@ interface ChatPresenterProps {
     setMode: (mode: ChatMode) => void;
     onStop?: () => void;
     onShareToClassMessage?: (messageId: string) => void;
+    onSubmitToAssignmentMessage?: (messageId: string) => void;
 }
 
 export const ChatPresenter = ({
@@ -32,6 +33,7 @@ export const ChatPresenter = ({
     setMode,
     onStop,
     onShareToClassMessage,
+    onSubmitToAssignmentMessage,
 }: ChatPresenterProps) => {
     const { model, setModel } = useChatModelState();
 
@@ -43,6 +45,7 @@ export const ChatPresenter = ({
                     isTyping={isTyping}
                     sessionId={sessionId}
                     onShareToClassMessage={onShareToClassMessage}
+                    onSubmitToAssignmentMessage={onSubmitToAssignmentMessage}
                 />
             }
             chatInput={
