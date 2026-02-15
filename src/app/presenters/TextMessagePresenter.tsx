@@ -15,6 +15,8 @@ interface TextMessagePresenterProps {
     onImageClick: (url: string) => void;
     isGenerating?: boolean;
     onShareToClass?: (messageId: string) => void;
+    onSubmitToAssignment?: (messageId: string) => void;
+    showActions?: boolean;
 }
 
 export const TextMessagePresenter = ({
@@ -30,6 +32,8 @@ export const TextMessagePresenter = ({
     onImageClick,
     isGenerating,
     onShareToClass,
+    onSubmitToAssignment,
+    showActions = true,
 }: TextMessagePresenterProps) => {
     const {
         isCopied,
@@ -65,6 +69,12 @@ export const TextMessagePresenter = ({
             onShareToClass={
                 onShareToClass ? () => onShareToClass(messageId) : undefined
             }
+            onSubmitToAssignment={
+                onSubmitToAssignment
+                    ? () => onSubmitToAssignment(messageId)
+                    : undefined
+            }
+            showActions={showActions}
         />
     );
 };

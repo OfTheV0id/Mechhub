@@ -52,6 +52,7 @@ interface MainLayoutPresenterProps {
         threadId: string,
     ) => Promise<boolean>;
     onShareSessionToClass?: (sessionId: string) => void;
+    onSubmitSessionToAssignment?: (sessionId: string) => void;
     handleSignOut: () => void;
     isLoadingSessions: boolean;
     messages: HookMessage[];
@@ -68,6 +69,7 @@ interface MainLayoutPresenterProps {
         mode?: HookChatMode,
     ) => void;
     onShareChatMessageToClass?: (messageId: string) => void;
+    onSubmitChatMessageToAssignment?: (messageId: string) => void;
     chatTargetType: "private" | "class";
     classChatTarget?: {
         threadId: string;
@@ -111,6 +113,7 @@ export const MainLayoutPresenter = ({
     onRenameClassThread,
     onDeleteClassThread,
     onShareSessionToClass,
+    onSubmitSessionToAssignment,
     handleSignOut,
     isLoadingSessions,
     messages,
@@ -121,6 +124,7 @@ export const MainLayoutPresenter = ({
     handleUpdateProfile,
     onStartChat,
     onShareChatMessageToClass,
+    onSubmitChatMessageToAssignment,
     chatTargetType,
     classChatTarget,
     onCopySharedClassMessageToNewSession,
@@ -163,6 +167,7 @@ export const MainLayoutPresenter = ({
                     onRenameClassThread={onRenameClassThread}
                     onDeleteClassThread={onDeleteClassThread}
                     onShareSessionToClass={onShareSessionToClass}
+                    onSubmitSessionToAssignment={onSubmitSessionToAssignment}
                     handleSignOut={handleSignOut}
                 />
             }
@@ -200,6 +205,9 @@ export const MainLayoutPresenter = ({
                             setMode={setChatMode}
                             sessionId={currentSessionId}
                             onShareToClassMessage={onShareChatMessageToClass}
+                            onSubmitToAssignmentMessage={
+                                onSubmitChatMessageToAssignment
+                            }
                         />
                     )
                 ) : undefined

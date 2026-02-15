@@ -12,13 +12,11 @@ interface PublishAssignmentPresenterProps {
         files: File[],
         aiGradingEnabled: boolean,
     ) => Promise<void>;
-    onCancel: () => void;
 }
 
 export const PublishAssignmentPresenter = ({
     modules,
     onPublish,
-    onCancel,
 }: PublishAssignmentPresenterProps) => {
     const publishState = usePublishAssignmentState({ onPublish });
 
@@ -41,7 +39,6 @@ export const PublishAssignmentPresenter = ({
             aiGradingEnabled={publishState.aiGradingEnabled}
             setAiGradingEnabled={publishState.setAiGradingEnabled}
             onPublish={publishState.handlePublish}
-            onCancel={onCancel}
             isLoading={publishState.isLoading}
         />
     );
