@@ -165,6 +165,10 @@ export const GradeAssignmentPresenter = ({
     }, [classMembersQuery.data?.students]);
 
     const dashboardCards = useMemo(() => {
+        const activeStudentMap = new Map(
+            activeStudents.map((student) => [student.userId, student]),
+        );
+
         return dashboardItems.map((item) => {
             const submissionByStudent = new Map<
                 string,
@@ -184,10 +188,19 @@ export const GradeAssignmentPresenter = ({
 
             const submittedStudents = Array.from(
                 submissionByStudent.values(),
-            ).map((submission) => ({
-                id: submission.studentUserId,
-                name: submission.studentName || "Unknown User",
-            }));
+            ).map((submission) => {
+                const studentMeta = activeStudentMap.get(
+                    submission.studentUserId,
+                );
+                return {
+                    id: submission.studentUserId,
+                    name:
+                        studentMeta?.name ||
+                        submission.studentName ||
+                        "Unknown User",
+                    avatar: studentMeta?.avatar ?? null,
+                };
+            });
             const missingStudents = activeStudents
                 .filter((student) => !submissionByStudent.has(student.userId))
                 .map((student) => ({
@@ -196,6 +209,7 @@ export const GradeAssignmentPresenter = ({
                         student.name ||
                         student.email ||
                         "Unknown User",
+                    avatar: student.avatar ?? null,
                 }));
 
             const uniqueSubmissions = Array.from(

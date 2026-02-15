@@ -4,6 +4,7 @@ import { ViewFeedbackView } from "@views/assignment";
 
 interface ViewFeedbackPresenterProps {
     feedbackList: AssignmentFeedbackSummary[];
+    classNameById: Record<string, string>;
 }
 
 const toDisplayScore = (summary: AssignmentFeedbackSummary) => {
@@ -16,6 +17,7 @@ const toDisplayScore = (summary: AssignmentFeedbackSummary) => {
 
 export const ViewFeedbackPresenter = ({
     feedbackList,
+    classNameById,
 }: ViewFeedbackPresenterProps) => {
     const [activeSubmissionId, setActiveSubmissionId] = useState<string | null>(
         feedbackList[0]?.submission.id ?? null,
@@ -29,16 +31,50 @@ export const ViewFeedbackPresenter = ({
         [activeSubmissionId, feedbackList],
     );
 
-    return (
-        <ViewFeedbackView
-            items={feedbackList.map((item) => ({
+    const groupedItems = useMemo(() => {
+        const groups = new Map<
+            string,
+            {
+                classId: string;
+                className: string;
+                items: Array<{
+                    submissionId: string;
+                    assignmentTitle: string;
+                    classId: string;
+                    className: string;
+                }>;
+            }
+        >();
+
+        feedbackList.forEach((item) => {
+            const classId =
+                item.assignment?.classId || item.submission.classId || "unknown";
+            const className = classNameById[classId] ?? "未命名班级";
+            const entry = {
                 submissionId: item.submission.id,
                 assignmentTitle: item.assignment?.title ?? "未命名作业",
-                score: toDisplayScore(item),
-                status: item.grade ? "released" : "pending",
-                releasedAt: item.grade?.releasedAt ?? null,
-                submittedAt: item.submission.submittedAt,
-            }))}
+                classId,
+                className,
+            };
+
+            if (!groups.has(classId)) {
+                groups.set(classId, {
+                    classId,
+                    className,
+                    items: [entry],
+                });
+                return;
+            }
+
+            groups.get(classId)?.items.push(entry);
+        });
+
+        return Array.from(groups.values());
+    }, [classNameById, feedbackList]);
+
+    return (
+        <ViewFeedbackView
+            groups={groupedItems}
             activeSubmissionId={activeSubmissionId}
             onSelectSubmission={setActiveSubmissionId}
             detail={

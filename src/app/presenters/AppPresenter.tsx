@@ -54,6 +54,7 @@ export const AppPresenter = () => {
         derived.hasStudentClassMembership ? (
             <ViewFeedbackPresenter
                 feedbackList={derived.feedbackSummaries}
+                classNameById={classNameById}
             />
         ) : (
             <ClassMembershipNoticeView
@@ -133,7 +134,6 @@ export const AppPresenter = () => {
                         actions.setActiveView("gradeAssignment");
                     }
                 }}
-                onCancel={() => actions.setActiveView("home")}
             />
         ) : (
             <ClassMembershipNoticeView
