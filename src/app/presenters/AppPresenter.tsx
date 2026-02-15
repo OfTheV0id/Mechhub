@@ -1,5 +1,5 @@
-import { Toaster } from "sonner";
-import { useAppShellState } from "@hooks";
+import { Toaster, toast } from "sonner";
+import { uploadAssignmentAttachments, useAppShellState } from "@hooks";
 import { AssignmentSubmitPopover } from "@views/assignment";
 import { AppLoadingView } from "@views/layout/AppLoadingView";
 import { ClassMembershipNoticeView, ClassPickerPopover } from "@views/class";
@@ -34,12 +34,7 @@ export const AppPresenter = () => {
             <SubmitAssignmentPresenter
                 assignments={derived.studentAssignments}
                 classNameById={classNameById}
-                hasCurrentSession={!!derived.currentSessionId}
                 isSubmitting={meta.isSubmittingAssignment}
-                onSubmitFromCurrentSession={(assignmentId) =>
-                    actions.handleSubmitCurrentSessionToAssignment(assignmentId)
-                }
-                onOpenChat={() => actions.setActiveView("chat")}
             />
         ) : (
             <ClassMembershipNoticeView
@@ -59,7 +54,6 @@ export const AppPresenter = () => {
         derived.hasStudentClassMembership ? (
             <ViewFeedbackPresenter
                 feedbackList={derived.feedbackSummaries}
-                onOpenChat={() => actions.setActiveView("chat")}
             />
         ) : (
             <ClassMembershipNoticeView
@@ -90,7 +84,7 @@ export const AppPresenter = () => {
                     dueDate,
                     dueTime,
                     instructions,
-                    _files,
+                    files,
                     aiGradingEnabled,
                 ) => {
                     const targetClass = derived.classOptions.find(
@@ -109,6 +103,22 @@ export const AppPresenter = () => {
                               ? new Date(dueDate).toISOString()
                               : null;
 
+                    let attachments = [];
+                    if (files.length > 0) {
+                        try {
+                            attachments = await uploadAssignmentAttachments(
+                                files,
+                            );
+                        } catch (error) {
+                            const message =
+                                error instanceof Error
+                                    ? error.message
+                                    : "附件上传失败";
+                            toast.error(message);
+                            return;
+                        }
+                    }
+
                     const success = await actions.handleCreateAssignment({
                         classId: targetClass.id,
                         title: name,
@@ -116,6 +126,7 @@ export const AppPresenter = () => {
                         dueAt,
                         aiGradingEnabled,
                         status: "published",
+                        attachments,
                     });
 
                     if (success) {

@@ -11,6 +11,9 @@ interface MessageListPresenterProps {
     sessionId: string | null;
     onShareToClassMessage?: (messageId: string) => void;
     onSubmitToAssignmentMessage?: (messageId: string) => void;
+    showActions?: boolean;
+    className?: string;
+    contentClassName?: string;
 }
 
 export const MessageListPresenter = ({
@@ -19,6 +22,9 @@ export const MessageListPresenter = ({
     sessionId,
     onShareToClassMessage,
     onSubmitToAssignmentMessage,
+    showActions = true,
+    className,
+    contentClassName,
 }: MessageListPresenterProps) => {
     const {
         contentRef,
@@ -67,6 +73,7 @@ export const MessageListPresenter = ({
                     isGenerating={item.isGenerating}
                     onShareToClass={onShareToClassMessage}
                     onSubmitToAssignment={onSubmitToAssignmentMessage}
+                    showActions={showActions}
                 />
             </div>
         );
@@ -80,6 +87,8 @@ export const MessageListPresenter = ({
             onScroll={handleScroll}
             previewImage={previewImage}
             onClosePreview={closePreview}
+            className={className}
+            contentClassName={contentClassName}
         />
     );
 };

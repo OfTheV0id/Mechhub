@@ -16,6 +16,7 @@ interface TextMessagePresenterProps {
     isGenerating?: boolean;
     onShareToClass?: (messageId: string) => void;
     onSubmitToAssignment?: (messageId: string) => void;
+    showActions?: boolean;
 }
 
 export const TextMessagePresenter = ({
@@ -32,6 +33,7 @@ export const TextMessagePresenter = ({
     isGenerating,
     onShareToClass,
     onSubmitToAssignment,
+    showActions = true,
 }: TextMessagePresenterProps) => {
     const {
         isCopied,
@@ -72,6 +74,7 @@ export const TextMessagePresenter = ({
                     ? () => onSubmitToAssignment(messageId)
                     : undefined
             }
+            showActions={showActions}
         />
     );
 };

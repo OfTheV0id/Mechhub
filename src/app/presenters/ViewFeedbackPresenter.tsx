@@ -4,7 +4,6 @@ import { ViewFeedbackView } from "@views/assignment";
 
 interface ViewFeedbackPresenterProps {
     feedbackList: AssignmentFeedbackSummary[];
-    onOpenChat: () => void;
 }
 
 const toDisplayScore = (summary: AssignmentFeedbackSummary) => {
@@ -17,7 +16,6 @@ const toDisplayScore = (summary: AssignmentFeedbackSummary) => {
 
 export const ViewFeedbackPresenter = ({
     feedbackList,
-    onOpenChat,
 }: ViewFeedbackPresenterProps) => {
     const [activeSubmissionId, setActiveSubmissionId] = useState<string | null>(
         feedbackList[0]?.submission.id ?? null,
@@ -59,7 +57,6 @@ export const ViewFeedbackPresenter = ({
                       }
                     : null
             }
-            onOpenChat={onOpenChat}
         />
     );
 };
