@@ -1,4 +1,8 @@
-import { buildSnapshotPreview, type Assignment } from "@hooks";
+import {
+    buildSnapshotPreview,
+    buildSubmitAssignmentViewModel,
+    type Assignment,
+} from "@hooks";
 import { MessageListPresenter } from "./MessageListPresenter";
 import { SubmitAssignmentView } from "@views/assignment";
 
@@ -8,36 +12,24 @@ interface SubmitAssignmentPresenterProps {
     isSubmitting: boolean;
 }
 
-const toDashboardStatus = (assignment: Assignment) => {
-    const dueAt = assignment.dueAt ? new Date(assignment.dueAt) : null;
-    const isOverdue = !!dueAt && dueAt.getTime() < Date.now();
-    const submitted = !!assignment.latestSubmission;
-
-    if (isOverdue && !submitted) {
-        return "overdue" as const;
-    }
-
-    return submitted ? ("submitted" as const) : ("pending" as const);
-};
-
 export const SubmitAssignmentPresenter = ({
     assignments,
     classNameById,
     isSubmitting,
 }: SubmitAssignmentPresenterProps) => {
+    const assignmentCards = buildSubmitAssignmentViewModel(
+        assignments,
+        classNameById,
+    );
+
     return (
         <SubmitAssignmentView
-            assignments={assignments.map((assignment) => ({
-                id: assignment.id,
-                title: assignment.title,
-                className: classNameById[assignment.classId] ?? "未命名班级",
-                dueAt: assignment.dueAt,
-                instructions: assignment.instructions,
-                attachments: assignment.attachments ?? [],
-                ...(assignment.latestSubmission?.evidenceSnapshot
+            assignments={assignmentCards.map((assignment) => ({
+                ...assignment,
+                ...(assignment.latestEvidenceSnapshot
                     ? (() => {
                           const preview = buildSnapshotPreview(
-                              assignment.latestSubmission?.evidenceSnapshot,
+                              assignment.latestEvidenceSnapshot,
                           );
                           return {
                               hasPreview: preview.messages.length > 0,
@@ -47,7 +39,7 @@ export const SubmitAssignmentPresenter = ({
                                           messages={preview.messages}
                                           isTyping={false}
                                           sessionId={
-                                              assignment.latestSubmission?.id ??
+                                              assignment.latestSubmissionId ??
                                               assignment.id
                                           }
                                           showActions={false}
@@ -58,12 +50,6 @@ export const SubmitAssignmentPresenter = ({
                           };
                       })()
                     : { hasPreview: false }),
-                status: toDashboardStatus(assignment),
-                latestAttemptNo: assignment.latestSubmission?.attemptNo ?? 0,
-                latestSubmittedAt: assignment.latestSubmission?.submittedAt ?? null,
-                latestGrade: assignment.latestGrade
-                    ? `${assignment.latestGrade.score}/${assignment.latestGrade.maxScore}`
-                    : null,
             }))}
             isSubmitting={isSubmitting}
         />

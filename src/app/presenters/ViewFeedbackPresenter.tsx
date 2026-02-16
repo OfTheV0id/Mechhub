@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
-import type { AssignmentFeedbackSummary } from "@hooks";
+import {
+    buildViewFeedbackGroups,
+    type AssignmentFeedbackSummary,
+} from "@hooks";
 import { ViewFeedbackView } from "@views/assignment";
 
 interface ViewFeedbackPresenterProps {
@@ -31,46 +34,10 @@ export const ViewFeedbackPresenter = ({
         [activeSubmissionId, feedbackList],
     );
 
-    const groupedItems = useMemo(() => {
-        const groups = new Map<
-            string,
-            {
-                classId: string;
-                className: string;
-                items: Array<{
-                    submissionId: string;
-                    assignmentTitle: string;
-                    classId: string;
-                    className: string;
-                }>;
-            }
-        >();
-
-        feedbackList.forEach((item) => {
-            const classId =
-                item.assignment?.classId || item.submission.classId || "unknown";
-            const className = classNameById[classId] ?? "未命名班级";
-            const entry = {
-                submissionId: item.submission.id,
-                assignmentTitle: item.assignment?.title ?? "未命名作业",
-                classId,
-                className,
-            };
-
-            if (!groups.has(classId)) {
-                groups.set(classId, {
-                    classId,
-                    className,
-                    items: [entry],
-                });
-                return;
-            }
-
-            groups.get(classId)?.items.push(entry);
-        });
-
-        return Array.from(groups.values());
-    }, [classNameById, feedbackList]);
+    const groupedItems = useMemo(
+        () => buildViewFeedbackGroups(feedbackList, classNameById),
+        [classNameById, feedbackList],
+    );
 
     return (
         <ViewFeedbackView
@@ -85,7 +52,8 @@ export const ViewFeedbackPresenter = ({
                           dueAt: activeItem.assignment?.dueAt ?? null,
                           submittedAt: activeItem.submission.submittedAt,
                           reflectionText: activeItem.submission.reflectionText,
-                          teacherFeedback: activeItem.grade?.teacherFeedback ?? "",
+                          teacherFeedback:
+                              activeItem.grade?.teacherFeedback ?? "",
                           aiFeedbackDraft:
                               activeItem.grade?.aiFeedbackDraft ?? null,
                           score: toDisplayScore(activeItem),

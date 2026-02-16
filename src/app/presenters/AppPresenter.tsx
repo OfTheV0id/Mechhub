@@ -1,5 +1,10 @@
-import { Toaster, toast } from "sonner";
-import { uploadAssignmentAttachments, useAppShellState } from "@hooks";
+import { Toaster } from "sonner";
+import {
+    buildAssignmentClassNameMap,
+    resolveAssignmentPanelNode,
+    shouldShowLandingPage,
+    useAppShellState,
+} from "@hooks";
 import { AssignmentSubmitPopover } from "@views/assignment";
 import { AppLoadingView } from "@views/layout/AppLoadingView";
 import { ClassMembershipNoticeView, ClassPickerPopover } from "@views/class";
@@ -12,6 +17,28 @@ import { PublishAssignmentPresenter } from "./PublishAssignmentPresenter";
 import { SubmitAssignmentPresenter } from "./SubmitAssignmentPresenter";
 import { ViewFeedbackPresenter } from "./ViewFeedbackPresenter";
 
+const renderAssignmentPanel = (
+    panelNode: ReturnType<typeof resolveAssignmentPanelNode>,
+    onOpenClassHub: () => void,
+) => {
+    if (panelNode.kind === "hidden") {
+        return undefined;
+    }
+
+    if (panelNode.kind === "content") {
+        return panelNode.content;
+    }
+
+    return (
+        <ClassMembershipNoticeView
+            title={panelNode.notice.title}
+            description={panelNode.notice.description}
+            actionLabel={panelNode.notice.actionLabel}
+            onAction={onOpenClassHub}
+        />
+    );
+};
+
 export const AppPresenter = () => {
     const appShellState = useAppShellState();
     const { state, actions, derived, meta } = appShellState;
@@ -20,167 +47,85 @@ export const AppPresenter = () => {
         return <AppLoadingView />;
     }
 
+    const classNameById = buildAssignmentClassNameMap(derived.classOptions);
+    const openClassHubView = () => actions.setActiveView("classHub");
+
     const classHubNode = derived.permissions.canAccessClassHub ? (
         <ClassHubPresenter {...derived.classHubProps} />
     ) : undefined;
 
-    const classNameById = Object.fromEntries(
-        derived.classOptions.map((classItem) => [classItem.id, classItem.name]),
+    const submitAssignmentNode = renderAssignmentPanel(
+        resolveAssignmentPanelNode({
+            canAccess: derived.permissions.canAccessStudentAssignments,
+            hasMembership: derived.hasStudentClassMembership,
+            notice: derived.classMembershipNotices.submitAssignment,
+            content: (
+                <SubmitAssignmentPresenter
+                    assignments={derived.studentAssignments}
+                    classNameById={classNameById}
+                    isSubmitting={meta.isSubmittingAssignment}
+                />
+            ),
+        }),
+        openClassHubView,
     );
 
-    const submitAssignmentNode = derived.permissions
-        .canAccessStudentAssignments ? (
-        derived.hasStudentClassMembership ? (
-            <SubmitAssignmentPresenter
-                assignments={derived.studentAssignments}
-                classNameById={classNameById}
-                isSubmitting={meta.isSubmittingAssignment}
-            />
-        ) : (
-            <ClassMembershipNoticeView
-                title={derived.classMembershipNotices.submitAssignment.title}
-                description={
-                    derived.classMembershipNotices.submitAssignment.description
-                }
-                actionLabel={
-                    derived.classMembershipNotices.submitAssignment.actionLabel
-                }
-                onAction={() => actions.setActiveView("classHub")}
-            />
-        )
-    ) : undefined;
+    const viewFeedbackNode = renderAssignmentPanel(
+        resolveAssignmentPanelNode({
+            canAccess: derived.permissions.canAccessStudentAssignments,
+            hasMembership: derived.hasStudentClassMembership,
+            notice: derived.classMembershipNotices.viewFeedback,
+            content: (
+                <ViewFeedbackPresenter
+                    feedbackList={derived.feedbackSummaries}
+                    classNameById={classNameById}
+                />
+            ),
+        }),
+        openClassHubView,
+    );
 
-    const viewFeedbackNode = derived.permissions.canAccessStudentAssignments ? (
-        derived.hasStudentClassMembership ? (
-            <ViewFeedbackPresenter
-                feedbackList={derived.feedbackSummaries}
-                classNameById={classNameById}
-            />
-        ) : (
-            <ClassMembershipNoticeView
-                title={derived.classMembershipNotices.viewFeedback.title}
-                description={
-                    derived.classMembershipNotices.viewFeedback.description
-                }
-                actionLabel={
-                    derived.classMembershipNotices.viewFeedback.actionLabel
-                }
-                onAction={() => actions.setActiveView("classHub")}
-            />
-        )
-    ) : undefined;
+    const publishAssignmentNode = renderAssignmentPanel(
+        resolveAssignmentPanelNode({
+            canAccess: derived.permissions.canAccessTeacherAssignments,
+            hasMembership: derived.hasTeacherClassMembership,
+            notice: derived.classMembershipNotices.publishAssignment,
+            content: (
+                <PublishAssignmentPresenter
+                    classOptions={derived.teacherClassOptions}
+                    onPublish={actions.handlePublishAssignment}
+                />
+            ),
+        }),
+        openClassHubView,
+    );
 
-    const publishAssignmentNode = derived.permissions
-        .canAccessTeacherAssignments ? (
-        derived.hasTeacherClassMembership ? (
-            <PublishAssignmentPresenter
-                modules={
-                    derived.classOptions
-                        .filter((classItem) => classItem.role === "teacher")
-                        .map((classItem) => classItem.name)
-                }
-                onPublish={async (
-                    name,
-                    module,
-                    dueDate,
-                    dueTime,
-                    instructions,
-                    files,
-                    aiGradingEnabled,
-                ) => {
-                    const targetClass = derived.classOptions.find(
-                        (item) =>
-                            item.role === "teacher" && item.name === module,
-                    );
-
-                    if (!targetClass) {
-                        return;
-                    }
-
-                    const dueAt =
-                        dueDate && dueTime
-                            ? new Date(`${dueDate}T${dueTime}`).toISOString()
-                            : dueDate
-                              ? new Date(dueDate).toISOString()
-                              : null;
-
-                    let attachments = [];
-                    if (files.length > 0) {
-                        try {
-                            attachments = await uploadAssignmentAttachments(
-                                files,
-                            );
-                        } catch (error) {
-                            const message =
-                                error instanceof Error
-                                    ? error.message
-                                    : "附件上传失败";
-                            toast.error(message);
-                            return;
-                        }
-                    }
-
-                    const success = await actions.handleCreateAssignment({
-                        classId: targetClass.id,
-                        title: name,
-                        instructions,
-                        dueAt,
-                        aiGradingEnabled,
-                        status: "published",
-                        attachments,
-                    });
-
-                    if (success) {
-                        actions.setActiveView("gradeAssignment");
-                    }
-                }}
-            />
-        ) : (
-            <ClassMembershipNoticeView
-                title={derived.classMembershipNotices.publishAssignment.title}
-                description={
-                    derived.classMembershipNotices.publishAssignment.description
-                }
-                actionLabel={
-                    derived.classMembershipNotices.publishAssignment.actionLabel
-                }
-                onAction={() => actions.setActiveView("classHub")}
-            />
-        )
-    ) : undefined;
-
-    const gradeAssignmentNode = derived.permissions
-        .canAccessTeacherAssignments ? (
-        derived.hasTeacherClassMembership ? (
-            <GradeAssignmentPresenter
-                teacherClasses={derived.teacherClassOptions}
-                onGenerateGradeDraft={actions.handleGenerateGradeDraft}
-                onSaveGradeReview={actions.handleSaveGradeReview}
-                onReleaseGrade={actions.handleReleaseGrade}
-                isGeneratingDraft={meta.isGeneratingGradeDraft}
-                isSavingReview={meta.isSavingGradeReview}
-                isReleasingGrade={meta.isReleasingGrade}
-            />
-        ) : (
-            <ClassMembershipNoticeView
-                title={derived.classMembershipNotices.gradeAssignment.title}
-                description={
-                    derived.classMembershipNotices.gradeAssignment.description
-                }
-                actionLabel={
-                    derived.classMembershipNotices.gradeAssignment.actionLabel
-                }
-                onAction={() => actions.setActiveView("classHub")}
-            />
-        )
-    ) : undefined;
+    const gradeAssignmentNode = renderAssignmentPanel(
+        resolveAssignmentPanelNode({
+            canAccess: derived.permissions.canAccessTeacherAssignments,
+            hasMembership: derived.hasTeacherClassMembership,
+            notice: derived.classMembershipNotices.gradeAssignment,
+            content: (
+                <GradeAssignmentPresenter
+                    teacherClasses={derived.teacherClassOptions}
+                    onGenerateGradeDraft={actions.handleGenerateGradeDraft}
+                    onSaveGradeReview={actions.handleSaveGradeReview}
+                    onReleaseGrade={actions.handleReleaseGrade}
+                    isGeneratingDraft={meta.isGeneratingGradeDraft}
+                    isSavingReview={meta.isSavingGradeReview}
+                    isReleasingGrade={meta.isReleasingGrade}
+                />
+            ),
+        }),
+        openClassHubView,
+    );
 
     const mainNode = !state.session ? (
         <AuthGatePresenter
             showAuth={state.showAuth}
             setShowAuth={actions.setShowAuth}
         />
-    ) : state.activeView === "landing" ? (
+    ) : shouldShowLandingPage(!!state.session, state.activeView) ? (
         <LandingPagePresenter
             onStart={() => actions.setActiveView(derived.fallbackView)}
             onLogin={() => actions.setActiveView(derived.fallbackView)}
@@ -255,16 +200,18 @@ export const AppPresenter = () => {
                 open={!!state.shareIntent}
                 title="Share to class thread"
                 description={derived.sharePickerDescription}
-                classOptions={derived.shareableThreadGroups.map((classItem) => ({
-                    id: classItem.classId,
-                    name: classItem.className,
-                    role: classItem.role,
-                    threads: classItem.threads.map((thread) => ({
-                        id: thread.id,
-                        title: thread.title,
-                        threadType: thread.threadType,
-                    })),
-                }))}
+                classOptions={derived.shareableThreadGroups.map(
+                    (classItem) => ({
+                        id: classItem.classId,
+                        name: classItem.className,
+                        role: classItem.role,
+                        threads: classItem.threads.map((thread) => ({
+                            id: thread.id,
+                            title: thread.title,
+                            threadType: thread.threadType,
+                        })),
+                    }),
+                )}
                 isSubmitting={meta.isSharing}
                 onSelectThread={({ classId, threadId }) =>
                     actions.handleConfirmThreadShare(classId, threadId)
