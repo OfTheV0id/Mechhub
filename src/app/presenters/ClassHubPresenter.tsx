@@ -23,6 +23,7 @@ interface ClassHubPresenterProps {
         threadId: string,
     ) => Promise<boolean>;
     onDeleteClass?: (classId: string) => Promise<boolean>;
+    onLeaveClass?: (classId: string) => Promise<boolean>;
 }
 
 export const ClassHubPresenter = ({
@@ -35,6 +36,7 @@ export const ClassHubPresenter = ({
     onRenameClassThread,
     onDeleteClassThread,
     onDeleteClass,
+    onLeaveClass,
 }: ClassHubPresenterProps) => {
     const {
         screen,
@@ -45,8 +47,6 @@ export const ClassHubPresenter = ({
         setCreateClassName,
         createClassDescription,
         setCreateClassDescription,
-        createTeacherUserId,
-        setCreateTeacherUserId,
         handleCreateClass,
         isCreatingClass,
         inviteCodeInput,
@@ -57,15 +57,22 @@ export const ClassHubPresenter = ({
         students,
         threads,
         handleCreateThread,
+        threadTitleInput,
+        setThreadTitleInput,
         canCreateThread,
         canManageThreads,
         canDeleteClass,
+        canLeaveClass,
         handleRenameThread,
         handleDeleteThread,
         handleDeleteClass,
+        handleLeaveClass,
         isCreatingThread,
+        isLoadingMembers,
         openThreadChat,
         inviteCodeDisplayText,
+        inviteCodeValue,
+        handleCopyInviteCode,
     } = useClassHubState({
         selectedClassId,
         onSelectedClassIdChange,
@@ -73,6 +80,7 @@ export const ClassHubPresenter = ({
         onRenameClassThread,
         onDeleteClassThread,
         onDeleteClass,
+        onLeaveClass,
     });
 
     return (
@@ -93,8 +101,6 @@ export const ClassHubPresenter = ({
             onCreateClassNameChange={setCreateClassName}
             createClassDescription={createClassDescription}
             onCreateClassDescriptionChange={setCreateClassDescription}
-            createTeacherUserId={createTeacherUserId}
-            onCreateTeacherUserIdChange={setCreateTeacherUserId}
             onCreateClass={handleCreateClass}
             isCreatingClass={isCreatingClass}
             inviteCodeInput={inviteCodeInput}
@@ -109,15 +115,22 @@ export const ClassHubPresenter = ({
                 threadType: thread.threadType as "group" | "shared_chat",
             }))}
             onCreateThread={handleCreateThread}
+            threadTitleInput={threadTitleInput}
+            onThreadTitleChange={setThreadTitleInput}
             canCreateThread={canCreateThread}
             canManageThreads={canManageThreads}
             canDeleteClass={canDeleteClass}
+            canLeaveClass={canLeaveClass}
             onRenameThread={handleRenameThread}
             onDeleteThread={handleDeleteThread}
             onDeleteClass={handleDeleteClass}
+            onLeaveClass={handleLeaveClass}
             isCreatingThread={isCreatingThread}
+            isLoadingMembers={isLoadingMembers}
             onEnterThreadChat={openThreadChat}
             inviteCodeDisplayText={inviteCodeDisplayText}
+            inviteCodeValue={inviteCodeValue ?? undefined}
+            onCopyInviteCode={handleCopyInviteCode}
         />
     );
 };

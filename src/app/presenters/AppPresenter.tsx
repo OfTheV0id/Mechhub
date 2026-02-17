@@ -114,6 +114,7 @@ export const AppPresenter = () => {
                     isGeneratingDraft={meta.isGeneratingGradeDraft}
                     isSavingReview={meta.isSavingGradeReview}
                     isReleasingGrade={meta.isReleasingGrade}
+                    generatingGradeDraftIds={derived.generatingGradeDraftIds}
                 />
             ),
         }),
