@@ -22,6 +22,7 @@ interface ClassHubPresenterProps {
         classId: string,
         threadId: string,
     ) => Promise<boolean>;
+    onDeleteClass?: (classId: string) => Promise<boolean>;
 }
 
 export const ClassHubPresenter = ({
@@ -33,6 +34,7 @@ export const ClassHubPresenter = ({
     onEnterClassChat,
     onRenameClassThread,
     onDeleteClassThread,
+    onDeleteClass,
 }: ClassHubPresenterProps) => {
     const {
         screen,
@@ -57,8 +59,10 @@ export const ClassHubPresenter = ({
         handleCreateThread,
         canCreateThread,
         canManageThreads,
+        canDeleteClass,
         handleRenameThread,
         handleDeleteThread,
+        handleDeleteClass,
         isCreatingThread,
         openThreadChat,
         inviteCodeDisplayText,
@@ -68,6 +72,7 @@ export const ClassHubPresenter = ({
         onEnterClassChat,
         onRenameClassThread,
         onDeleteClassThread,
+        onDeleteClass,
     });
 
     return (
@@ -106,8 +111,10 @@ export const ClassHubPresenter = ({
             onCreateThread={handleCreateThread}
             canCreateThread={canCreateThread}
             canManageThreads={canManageThreads}
+            canDeleteClass={canDeleteClass}
             onRenameThread={handleRenameThread}
             onDeleteThread={handleDeleteThread}
+            onDeleteClass={handleDeleteClass}
             isCreatingThread={isCreatingThread}
             onEnterThreadChat={openThreadChat}
             inviteCodeDisplayText={inviteCodeDisplayText}
