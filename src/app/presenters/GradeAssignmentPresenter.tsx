@@ -13,6 +13,7 @@ import { MessageListPresenter } from "./MessageListPresenter";
 
 interface GradeAssignmentPresenterProps {
     teacherClasses: ClassSummary[];
+    generatingGradeDraftIds: Set<string>;
     onGenerateGradeDraft: (
         submissionId: string,
         model?: string,
@@ -27,6 +28,7 @@ interface GradeAssignmentPresenterProps {
 
 export const GradeAssignmentPresenter = ({
     teacherClasses,
+    generatingGradeDraftIds,
     onGenerateGradeDraft,
     onSaveGradeReview,
     onReleaseGrade,
@@ -223,6 +225,12 @@ export const GradeAssignmentPresenter = ({
                     !!submission.aiFeedbackDraft?.trim() &&
                     submission.gradeStatus === "draft",
             ).length;
+            const aiInProgressCount = uniqueSubmissions.filter((submission) =>
+                generatingGradeDraftIds.has(submission.submissionId),
+            ).length;
+            const teacherManualCompletedCount = uniqueSubmissions.filter(
+                (submission) => submission.gradeStatus === "released",
+            ).length;
 
             return {
                 id: item.assignment.id,
@@ -232,12 +240,14 @@ export const GradeAssignmentPresenter = ({
                 submittedCount: submittedStudents.length,
                 missingCount: missingStudents.length,
                 aiCompletedCount,
+                aiInProgressCount,
                 teacherNotManualCount,
+                teacherManualCompletedCount,
                 submittedStudents,
                 missingStudents,
             };
         });
-    }, [activeStudents, dashboardItems]);
+    }, [activeStudents, dashboardItems, generatingGradeDraftIds]);
 
     const previewData = useMemo(() => {
         const snapshot = activeSubmission?.evidenceSnapshot;
