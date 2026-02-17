@@ -7,6 +7,7 @@ interface GradingResultPresenterProps {
     gradingResult: GradingResult;
     reply?: string;
     reasoning?: string;
+    ocrText?: string;
     showThinking?: boolean;
     renderImagePanel?: (image: ImageGradingResult) => ReactNode;
 }
@@ -15,6 +16,7 @@ export const GradingResultPresenter = ({
     gradingResult,
     reply,
     reasoning,
+    ocrText,
     showThinking = false,
     renderImagePanel,
 }: GradingResultPresenterProps) => {
@@ -23,10 +25,12 @@ export const GradingResultPresenter = ({
         currentImageIndex,
         thinkingOpen,
         bodyOpen,
+        ocrOpen,
         handlePrevImage,
         handleNextImage,
         handleToggleThinking,
         handleToggleBody,
+        handleToggleOcr,
     } = useGradingResultUiState(images);
 
     return (
@@ -34,6 +38,7 @@ export const GradingResultPresenter = ({
             gradingResult={gradingResult}
             body={reply}
             reasoning={reasoning}
+            ocrText={ocrText}
             showThinking={showThinking}
             renderImagePanel={renderImagePanel}
             currentImageIndex={currentImageIndex}
@@ -43,6 +48,8 @@ export const GradingResultPresenter = ({
             onToggleThinking={handleToggleThinking}
             bodyOpen={bodyOpen}
             onToggleBody={handleToggleBody}
+            ocrOpen={ocrOpen}
+            onToggleOcr={handleToggleOcr}
         />
     );
 };

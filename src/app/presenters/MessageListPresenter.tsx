@@ -48,6 +48,7 @@ export const MessageListPresenter = ({
                         gradingResult={item.message.gradingResult}
                         reply={item.message.text}
                         reasoning={item.message.reasoning}
+                        ocrText={item.message.ocrText}
                         showThinking={item.showThinking}
                         renderImagePanel={(image) => (
                             <ImageGradingPanelPresenter imageGrading={image} />

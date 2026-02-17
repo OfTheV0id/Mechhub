@@ -1,32 +1,27 @@
-import { usePublishAssignmentState } from "@hooks";
+import { usePublishAssignmentState, type PublishAssignmentDraft } from "@hooks";
 import { PublishAssignmentView } from "@views/assignment";
 
 interface PublishAssignmentPresenterProps {
-    modules: string[];
-    onPublish: (
-        name: string,
-        module: string,
-        dueDate: string,
-        dueTime: string,
-        instructions: string,
-        files: File[],
-        aiGradingEnabled: boolean,
-    ) => Promise<void>;
+    classOptions: Array<{
+        id: string;
+        name: string;
+    }>;
+    onPublish: (draft: PublishAssignmentDraft) => Promise<void>;
 }
 
 export const PublishAssignmentPresenter = ({
-    modules,
+    classOptions,
     onPublish,
 }: PublishAssignmentPresenterProps) => {
     const publishState = usePublishAssignmentState({ onPublish });
 
     return (
         <PublishAssignmentView
-            assignmentName={publishState.assignmentName}
-            setAssignmentName={publishState.setAssignmentName}
-            selectedModule={publishState.selectedModule}
-            setSelectedModule={publishState.setSelectedModule}
-            modules={modules}
+            title={publishState.title}
+            setTitle={publishState.setTitle}
+            selectedClassId={publishState.classId}
+            setSelectedClassId={publishState.setClassId}
+            classOptions={classOptions}
             dueDate={publishState.dueDate}
             setDueDate={publishState.setDueDate}
             dueTime={publishState.dueTime}
