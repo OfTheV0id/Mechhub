@@ -1,6 +1,0 @@
-[submodule "src/hooks"]
-	path = src/hooks
-	url = https://github.com/chendaile/mechhub-hooks.git
-[submodule "src/views"]
-	path = src/views
-	url = https://github.com/chendaile/mechhub-views.git
