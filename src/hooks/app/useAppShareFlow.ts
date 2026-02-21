@@ -44,6 +44,7 @@ export const useAppShareFlow = ({
         (intent: ShareIntent) => {
             if (shareableThreadCount === 0) {
                 toast.error("无可分享线程，请联系老师创建。");
+
                 return;
             }
             setShareIntent(intent);
@@ -77,6 +78,7 @@ export const useAppShareFlow = ({
                         toast.error(
                             "Open a private chat session before sharing.",
                         );
+
                         return;
                     }
                     await sharePrivateChatToClassMutation.mutateAsync({

@@ -10,7 +10,7 @@ import {
     getResponseStream,
     getOcrResult,
     parseGradingResult,
-} from "../services/ai/supabaseAIGatewayService";
+} from "../implementation/ai/supabaseAIGatewayService";
 
 export class SupabaseAIGateway {
     static async getResponse(
@@ -45,3 +45,4 @@ export class SupabaseAIGateway {
         return generateTitle(messages);
     }
 }
+

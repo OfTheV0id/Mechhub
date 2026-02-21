@@ -1,7 +1,7 @@
-import type { ChatRepositoryPort } from "../interface/ChatRepositoryPort";
+import type { ChatRepositoryInterface } from "../interface/chatRepositoryInterface";
 import { SupabaseChatService } from "./supabaseChatService";
 
-export const createSupabaseChatRepository = (): ChatRepositoryPort => ({
+export const createSupabaseChatRepository = (): ChatRepositoryInterface => ({
     fetchChats: () => SupabaseChatService.fetchChats(),
     saveChat: (id, messages, title) =>
         SupabaseChatService.saveChat(id, messages, title),
@@ -9,3 +9,4 @@ export const createSupabaseChatRepository = (): ChatRepositoryPort => ({
         SupabaseChatService.updateChatTitle(id, newTitle),
     deleteChat: (id) => SupabaseChatService.deleteChat(id),
 });
+

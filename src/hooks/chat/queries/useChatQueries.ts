@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Message, ChatSession } from "../types";
-import { chatDomainInterface } from "../interface/ChatDomainInterface";
-import { useSessionQuery } from "../../auth/queries/useSession";
+import { chatInterface } from "../interface/chatInterface";
+import { useSessionQuery } from "../../auth/public";
 import {
     mergeChatSessions,
     removeChatSession,
@@ -17,7 +17,7 @@ export const useChatsQuery = (enabled = true) => {
 
     return useQuery({
         queryKey: chatKeys.lists(viewerUserId),
-        queryFn: chatDomainInterface.chatQueryUseCases.fetchChats,
+        queryFn: chatInterface.chatQueryUseCases.fetchChats,
         enabled,
         select: (remoteChats) =>
             mergeChatSessions(
@@ -44,7 +44,7 @@ export const useSaveChatMutation = () => {
             messages: Message[];
             title: string;
         }) => {
-            return chatDomainInterface.chatQueryUseCases.saveChat(
+            return chatInterface.chatQueryUseCases.saveChat(
                 id,
                 messages,
                 title,
@@ -66,7 +66,7 @@ export const useDeleteChatMutation = () => {
     const viewerUserId = session?.user.id ?? null;
 
     return useMutation({
-        mutationFn: chatDomainInterface.chatQueryUseCases.deleteChat,
+        mutationFn: chatInterface.chatQueryUseCases.deleteChat,
         onSuccess: async (_, deletedId) => {
             removeChatSession(queryClient, viewerUserId, deletedId);
             await queryClient.invalidateQueries({
@@ -89,7 +89,7 @@ export const useRenameChatMutation = () => {
             id: string;
             newTitle: string;
         }) => {
-            return chatDomainInterface.chatQueryUseCases.renameChat(
+            return chatInterface.chatQueryUseCases.renameChat(
                 id,
                 newTitle,
             );
@@ -106,9 +106,10 @@ export const useRenameChatMutation = () => {
 export const useGenerateTitleMutation = () => {
     return useMutation({
         mutationFn: async (messages: Message[]) => {
-            return chatDomainInterface.chatQueryUseCases.generateTitle(
+            return chatInterface.chatQueryUseCases.generateTitle(
                 messages,
             );
         },
     });
 };
+

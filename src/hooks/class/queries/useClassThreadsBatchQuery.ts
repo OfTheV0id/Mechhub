@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
-import { useSessionQuery } from "../../auth/queries/useSession";
+import { useSessionQuery } from "../../auth/public";
 import type { ClassThread } from "../types";
-import { classDomainInterface } from "../interface/ClassDomainInterface";
+import { classInterface } from "../interface/classInterface";
 import { classKeys } from "./classKeys";
 
 export interface ClassThreadsBatchQueryResult {
@@ -33,7 +33,7 @@ export const useClassThreadsBatchQuery = (
     const threadQueries = useQueries({
         queries: normalizedClassIds.map((classId) => ({
             queryKey: classKeys.threads(viewerUserId, classId),
-            queryFn: () => classDomainInterface.listClassThreads(classId),
+            queryFn: () => classInterface.listClassThreads(classId),
             enabled: enabled && normalizedClassIds.length > 0 && !!session,
             staleTime: 5_000,
         })),
@@ -44,6 +44,7 @@ export const useClassThreadsBatchQuery = (
             normalizedClassIds.reduce<Record<string, ClassThread[]>>(
                 (accumulator, classId, index) => {
                     accumulator[classId] = threadQueries[index]?.data ?? [];
+
                     return accumulator;
                 },
                 {},

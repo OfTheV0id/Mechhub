@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useSessionQuery } from "../../auth/queries/useSession";
-import { assignmentDomainInterface } from "../interface/AssignmentDomainInterface";
+import { useSessionQuery } from "../../auth/public";
+import { assignmentInterface } from "../interface/assignmentInterface";
 import { assignmentKeys } from "./assignmentKeys";
 
 export const useMyAssignmentsQuery = (
@@ -17,7 +17,7 @@ export const useMyAssignmentsQuery = (
 
     return useQuery({
         queryKey: assignmentKeys.myAssignments(viewerUserId, classId),
-        queryFn: () => assignmentDomainInterface.listMyAssignments(classId),
+        queryFn: () => assignmentInterface.listMyAssignments(classId),
         enabled: enabled && !!session,
         staleTime: options?.staleTime ?? 15_000,
         refetchInterval: options?.refetchInterval,
@@ -37,7 +37,7 @@ export const useClassAssignmentsQuery = (
             viewerUserId,
             classId ?? "unknown",
         ),
-        queryFn: () => assignmentDomainInterface.listClassAssignments(classId ?? ""),
+        queryFn: () => assignmentInterface.listClassAssignments(classId ?? ""),
         enabled: enabled && !!session && !!classId,
         staleTime: 15_000,
     });
@@ -53,7 +53,7 @@ export const useClassAssignmentDashboardQuery = (
     return useQuery({
         queryKey: assignmentKeys.dashboard(viewerUserId, classId ?? "unknown"),
         queryFn: () =>
-            assignmentDomainInterface.listClassAssignmentDashboard(
+            assignmentInterface.listClassAssignmentDashboard(
                 classId ?? "",
             ),
         enabled: enabled && !!session && !!classId,
@@ -75,7 +75,7 @@ export const useAssignmentSubmissionsQuery = (
             assignmentId ?? "unknown",
         ),
         queryFn: () =>
-            assignmentDomainInterface.listAssignmentSubmissions({
+            assignmentInterface.listAssignmentSubmissions({
                 assignmentId: assignmentId ?? "",
                 classId,
             }),
@@ -98,7 +98,7 @@ export const useMyFeedbackQuery = (
 
     return useQuery({
         queryKey: assignmentKeys.myFeedback(viewerUserId, classId),
-        queryFn: () => assignmentDomainInterface.listMyFeedback(classId),
+        queryFn: () => assignmentInterface.listMyFeedback(classId),
         enabled: enabled && !!session,
         staleTime: options?.staleTime ?? 15_000,
         refetchInterval: options?.refetchInterval,
@@ -119,7 +119,7 @@ export const useFeedbackDetailQuery = (
             submissionId ?? "unknown",
         ),
         queryFn: () =>
-            assignmentDomainInterface.getFeedbackDetail(submissionId ?? ""),
+            assignmentInterface.getFeedbackDetail(submissionId ?? ""),
         enabled: enabled && !!session && !!submissionId,
         staleTime: 5_000,
     });

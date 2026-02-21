@@ -19,6 +19,21 @@ export interface FileAttachment {
     language?: string;
 }
 
+export interface ImageAttachment {
+    id: string;
+    file: File;
+    previewUrl: string;
+    uploading: boolean;
+    isUploading: boolean;
+    publicUrl?: string;
+}
+
+export interface AttachmentNotifier {
+    error: (message: string) => void;
+}
+
+export type TextAttachment = FileAttachment;
+
 // Single grading step with location on image
 export interface GradingStep {
     stepNumber: number;

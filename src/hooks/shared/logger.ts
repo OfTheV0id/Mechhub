@@ -9,6 +9,7 @@ const browserLogger: Logger = {
     error: (message, payload) => {
         if (payload !== undefined) {
             console.error(message, payload);
+
             return;
         }
 
@@ -17,6 +18,7 @@ const browserLogger: Logger = {
     warn: (message, payload) => {
         if (payload !== undefined) {
             console.warn(message, payload);
+
             return;
         }
 
@@ -25,6 +27,7 @@ const browserLogger: Logger = {
     info: (message, payload) => {
         if (payload !== undefined) {
             console.info(message, payload);
+
             return;
         }
 
@@ -33,6 +36,7 @@ const browserLogger: Logger = {
     debug: (message, payload) => {
         if (payload !== undefined) {
             console.debug(message, payload);
+
             return;
         }
 

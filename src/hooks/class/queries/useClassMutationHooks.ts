@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useSessionQuery } from "../../auth/queries/useSession";
-import { classDomainInterface } from "../interface/ClassDomainInterface";
+import { useSessionQuery } from "../../auth/public";
+import { classInterface } from "../interface/classInterface";
 import type {
     AssignTeacherPayload,
     ClassThreadMessage,
@@ -24,6 +24,7 @@ const getErrorMessage = (error: unknown, fallback: string) =>
 
 const useViewerUserId = () => {
     const { data: session } = useSessionQuery();
+
     return session?.user.id ?? null;
 };
 
@@ -33,7 +34,7 @@ export const useCreateClassMutation = () => {
 
     return useMutation({
         mutationFn: (payload: CreateClassPayload) =>
-            classDomainInterface.createClass(payload),
+            classInterface.createClass(payload),
         onSuccess: async (result) => {
             toast.success(
                 result.inviteCode
@@ -56,7 +57,7 @@ export const useDeleteClassMutation = () => {
 
     return useMutation({
         mutationFn: (payload: DeleteClassPayload) =>
-            classDomainInterface.deleteClass(payload),
+            classInterface.deleteClass(payload),
         onSuccess: async () => {
             toast.success("班级已删除");
             await queryClient.invalidateQueries({
@@ -75,7 +76,7 @@ export const useLeaveClassMutation = () => {
 
     return useMutation({
         mutationFn: (payload: LeaveClassPayload) =>
-            classDomainInterface.leaveClass(payload),
+            classInterface.leaveClass(payload),
         onSuccess: async (_, payload) => {
             toast.success("已退出班级");
             await queryClient.invalidateQueries({
@@ -100,7 +101,7 @@ export const useAssignTeacherToClassMutation = () => {
 
     return useMutation({
         mutationFn: (payload: AssignTeacherPayload) =>
-            classDomainInterface.assignTeacherToClass(payload),
+            classInterface.assignTeacherToClass(payload),
         onSuccess: async (_, payload) => {
             toast.success("教师分配成功");
             await Promise.all([
@@ -124,7 +125,7 @@ export const useCreateInviteCodeMutation = () => {
 
     return useMutation({
         mutationFn: (payload: CreateInviteCodePayload) =>
-            classDomainInterface.createInviteCode(payload),
+            classInterface.createInviteCode(payload),
         onSuccess: async (_, payload) => {
             toast.success("邀请码创建成功");
             await queryClient.invalidateQueries({
@@ -148,7 +149,7 @@ export const useRevokeInviteCodeMutation = () => {
         }: {
             classId: string;
             inviteCodeId: string;
-        }) => classDomainInterface.revokeInviteCode(classId, inviteCodeId),
+        }) => classInterface.revokeInviteCode(classId, inviteCodeId),
         onSuccess: async (_, payload) => {
             toast.success("邀请码已撤销");
             await queryClient.invalidateQueries({
@@ -167,7 +168,7 @@ export const useJoinClassByInviteCodeMutation = () => {
 
     return useMutation({
         mutationFn: (payload: JoinClassByCodePayload) =>
-            classDomainInterface.joinClassByInviteCode(payload),
+            classInterface.joinClassByInviteCode(payload),
         onSuccess: async (result) => {
             if (result.alreadyJoined) {
                 toast.success("你已经在该班级中");
@@ -192,7 +193,7 @@ export const useRemoveStudentFromClassMutation = () => {
 
     return useMutation({
         mutationFn: (payload: RemoveStudentPayload) =>
-            classDomainInterface.removeStudentFromClass(payload),
+            classInterface.removeStudentFromClass(payload),
         onSuccess: async (_, payload) => {
             toast.success("已移除学生");
             await queryClient.invalidateQueries({
@@ -214,7 +215,7 @@ export const useCreateGroupThreadMutation = () => {
 
     return useMutation({
         mutationFn: ({ classId, title }: { classId: string; title: string }) =>
-            classDomainInterface.createGroupThread(classId, title),
+            classInterface.createGroupThread(classId, title),
         onSuccess: async (_, payload) => {
             toast.success("话题已创建");
             await queryClient.invalidateQueries({
@@ -233,7 +234,7 @@ export const useRenameClassThreadMutation = () => {
 
     return useMutation({
         mutationFn: (payload: RenameClassThreadPayload) =>
-            classDomainInterface.renameClassThread(payload),
+            classInterface.renameClassThread(payload),
         onSuccess: async (thread) => {
             toast.success("话题已重命名");
             await queryClient.invalidateQueries({
@@ -252,7 +253,7 @@ export const useDeleteClassThreadMutation = () => {
 
     return useMutation({
         mutationFn: (payload: DeleteClassThreadPayload) =>
-            classDomainInterface.deleteClassThread(payload),
+            classInterface.deleteClassThread(payload),
         onSuccess: async (result) => {
             toast.success("话题已删除");
             await Promise.all([
@@ -280,10 +281,12 @@ export const usePostClassMessageMutation = () => {
 
     const userMetadata =
         (session?.user?.user_metadata as Record<string, unknown> | null) ?? {};
+
     const viewerName =
         typeof userMetadata.name === "string"
             ? userMetadata.name
             : session?.user?.email ?? "You";
+
     const viewerAvatar =
         typeof userMetadata.avatar === "string" ? userMetadata.avatar : null;
 
@@ -296,6 +299,7 @@ export const usePostClassMessageMutation = () => {
         if (content && typeof content === "object" && !Array.isArray(content)) {
             return content;
         }
+
         return { text: "" };
     };
 
@@ -306,6 +310,7 @@ export const usePostClassMessageMutation = () => {
                 : typeof content.value === "string"
                   ? content.value
                   : "";
+
         return text.trim();
     };
 
@@ -314,12 +319,13 @@ export const usePostClassMessageMutation = () => {
             typeof crypto !== "undefined" && crypto.randomUUID
                 ? crypto.randomUUID()
                 : Math.random().toString(36).slice(2);
+
         return `${prefix}-${Date.now()}-${random}`;
     };
 
     return useMutation({
         mutationFn: (payload: PostClassMessagePayload) =>
-            classDomainInterface.postClassMessage(payload),
+            classInterface.postClassMessage(payload),
         onMutate: async (payload) => {
             const queryKey = classKeys.threadMessages(
                 viewerUserId,
@@ -389,6 +395,7 @@ export const usePostClassMessageMutation = () => {
                 viewerUserId,
                 payload.threadId,
             );
+
             const currentMessages =
                 queryClient.getQueryData<ClassThreadMessage[]>(queryKey) ?? [];
 
@@ -407,6 +414,7 @@ export const usePostClassMessageMutation = () => {
                 }
                 const next = [...messages];
                 next[index] = message;
+
                 return next;
             };
 
@@ -460,7 +468,7 @@ export const useSharePrivateChatToClassMutation = () => {
 
     return useMutation({
         mutationFn: (payload: SharePrivateChatPayload) =>
-            classDomainInterface.sharePrivateChatToClass(payload),
+            classInterface.sharePrivateChatToClass(payload),
         onSuccess: async (thread, payload) => {
             toast.success("分享聊天成功");
             await Promise.all([
@@ -487,7 +495,7 @@ export const useShareGradeResultToClassMutation = () => {
 
     return useMutation({
         mutationFn: (payload: ShareGradeResultPayload) =>
-            classDomainInterface.shareGradeResultToClass(payload),
+            classInterface.shareGradeResultToClass(payload),
         onSuccess: async (thread) => {
             toast.success("分享反馈成功");
             await queryClient.invalidateQueries({

@@ -1,5 +1,5 @@
-import type { UserProfile } from "../../auth/types";
-import type { ClassSummary, ClassThread } from "../../class/types";
+import type { UserProfile } from "../../auth/public";
+import type { ClassSummary, ClassThread } from "../../class/public";
 import type { ShareIntent } from "../types/share";
 import type { ActiveView } from "../types/view";
 

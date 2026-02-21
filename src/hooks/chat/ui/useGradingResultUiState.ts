@@ -10,6 +10,7 @@ export const useGradingResultUiState = (images: ImageGradingResult[]) => {
     const handlePrevImage = () => {
         setCurrentImageIndex((prev) => {
             if (images.length === 0) return prev;
+
             return prev > 0 ? prev - 1 : images.length - 1;
         });
     };
@@ -17,6 +18,7 @@ export const useGradingResultUiState = (images: ImageGradingResult[]) => {
     const handleNextImage = () => {
         setCurrentImageIndex((prev) => {
             if (images.length === 0) return prev;
+
             return prev < images.length - 1 ? prev + 1 : 0;
         });
     };

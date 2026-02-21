@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { SidebarClassGroup } from "../model/sidebarSessionModel";
+import type { SidebarClassGroup } from "../types";
 
 const areSetsEqual = (left: Set<string>, right: Set<string>) => {
     if (left.size !== right.size) {
@@ -27,6 +27,7 @@ export const useSidebarSessionsState = (classGroups: SidebarClassGroup[]) => {
             setOpenGroupIds((previous) =>
                 previous.size === 0 ? previous : new Set(),
             );
+
             return;
         }
 
@@ -55,10 +56,12 @@ export const useSidebarSessionsState = (classGroups: SidebarClassGroup[]) => {
 
             if (next.has(classId)) {
                 next.delete(classId);
+
                 return next;
             }
 
             next.add(classId);
+
             return next;
         });
     };

@@ -4,7 +4,7 @@ import type {
     SidebarActionAudience,
     SidebarAssignmentAction,
     SidebarAssignmentActionViewKey,
-} from "../model/sidebarSessionModel";
+} from "../types";
 
 interface UseSidebarFooterStateParams {
     activeView: ActiveView;
@@ -79,6 +79,7 @@ export const useSidebarFooterState = ({
         const hasStudentActions = assignmentActions.some(
             (action) => action.audience === "student",
         );
+
         const hasTeacherActions = assignmentActions.some(
             (action) => action.audience === "teacher",
         );

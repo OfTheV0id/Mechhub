@@ -10,12 +10,12 @@ import {
     prepareActiveSession,
     upsertAssistantMessage,
 } from "./chatSessionUseCases";
-import type { AIGatewayPort } from "./AIGatewayPort";
-import type { ChatCachePort } from "./ChatCachePort";
+import type { AIGatewayInterface } from "./aiGatewayInterface";
+import type { ChatCacheInterface } from "./chatCacheInterface";
 
 interface CreateChatMessagingUseCasesParams {
-    cache: ChatCachePort;
-    aiGateway: AIGatewayPort;
+    cache: ChatCacheInterface;
+    aiGateway: AIGatewayInterface;
 }
 
 export const createChatMessagingUseCases = ({
@@ -90,3 +90,4 @@ export const createChatMessagingUseCases = ({
 export type ChatMessagingUseCases = ReturnType<
     typeof createChatMessagingUseCases
 >;
+

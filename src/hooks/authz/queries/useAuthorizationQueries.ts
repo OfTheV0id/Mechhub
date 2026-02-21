@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSessionQuery } from "../../auth/queries/useSession";
+import { useSessionQuery } from "../../auth/public";
 import { authzKeys } from "./authzKeys";
-import { authzDomainInterface } from "../interface/AuthzDomainInterface";
+import { authzInterface } from "../interface/authzInterface";
 import { type PermissionKey, type UpsertUserAccessPayload } from "../types";
-import { hasPermission } from "../utils/permissionPredicates";
+import { hasPermission } from "../implementation/permissionPredicates";
 
 export const useMyAuthorizationQuery = () => {
     const { data: session } = useSessionQuery();
@@ -11,7 +11,7 @@ export const useMyAuthorizationQuery = () => {
 
     return useQuery({
         queryKey: authzKeys.my(viewerUserId),
-        queryFn: authzDomainInterface.getMyAuthorization,
+        queryFn: authzInterface.getMyAuthorization,
         enabled: !!session,
         staleTime: 60_000,
     });
@@ -29,7 +29,7 @@ export const usePermissionGate = (permission: PermissionKey) => {
 export const useAdminUserSearchMutation = () =>
     useMutation({
         mutationFn: (email: string) =>
-            authzDomainInterface.searchUserByEmail(email),
+            authzInterface.searchUserByEmail(email),
     });
 
 export const useAdminUserAccessQuery = (
@@ -45,7 +45,7 @@ export const useAdminUserAccessQuery = (
             targetUserId ?? "unknown",
         ),
         queryFn: () =>
-            authzDomainInterface.getAdminUserAccess(targetUserId ?? ""),
+            authzInterface.getAdminUserAccess(targetUserId ?? ""),
         enabled: enabled && !!targetUserId && !!session,
         retry: false,
         staleTime: 30_000,
@@ -59,7 +59,7 @@ export const useUpsertUserAccessMutation = () => {
 
     return useMutation({
         mutationFn: (payload: UpsertUserAccessPayload) =>
-            authzDomainInterface.upsertAdminUserAccess(payload),
+            authzInterface.upsertAdminUserAccess(payload),
         onSuccess: (snapshot) => {
             queryClient.setQueryData(
                 authzKeys.adminUserAccess(viewerUserId, snapshot.userId),
@@ -72,5 +72,5 @@ export const useUpsertUserAccessMutation = () => {
     });
 };
 
-export const isForbiddenError = authzDomainInterface.isForbiddenError;
+export const isForbiddenError = authzInterface.isForbiddenError;
 export { hasPermission };

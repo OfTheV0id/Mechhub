@@ -1,5 +1,5 @@
-import { useSubmitAssignmentFlow } from "../flows/useSubmitAssignmentFlow";
-import { useSubmitFileState } from "../states/useSubmitFileState";
+import { useSubmitAssignmentActionState } from "./useSubmitAssignmentActionState";
+import { useSubmitFileState } from "./useSubmitFileState";
 
 interface UseSubmitAssignmentStateParams {
     onSubmit: (file: File, comments: string) => Promise<void>;
@@ -9,22 +9,22 @@ export const useSubmitAssignmentState = ({
     onSubmit,
 }: UseSubmitAssignmentStateParams) => {
     const fileState = useSubmitFileState();
-    const submitFlow = useSubmitAssignmentFlow({ onSubmit });
+    const submitState = useSubmitAssignmentActionState({ onSubmit });
 
     const handleSubmit = async () => {
-        await submitFlow.actions.handleSubmit(fileState.state.file);
+        await submitState.actions.handleSubmit(fileState.state.file);
     };
 
     const state = {
         fileName: fileState.state.fileName,
         fileUrl: fileState.state.fileUrl,
-        comments: submitFlow.state.comments,
-        isLoading: submitFlow.state.isLoading,
+        comments: submitState.state.comments,
+        isLoading: submitState.state.isLoading,
     };
 
     const actions = {
         handleFileSelect: fileState.actions.handleFileSelect,
-        setComments: submitFlow.actions.setComments,
+        setComments: submitState.actions.setComments,
         handleSubmit,
     };
 

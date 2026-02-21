@@ -117,6 +117,7 @@ export const buildViewFeedbackGroups = (
                 className,
                 items: [nextItem],
             });
+
             return;
         }
 

@@ -1,6 +1,6 @@
-import { useDetailPanelState } from "../states/useDetailPanelState";
-import { useImagePanZoomState } from "../states/useImagePanZoomState";
-import { useStepSelectionState } from "../states/useStepSelectionState";
+import { useDetailPanelState } from "./useDetailPanelState";
+import { useImagePanZoomState } from "./useImagePanZoomState";
+import { useStepSelectionState } from "./useStepSelectionState";
 
 export const useImageGradingPanelState = () => {
     const detailPanelState = useDetailPanelState();
@@ -50,3 +50,4 @@ export const useImageGradingPanelState = () => {
         handleMouseUp: imagePanZoomState.actions.handleMouseUp,
     };
 };
+

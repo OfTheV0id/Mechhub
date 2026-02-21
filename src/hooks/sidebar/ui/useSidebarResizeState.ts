@@ -2,15 +2,17 @@ import { useState, useEffect } from "react";
 import {
     persistSidebarWidth,
     readSidebarWidth,
-} from "../utils/sidebarWidthStorage";
+} from "../interface/sidebarInterface";
+import {
+    SIDEBAR_DEFAULT_WIDTH,
+    SIDEBAR_MAX_WIDTH,
+    SIDEBAR_MIN_WIDTH,
+} from "../constants";
 
-const MIN_SIDEBAR_WIDTH = 240;
-const MAX_SIDEBAR_WIDTH = 500;
-const DEFAULT_SIDEBAR_WIDTH = 280;
 const SIDEBAR_WIDTH_CONFIG = {
-    min: MIN_SIDEBAR_WIDTH,
-    max: MAX_SIDEBAR_WIDTH,
-    fallback: DEFAULT_SIDEBAR_WIDTH,
+    min: SIDEBAR_MIN_WIDTH,
+    max: SIDEBAR_MAX_WIDTH,
+    fallback: SIDEBAR_DEFAULT_WIDTH,
 } as const;
 
 export const useSidebarResizeState = () => {
@@ -25,8 +27,8 @@ export const useSidebarResizeState = () => {
 
             const newWidth = e.clientX;
             if (
-                newWidth >= MIN_SIDEBAR_WIDTH &&
-                newWidth <= MAX_SIDEBAR_WIDTH
+                newWidth >= SIDEBAR_MIN_WIDTH &&
+                newWidth <= SIDEBAR_MAX_WIDTH
             ) {
                 setSidebarWidth(newWidth);
                 persistSidebarWidth(newWidth, SIDEBAR_WIDTH_CONFIG);

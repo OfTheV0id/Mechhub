@@ -4,7 +4,7 @@ import type {
     Message,
     SubmitMessage,
 } from "../types";
-import type { AIGatewayPort } from "./AIGatewayPort";
+import type { AIGatewayInterface } from "./aiGatewayInterface";
 
 export interface StreamUpdate {
     text: string;
@@ -19,7 +19,7 @@ export interface StreamResult {
 }
 
 interface StreamOptions {
-    aiGateway: AIGatewayPort;
+    aiGateway: AIGatewayInterface;
     messages: Message[];
     submitMessage: SubmitMessage;
     mode: "study" | "correct";
@@ -75,3 +75,4 @@ export const streamAssistantResponse = async ({
         gradingResult,
     };
 };
+

@@ -3,11 +3,11 @@ export {
     getMyAuthorization,
     searchUserByEmail,
     upsertAdminUserAccess,
-} from "../services/authzService";
+} from "./authzService";
 
 export {
     AuthorizationServiceError,
     extractAuthorizationStatus,
     isForbiddenError,
     toAuthorizationServiceError,
-} from "../services/authzErrors";
+} from "./authzErrors";

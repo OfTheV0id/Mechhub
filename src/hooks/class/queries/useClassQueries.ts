@@ -1,4 +1,4 @@
-export { isClassForbiddenError } from "../interface/ClassDomainInterface";
+export { isClassForbiddenError } from "../interface/classInterface";
 export {
     useClassMembersQuery,
     useClassThreadMessagesQuery,

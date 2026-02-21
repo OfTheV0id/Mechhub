@@ -24,11 +24,13 @@ export const useSendState = ({
     const submitDraft = (): SubmitMessage | null => {
         if (isUploading) {
             toast.warning("请等待图片上传完成");
+
             return null;
         }
 
         if (mode === "correct" && uploadedImageUrls.length === 0) {
             toast.warning("批改模式需要至少上传一张照片");
+
             return null;
         }
 
@@ -48,6 +50,7 @@ export const useSendState = ({
             };
             setInputValue("");
             resetAttachments();
+
             return payload;
         }
 

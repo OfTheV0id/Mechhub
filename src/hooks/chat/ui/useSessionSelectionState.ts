@@ -39,6 +39,7 @@ export const useSessionSelectionState = ({
         if (!exists) return false;
 
         setCurrentSessionId(id);
+
         return true;
     };
 

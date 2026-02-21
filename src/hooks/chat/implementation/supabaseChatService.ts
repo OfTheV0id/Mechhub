@@ -4,7 +4,7 @@ import {
     fetchChats,
     saveChat,
     updateChatTitle,
-} from "../services/chat/chatRepositoryService";
+} from "../implementation/chat/chatRepositoryService";
 
 export class SupabaseChatService {
     static async fetchChats(): Promise<ChatSession[]> {
@@ -30,3 +30,4 @@ export class SupabaseChatService {
         await deleteChat(id);
     }
 }
+

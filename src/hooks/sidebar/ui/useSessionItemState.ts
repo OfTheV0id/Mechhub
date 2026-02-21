@@ -1,6 +1,6 @@
 import { toast } from "sonner";
-import { useSessionMenuState } from "../states/useSessionMenuState";
-import { useSessionRenameState } from "../states/useSessionRenameState";
+import { useSessionMenuState } from "./useSessionMenuState";
+import { useSessionRenameState } from "./useSessionRenameState";
 
 interface UseSessionItemStateParams {
     label: string;

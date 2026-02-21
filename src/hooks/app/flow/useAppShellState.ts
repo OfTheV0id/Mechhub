@@ -8,6 +8,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+    assignmentInterface,
+    assignmentKeys,
     useCreateAssignmentMutation,
     useGenerateGradeDraftMutation,
     useMyAssignmentsQuery,
@@ -19,24 +21,28 @@ import {
     type CreateAssignmentPayload,
     type SaveGradeReviewPayload,
 } from "../../assignment/public";
-import { assignmentDomainInterface } from "../../assignment/interface/AssignmentDomainInterface";
-import { assignmentKeys } from "../../assignment/queries/assignmentKeys";
-import { authInstance } from "../../auth/interface/authInterface";
-import { useSessionQuery } from "../../auth/queries/useSession";
-import { useProfileQuery } from "../../auth/queries/useProfile";
-import { useAuthShowState } from "../../auth/ui/useAuthShowState";
 import {
+    authInstance,
+    useSessionQuery,
+    useProfileQuery,
+    useAuthShowState,
+} from "../../auth/public";
+import {
+    authzKeys,
     hasPermission,
     useMyAuthorizationQuery,
 } from "../../authz/public";
 import {
     chatUseCases,
+    chatKeys,
     type Message as ChatMessage,
     normalizeSnapshotMessages,
-    useChatRuntimeFlow,
-    useChatSessionsFlow,
+    upsertSavedChatSession,
+    useChatRuntimeState,
+    useChatSessionsState,
 } from "../../chat/public";
 import {
+    classKeys,
     useClassThreadsBatchQuery,
     useCreateGroupThreadMutation,
     useDeleteClassMutation,
@@ -45,10 +51,6 @@ import {
     useMyClassContextQuery,
     useRenameClassThreadMutation,
 } from "../../class/public";
-import { chatKeys } from "../../chat/queries/chatKeys";
-import { upsertSavedChatSession } from "../../chat/queries/chatCache";
-import { authzKeys } from "../../authz/queries/authzKeys";
-import { classKeys } from "../../class/queries/classKeys";
 import { useActiveChatTargetState } from "../states/useActiveChatTargetState";
 import { useSelectedClassState } from "../states/useSelectedClassState";
 import { useAppShareFlow } from "../useAppShareFlow";
@@ -223,10 +225,10 @@ export const useAppShellState = () => {
         handleRenameSession,
         messages,
         setCurrentSessionId,
-    } = useChatSessionsFlow(session, canAccessChat);
+    } = useChatSessionsState(session, canAccessChat);
 
     const { isTyping, handleSendMessage, handleStopGeneration } =
-        useChatRuntimeFlow({
+        useChatRuntimeState({
             currentSessionId,
             setCurrentSessionId,
         });
@@ -1000,7 +1002,7 @@ export const useAppShellState = () => {
 
             try {
                 const result =
-                    await assignmentDomainInterface.generateGradeDraft(
+                    await assignmentInterface.generateGradeDraft(
                         {
                             submissionId,
                             model,
@@ -1211,3 +1213,4 @@ export const useAppShellState = () => {
         },
     };
 };
+

@@ -17,8 +17,11 @@ export {
     useShareGradeResultToClassMutation,
     useSharePrivateChatToClassMutation,
 } from "./queries/useClassQueries";
-export { useClassHubState } from "./useClassHubState";
-export { useClassThreadChatState } from "./useClassThreadChatState";
+export { CLASS_DOMAIN_KEY } from "./constants";
+export { classKeys } from "./queries/classKeys";
+export { classInterface } from "./interface/classInterface";
+export { useClassHubState } from "./ui/useClassHubState";
+export { useClassThreadChatState } from "./ui/useClassThreadChatState";
 export type {
     AssignTeacherPayload,
     ClassMemberSummary,
