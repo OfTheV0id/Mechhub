@@ -32,6 +32,38 @@ const TS_LANGUAGE_OPTIONS = {
 
 module.exports = [
     {
+        files: ["src/**/*.{ts,tsx,js,jsx}"],
+        languageOptions: TS_LANGUAGE_OPTIONS,
+        rules: {
+            "padding-line-between-statements": [
+                "error",
+                {
+                    blankLine: "always",
+                    prev: "function",
+                    next: "function",
+                },
+                {
+                    blankLine: "always",
+                    prev: "multiline-const",
+                    next: "multiline-const",
+                },
+                {
+                    blankLine: "always",
+                    prev: "*",
+                    next: "return",
+                },
+            ],
+            "no-multiple-empty-lines": [
+                "error",
+                {
+                    max: 1,
+                    maxBOF: 0,
+                    maxEOF: 1,
+                },
+            ],
+        },
+    },
+    {
         files: ["src/views/**/*.{ts,tsx}"],
         languageOptions: TS_LANGUAGE_OPTIONS,
         plugins: {
