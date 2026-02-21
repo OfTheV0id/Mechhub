@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAuthFlow } from "../auth/public";
+import { useSessionQuery } from "../auth/queries/useSession";
 import { PERMISSION_LABELS } from "./constants";
 import {
     isForbiddenError,
@@ -22,6 +22,7 @@ const createDefaultPermissionEffects = (): Record<
     PERMISSION_KEYS.reduce(
         (acc, permissionKey) => {
             acc[permissionKey] = "inherit";
+
             return acc;
         },
         {} as Record<PermissionKey, PermissionEffect>,
@@ -33,13 +34,14 @@ const mapSnapshotToPermissionEffects = (
     PERMISSION_KEYS.reduce(
         (acc, permissionKey) => {
             acc[permissionKey] = overrides?.[permissionKey] ?? "inherit";
+
             return acc;
         },
         {} as Record<PermissionKey, PermissionEffect>,
     );
 
 export const usePermissionsConsoleState = () => {
-    const { session, loading } = useAuthFlow();
+    const { data: session, isLoading: loading } = useSessionQuery();
     const [searchEmail, setSearchEmail] = useState("");
     const [selectedUser, setSelectedUser] = useState<AdminUserSummary | null>(
         null,
@@ -80,6 +82,7 @@ export const usePermissionsConsoleState = () => {
                     if (email) {
                         setMessage("未找到匹配用户。");
                     }
+
                     return;
                 }
 
@@ -90,6 +93,7 @@ export const usePermissionsConsoleState = () => {
                     ) {
                         return current;
                     }
+
                     return users[0];
                 });
             } catch (error) {
@@ -149,6 +153,7 @@ export const usePermissionsConsoleState = () => {
     const onSave = async () => {
         if (!selectedUser) {
             setMessage("请先选择用户。");
+
             return;
         }
 

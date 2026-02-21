@@ -7,14 +7,16 @@ import type { AuthMode } from "./types";
 
 interface AuthPageViewProps {
     mode: AuthMode;
-    setMode: (mode: AuthMode) => void;
+    toggleSigninMode: () => void;
+    toggleRegisterMode: () => void;
     email: string;
     setEmail: (email: string) => void;
     password: string;
     setPassword: (password: string) => void;
     isLoading: boolean;
     showPassword: boolean;
-    setShowPassword: (show: boolean) => void;
+    toggleShowPassword: () => void;
+    toggleHidePassword: () => void;
     handleSubmit: (e: React.FormEvent) => void;
     handleSocialLogin: (provider: "google" | "github") => void;
     isVerificationPending: boolean;
@@ -23,19 +25,41 @@ interface AuthPageViewProps {
 
 export const AuthPageView = ({
     mode,
-    setMode,
+    toggleSigninMode,
+    toggleRegisterMode,
     email,
     setEmail,
     password,
     setPassword,
     isLoading,
     showPassword,
-    setShowPassword,
+    toggleShowPassword,
+    toggleHidePassword,
     handleSubmit,
     handleSocialLogin,
     isVerificationPending,
     setIsVerificationPending,
 }: AuthPageViewProps) => {
+    const setMode = (nextMode: AuthMode) => {
+        if (nextMode === "signin") {
+            toggleSigninMode();
+
+            return;
+        }
+
+        toggleRegisterMode();
+    };
+
+    const setShowPassword = (show: boolean) => {
+        if (show) {
+            toggleShowPassword();
+
+            return;
+        }
+
+        toggleHidePassword();
+    };
+
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] p-4">
             <Card
@@ -50,7 +74,7 @@ export const AuthPageView = ({
                         {isVerificationPending ? (
                             <AuthVerification
                                 email={email}
-                                onBackToSignIn={() => setMode("signin")}
+                                onBackToSignIn={toggleSigninMode}
                                 onResend={() => setIsVerificationPending(false)}
                             />
                         ) : (

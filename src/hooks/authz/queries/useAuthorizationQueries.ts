@@ -19,6 +19,7 @@ export const useMyAuthorizationQuery = () => {
 
 export const usePermissionGate = (permission: PermissionKey) => {
     const query = useMyAuthorizationQuery();
+
     return {
         ...query,
         allowed: hasPermission(query.data, permission),

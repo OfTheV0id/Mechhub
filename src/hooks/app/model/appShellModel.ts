@@ -16,7 +16,6 @@ export const APP_FALLBACK_VIEW_ORDER: ActiveView[] = [
 export const APP_FALLBACK_USER_PROFILE: UserProfile = {
     name: "张同学",
     avatar: "",
-    role: "工程力学专业学生",
 };
 
 export const APP_CLASS_MEMBERSHIP_NOTICES = {

@@ -9,7 +9,6 @@ import styles from "../shared/scrollbar.module.css";
 interface ProfileViewProps {
     name: string;
     setName: (value: string) => void;
-    role: string;
     avatar: string;
     isEditing: boolean;
     isUploadingAvatar: boolean;
@@ -17,14 +16,13 @@ interface ProfileViewProps {
     handleAvatarUpload: (file: File) => void;
     handleSave: () => void;
     handleCancel: () => void;
-    containerVariants: Record<string, any>;
-    itemVariants: Record<string, any>;
+    containerVariants?: Record<string, any>;
+    itemVariants?: Record<string, any>;
 }
 
 export const ProfileView = ({
     name,
     setName,
-    role,
     avatar,
     isEditing,
     isUploadingAvatar,
@@ -69,7 +67,6 @@ export const ProfileView = ({
                     />
                     <ProfileFields
                         name={name}
-                        role={role}
                         isEditing={isEditing}
                         onNameChange={setName}
                     />
