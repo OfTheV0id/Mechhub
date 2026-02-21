@@ -45,6 +45,7 @@ const formatDateTime = (value?: string | null) => {
     if (Number.isNaN(date.getTime())) {
         return "未设置";
     }
+
     return date.toLocaleString();
 };
 
@@ -62,6 +63,7 @@ export const ViewFeedbackView = ({
         setOpenGroupIds((prev) => {
             const next = new Set(prev);
             groups.forEach((group) => next.add(group.classId));
+
             return next;
         });
     }, [groups]);
@@ -87,6 +89,7 @@ export const ViewFeedbackView = ({
             }
             const next = new Set(prev);
             next.add(activeGroup.classId);
+
             return next;
         });
     }, [activeSubmissionId, groups]);
@@ -99,6 +102,7 @@ export const ViewFeedbackView = ({
             } else {
                 next.add(classId);
             }
+
             return next;
         });
     };
@@ -132,6 +136,7 @@ export const ViewFeedbackView = ({
                                         const isOpen = openGroupIds.has(
                                             group.classId,
                                         );
+
                                         return (
                                             <div
                                                 key={group.classId}
@@ -169,6 +174,7 @@ export const ViewFeedbackView = ({
                                                                 const active =
                                                                     item.submissionId ===
                                                                     activeSubmissionId;
+
                                                                 return (
                                                                     <button
                                                                         key={

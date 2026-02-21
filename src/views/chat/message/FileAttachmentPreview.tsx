@@ -27,6 +27,7 @@ export const FileAttachmentPreview = ({
         for (let i = 0; i < line.length; i += MAX_CHARS_PER_LINE) {
             chunks.push(line.slice(i, i + MAX_CHARS_PER_LINE));
         }
+
         return chunks;
     });
 

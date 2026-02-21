@@ -112,6 +112,7 @@ const formatDateTime = (value?: string | null) => {
     if (Number.isNaN(date.getTime())) {
         return "未设置";
     }
+
     return date.toLocaleString();
 };
 
@@ -120,6 +121,7 @@ const buildInitial = (name: string) => {
     if (!trimmed) {
         return "?";
     }
+
     return trimmed.charAt(0).toUpperCase();
 };
 
@@ -159,9 +161,11 @@ export const GradeAssignmentView = ({
     const [expandedSubmitted, setExpandedSubmitted] = useState<
         Record<string, boolean>
     >({});
+
     const [expandedMissing, setExpandedMissing] = useState<
         Record<string, boolean>
     >({});
+
     const [dashboardFilter, setDashboardFilter] = useState<
         "all" | "published" | "closed"
     >("all");
@@ -316,6 +320,7 @@ export const GradeAssignmentView = ({
                                 ] as const
                             ).map((filter) => {
                                 const active = dashboardFilter === filter.key;
+
                                 return (
                                     <Button
                                         key={filter.key}

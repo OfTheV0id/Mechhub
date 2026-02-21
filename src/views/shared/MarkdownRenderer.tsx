@@ -20,6 +20,7 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
                 components={{
                     code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || "");
+
                         return !inline && match ? (
                             <div
                                 className={`rounded-[1rem] overflow-x-auto my-2 shadow-sm border border-slate-700/50 ${styles.scrollbar}`}

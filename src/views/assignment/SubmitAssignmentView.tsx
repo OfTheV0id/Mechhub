@@ -71,6 +71,7 @@ const formatFileSize = (bytes?: number) => {
         return `${kb.toFixed(1)} KB`;
     }
     const mb = kb / 1024;
+
     return `${mb.toFixed(1)} MB`;
 };
 
@@ -82,6 +83,7 @@ export const SubmitAssignmentView = ({
     const [expandedPreview, setExpandedPreview] = useState<
         Record<string, boolean>
     >({});
+
     const [expandedDetails, setExpandedDetails] = useState<
         Record<string, boolean>
     >({});
@@ -99,6 +101,7 @@ export const SubmitAssignmentView = ({
             [assignmentId]: !prev[assignmentId],
         }));
     };
+
     const toggleDetails = (assignmentId: string) => {
         setExpandedDetails((prev) => ({
             ...prev,
@@ -147,6 +150,7 @@ export const SubmitAssignmentView = ({
                         ] as const
                     ).map((filter) => {
                         const active = activeFilter === filter.key;
+
                         return (
                             <Button
                                 key={filter.key}
@@ -190,6 +194,7 @@ export const SubmitAssignmentView = ({
                         {filteredAssignments.map((item) => {
                             const previewExpanded = !!expandedPreview[item.id];
                             const detailsExpanded = !!expandedDetails[item.id];
+
                             return (
                                 <article
                                     key={item.id}

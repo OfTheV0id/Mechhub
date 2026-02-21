@@ -12,6 +12,7 @@ interface GroupTextMessageViewProps {
 
 const getInitial = (value: string) => {
     const trimmed = value.trim();
+
     return trimmed ? trimmed.charAt(0).toUpperCase() : "?";
 };
 
@@ -20,6 +21,7 @@ const formatDateTime = (value: string) => {
     if (Number.isNaN(date.getTime())) {
         return value;
     }
+
     return date.toLocaleString();
 };
 
@@ -37,6 +39,7 @@ export const GroupTextMessageView = ({
         ) : (
             content
         );
+
     return (
         <div
             className={`flex w-full gap-3 ${isOwnMessage ? "flex-row-reverse" : "flex-row"}`}

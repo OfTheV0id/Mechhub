@@ -71,6 +71,7 @@ interface ClassHubViewProps {
 const buildInitial = (name: string) => {
     const trimmed = name.trim();
     if (!trimmed) return "?";
+
     return trimmed.charAt(0).toUpperCase();
 };
 
@@ -164,6 +165,7 @@ export const ClassHubView = ({
     const selectedClass = classOptions.find(
         (item) => item.id === selectedClassId,
     );
+
     const totalMembers = selectedClass
         ? selectedClass.teacherCount + selectedClass.studentCount
         : teachers.length + students.length;

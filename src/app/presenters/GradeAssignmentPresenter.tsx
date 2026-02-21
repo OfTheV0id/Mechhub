@@ -43,6 +43,7 @@ export const GradeAssignmentPresenter = ({
     const [activeAssignmentId, setActiveAssignmentId] = useState<string | null>(
         null,
     );
+
     const [activeSubmissionId, setActiveSubmissionId] = useState<string | null>(
         null,
     );
@@ -55,6 +56,7 @@ export const GradeAssignmentPresenter = ({
         activeClassId ?? undefined,
         !!activeClassId,
     );
+
     const classMembersQuery = useClassMembersQuery(
         activeClassId ?? undefined,
         !!activeClassId,
@@ -77,6 +79,7 @@ export const GradeAssignmentPresenter = ({
             setViewMode("classList");
             setActiveAssignmentId(null);
             setActiveSubmissionId(null);
+
             return;
         }
 
@@ -98,6 +101,7 @@ export const GradeAssignmentPresenter = ({
 
         if (!assignmentOptions.length) {
             setActiveAssignmentId(null);
+
             return;
         }
 
@@ -121,6 +125,7 @@ export const GradeAssignmentPresenter = ({
     useEffect(() => {
         if (!submissions.length) {
             setActiveSubmissionId(null);
+
             return;
         }
 
@@ -151,18 +156,22 @@ export const GradeAssignmentPresenter = ({
         const publishedCount = assignmentOptions.filter(
             (assignment) => assignment.status === "published",
         ).length;
+
         const closedCount = assignmentOptions.filter(
             (assignment) => assignment.status === "closed",
         ).length;
+
         const submissionCount = dashboardItems.reduce(
             (total, item) => total + item.submissions.length,
             0,
         );
+
         return { publishedCount, closedCount, submissionCount };
     }, [assignmentOptions, dashboardItems]);
 
     const activeStudents = useMemo(() => {
         const students = classMembersQuery.data?.students ?? [];
+
         return students.filter((student) => student.status !== "removed");
     }, [classMembersQuery.data?.students]);
 
@@ -194,6 +203,7 @@ export const GradeAssignmentPresenter = ({
                 const studentMeta = activeStudentMap.get(
                     submission.studentUserId,
                 );
+
                 return {
                     id: submission.studentUserId,
                     name:
@@ -203,6 +213,7 @@ export const GradeAssignmentPresenter = ({
                     avatar: studentMeta?.avatar ?? null,
                 };
             });
+
             const missingStudents = activeStudents
                 .filter((student) => !submissionByStudent.has(student.userId))
                 .map((student) => ({
@@ -217,17 +228,21 @@ export const GradeAssignmentPresenter = ({
             const uniqueSubmissions = Array.from(
                 submissionByStudent.values(),
             );
+
             const aiCompletedCount = uniqueSubmissions.filter(
                 (submission) => !!submission.aiFeedbackDraft?.trim(),
             ).length;
+
             const teacherNotManualCount = uniqueSubmissions.filter(
                 (submission) =>
                     !!submission.aiFeedbackDraft?.trim() &&
                     submission.gradeStatus === "draft",
             ).length;
+
             const aiInProgressCount = uniqueSubmissions.filter((submission) =>
                 generatingGradeDraftIds.has(submission.submissionId),
             ).length;
+
             const teacherManualCompletedCount = uniqueSubmissions.filter(
                 (submission) => submission.gradeStatus === "released",
             ).length;
@@ -264,13 +279,16 @@ export const GradeAssignmentPresenter = ({
             typeof record.sourceTitle === "string" && record.sourceTitle.trim()
                 ? record.sourceTitle
                 : "私聊会话";
+
         const capturedAt =
             typeof record.capturedAt === "string" ? record.capturedAt : null;
+
         const kind =
             typeof record.kind === "string" ? record.kind : "chat_session_snapshot";
 
         if (kind === "chat_response_snapshot") {
             const message = normalizeSnapshotMessage(record.targetMessage);
+
             return {
                 title,
                 capturedAt,
@@ -290,6 +308,7 @@ export const GradeAssignmentPresenter = ({
             setScore(0);
             setMaxScore(100);
             setTeacherFeedback("");
+
             return;
         }
 
