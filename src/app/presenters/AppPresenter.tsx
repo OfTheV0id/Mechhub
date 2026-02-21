@@ -3,12 +3,14 @@ import {
     buildAssignmentClassNameMap,
     resolveAssignmentPanelNode,
     shouldShowLandingPage,
+    useAuthPageState,
     useAppShellState,
 } from "@hooks";
 import { AssignmentSubmitPopover } from "@views/assignment";
+import { AuthPageView } from "@views/auth/AuthPageView";
 import { AppLoadingView } from "@views/layout/AppLoadingView";
+import { AuthGateView } from "@views/layout/AuthGateView";
 import { ClassMembershipNoticeView, ClassPickerPopover } from "@views/class";
-import { AuthGatePresenter } from "./AuthGatePresenter";
 import { ClassHubPresenter } from "./ClassHubPresenter";
 import { GradeAssignmentPresenter } from "./GradeAssignmentPresenter";
 import { LandingPagePresenter } from "./LandingPagePresenter";
@@ -41,6 +43,7 @@ const renderAssignmentPanel = (
 
 export const AppPresenter = () => {
     const appShellState = useAppShellState();
+    const authPageState = useAuthPageState();
     const { state, actions, derived, meta } = appShellState;
 
     if (meta.isAppLoading) {
@@ -122,9 +125,15 @@ export const AppPresenter = () => {
     );
 
     const mainNode = !state.session ? (
-        <AuthGatePresenter
+        <AuthGateView
             showAuth={state.showAuth}
-            setShowAuth={actions.setShowAuth}
+            authView={<AuthPageView {...authPageState} />}
+            landingView={
+                <LandingPagePresenter
+                    onStart={() => actions.setShowAuth(true)}
+                    onLogin={() => actions.setShowAuth(true)}
+                />
+            }
         />
     ) : shouldShowLandingPage(!!state.session, state.activeView) ? (
         <LandingPagePresenter
@@ -175,7 +184,6 @@ export const AppPresenter = () => {
                 uploadImage={derived.uploadImage}
                 isTyping={derived.isTyping}
                 handleStopGeneration={actions.handleStopGeneration}
-                handleUpdateProfile={actions.handleUpdateProfile}
                 onStartChat={actions.onStartChat}
                 onShareChatMessageToClass={
                     actions.handleShareChatMessageToClass

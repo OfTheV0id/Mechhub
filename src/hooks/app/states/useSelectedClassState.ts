@@ -7,6 +7,7 @@ export const useSelectedClassState = (classOptions: AppShellClassOption[]) => {
     useEffect(() => {
         if (classOptions.length === 0) {
             setSelectedClassId(null);
+
             return;
         }
 

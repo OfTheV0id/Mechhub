@@ -37,6 +37,7 @@ export const useActiveChatTargetState = () => {
 
     const classChatTarget =
         activeChatTarget.type === "class" ? activeChatTarget : undefined;
+
     const activeClassThreadId =
         activeChatTarget.type === "class"
             ? activeChatTarget.threadId

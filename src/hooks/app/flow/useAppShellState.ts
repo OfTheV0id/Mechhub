@@ -1,7 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+    assignmentInterface,
+    assignmentKeys,
     useCreateAssignmentMutation,
     useGenerateGradeDraftMutation,
     useMyAssignmentsQuery,
@@ -13,18 +21,28 @@ import {
     type CreateAssignmentPayload,
     type SaveGradeReviewPayload,
 } from "../../assignment/public";
-import { assignmentDomainInterface } from "../../assignment/interface/AssignmentDomainInterface";
-import { assignmentKeys } from "../../assignment/queries/assignmentKeys";
-import { useAuthFlow } from "../../auth/public";
-import { hasPermission, useMyAuthorizationQuery } from "../../authz/public";
+import {
+    authInstance,
+    useSessionQuery,
+    useProfileQuery,
+    useAuthShowState,
+} from "../../auth/public";
+import {
+    authzKeys,
+    hasPermission,
+    useMyAuthorizationQuery,
+} from "../../authz/public";
 import {
     chatUseCases,
+    chatKeys,
     type Message as ChatMessage,
     normalizeSnapshotMessages,
-    useChatRuntimeFlow,
-    useChatSessionsFlow,
+    upsertSavedChatSession,
+    useChatRuntimeState,
+    useChatSessionsState,
 } from "../../chat/public";
 import {
+    classKeys,
     useClassThreadsBatchQuery,
     useCreateGroupThreadMutation,
     useDeleteClassMutation,
@@ -33,10 +51,6 @@ import {
     useMyClassContextQuery,
     useRenameClassThreadMutation,
 } from "../../class/public";
-import { chatKeys } from "../../chat/queries/chatKeys";
-import { upsertSavedChatSession } from "../../chat/queries/chatCache";
-import { authzKeys } from "../../authz/queries/authzKeys";
-import { classKeys } from "../../class/queries/classKeys";
 import { useActiveChatTargetState } from "../states/useActiveChatTargetState";
 import { useSelectedClassState } from "../states/useSelectedClassState";
 import { useAppShareFlow } from "../useAppShareFlow";
@@ -52,10 +66,15 @@ import {
     type AppShellEnterClassChatPayload,
     type AppShellViewAccess,
 } from "../model/appShellModel";
-import { canAccessView, resolveFallbackView } from "../utils/viewAccess";
+import {
+    canAccessView,
+    resolveFallbackView,
+} from "../utils/viewAccess";
 
 const parseSharedChatMessages = (content: Record<string, unknown>) =>
-    normalizeSnapshotMessages(content.sharedMessages) as ChatMessage[];
+    normalizeSnapshotMessages(
+        content.sharedMessages,
+    ) as ChatMessage[];
 
 type SubmitToAssignmentIntent =
     | {
@@ -70,27 +89,26 @@ type SubmitToAssignmentIntent =
 
 export const useAppShellState = () => {
     const queryClient = useQueryClient();
-    const [creatingClassThreadId, setCreatingClassThreadId] = useState<
-        string | null
-    >(null);
+    const [creatingClassThreadId, setCreatingClassThreadId] =
+        useState<string | null>(null);
+
     const [submitToAssignmentIntent, setSubmitToAssignmentIntent] =
         useState<SubmitToAssignmentIntent | null>(null);
-    const [generatingGradeDraftIds, setGeneratingGradeDraftIds] = useState<
-        Set<string>
-    >(new Set());
+
+    const [generatingGradeDraftIds, setGeneratingGradeDraftIds] =
+        useState<Set<string>>(new Set());
+
     const previousViewerUserIdRef = useRef<string | null | undefined>(
         undefined,
     );
 
-    const {
-        session,
-        loading,
-        showAuth,
-        setShowAuth,
-        userProfile,
-        handleUpdateProfile,
-        handleSignOut,
-    } = useAuthFlow();
+    const { data: session, isLoading: loading } = useSessionQuery();
+    const { data: userProfile } = useProfileQuery(session ?? null);
+    const { showAuth, setShowAuth } = useAuthShowState();
+
+    const handleSignOut = useCallback(async () => {
+        await authInstance.signOut();
+    }, []);
     const viewerUserId = session?.user.id ?? null;
 
     const safeUserProfile = userProfile ?? APP_FALLBACK_USER_PROFILE;
@@ -100,19 +118,26 @@ export const useAppShellState = () => {
         isLoading: isAuthorizationLoading,
         isFetching: isAuthorizationFetching,
     } = useMyAuthorizationQuery();
+
     const { data: classContext, isLoading: isClassContextLoading } =
         useMyClassContextQuery();
 
     const canAccessChat = hasPermission(authorization, "chat.access");
-    const canAccessProfile = hasPermission(authorization, "profile.access");
+    const canAccessProfile = hasPermission(
+        authorization,
+        "profile.access",
+    );
+
     const canAccessStudentAssignments = hasPermission(
         authorization,
         "assignment.student.access",
     );
+
     const canAccessTeacherAssignments = hasPermission(
         authorization,
         "assignment.teacher.access",
     );
+
     const canAccessClassHub =
         !!classContext?.isAdmin ||
         canAccessStudentAssignments ||
@@ -146,7 +171,9 @@ export const useAppShellState = () => {
     const selectedClassId = selectedClassState.state.selectedClassId;
     const selectedClass = useMemo(
         () =>
-            classOptions.find((classItem) => classItem.id === selectedClassId),
+            classOptions.find(
+                (classItem) => classItem.id === selectedClassId,
+            ),
         [classOptions, selectedClassId],
     );
     const hasStudentClassMembership = joinedClasses.length > 0;
@@ -160,7 +187,10 @@ export const useAppShellState = () => {
         () =>
             classOptions.map((classItem) => {
                 const threadRows =
-                    classThreadsBatchQuery.dataByClassId[classItem.id] ?? [];
+                    classThreadsBatchQuery.dataByClassId[
+                        classItem.id
+                    ] ?? [];
+
                 const threads = threadRows
                     .filter(isSidebarThread)
                     .map((thread) => ({
@@ -195,10 +225,10 @@ export const useAppShellState = () => {
         handleRenameSession,
         messages,
         setCurrentSessionId,
-    } = useChatSessionsFlow(session, canAccessChat);
+    } = useChatSessionsState(session, canAccessChat);
 
     const { isTyping, handleSendMessage, handleStopGeneration } =
-        useChatRuntimeFlow({
+        useChatRuntimeState({
             currentSessionId,
             setCurrentSessionId,
         });
@@ -206,6 +236,7 @@ export const useAppShellState = () => {
     const guardedSendMessage = canAccessChat
         ? handleSendMessage
         : () => undefined;
+
     const { activeView, setActiveView, onSendMessage, onStartChat } =
         useAppView({
             handleSendMessage: guardedSendMessage,
@@ -224,6 +255,7 @@ export const useAppShellState = () => {
               }
             : undefined,
     );
+
     const myFeedbackQuery = useMyFeedbackQuery(
         undefined,
         !!session && canAccessStudentAssignments,
@@ -249,7 +281,13 @@ export const useAppShellState = () => {
         if (!canAccessView(activeView, viewAccess)) {
             setActiveView(fallbackView);
         }
-    }, [activeView, fallbackView, session, setActiveView, viewAccess]);
+    }, [
+        activeView,
+        fallbackView,
+        session,
+        setActiveView,
+        viewAccess,
+    ]);
 
     useEffect(() => {
         if (activeView !== "submitAssignment") {
@@ -277,17 +315,25 @@ export const useAppShellState = () => {
     const activeChatTargetState = useActiveChatTargetState();
 
     const safeChatSessions = canAccessChat ? chatSessions : [];
-    const safeCurrentSessionId = canAccessChat ? currentSessionId : null;
+    const safeCurrentSessionId = canAccessChat
+        ? currentSessionId
+        : null;
     const safeMessages = canAccessChat ? messages : [];
-    const safeIsLoadingSessions = canAccessChat ? isLoadingSessions : false;
+    const safeIsLoadingSessions = canAccessChat
+        ? isLoadingSessions
+        : false;
     const safeIsTyping = canAccessChat ? isTyping : false;
-    const safeSetChatMode = canAccessChat ? setChatMode : () => undefined;
+    const safeSetChatMode = canAccessChat
+        ? setChatMode
+        : () => undefined;
+
     const safeOnSendMessage = canAccessChat
         ? (payload: Parameters<typeof onSendMessage>[0]) => {
               activeChatTargetState.actions.setPrivateChatTarget();
               onSendMessage(payload);
           }
         : () => undefined;
+
     const safeOnStartChat = canAccessChat
         ? (
               message?: string,
@@ -297,27 +343,39 @@ export const useAppShellState = () => {
               mode?: Parameters<typeof onStartChat>[4],
           ) => {
               activeChatTargetState.actions.setPrivateChatTarget();
-              onStartChat(message, imageUrls, fileAttachments, model, mode);
+              onStartChat(
+                  message,
+                  imageUrls,
+                  fileAttachments,
+                  model,
+                  mode,
+              );
           }
         : () => undefined;
+
     const safeHandleStopGeneration = canAccessChat
         ? handleStopGeneration
         : () => undefined;
+
     const safeDeleteChatSession = canAccessChat
         ? deleteChatSession
         : async () => ({ success: false, wasCurrentSession: false });
+
     const safeHandleSelectSession = canAccessChat
         ? (id: string) => {
               activeChatTargetState.actions.setPrivateChatTarget();
+
               return handleSelectSession(id);
           }
         : () => false;
+
     const safeHandleStartNewQuest = canAccessChat
         ? () => {
               activeChatTargetState.actions.setPrivateChatTarget();
               handleStartNewQuest();
           }
         : () => undefined;
+
     const safeHandleRenameSession = canAccessChat
         ? handleRenameSession
         : async () => false;
@@ -338,6 +396,7 @@ export const useAppShellState = () => {
         const previousViewerUserId = previousViewerUserIdRef.current;
         if (previousViewerUserId === undefined) {
             previousViewerUserIdRef.current = viewerUserId;
+
             return;
         }
 
@@ -367,7 +426,9 @@ export const useAppShellState = () => {
                         queryKey: authzKeys.all(previousViewerUserId),
                     }),
                     queryClient.cancelQueries({
-                        queryKey: assignmentKeys.all(previousViewerUserId),
+                        queryKey: assignmentKeys.all(
+                            previousViewerUserId,
+                        ),
                     }),
                 ]);
 
@@ -381,7 +442,9 @@ export const useAppShellState = () => {
                     queryKey: authzKeys.all(previousViewerUserId),
                 });
                 queryClient.removeQueries({
-                    queryKey: assignmentKeys.all(previousViewerUserId),
+                    queryKey: assignmentKeys.all(
+                        previousViewerUserId,
+                    ),
                 });
             })();
         }
@@ -408,24 +471,29 @@ export const useAppShellState = () => {
     const createAssignmentMutation = useCreateAssignmentMutation();
     const submitAssignmentFromChatMutation =
         useSubmitAssignmentFromChatMutation();
-    const generateGradeDraftMutation = useGenerateGradeDraftMutation();
+
+    const generateGradeDraftMutation =
+        useGenerateGradeDraftMutation();
     const saveGradeReviewMutation = useSaveGradeReviewMutation();
     const releaseGradeMutation = useReleaseGradeMutation();
 
     const getClassNameById = useCallback(
         (classId: string) =>
-            classOptions.find((classItem) => classItem.id === classId)?.name ??
-            classId,
+            classOptions.find((classItem) => classItem.id === classId)
+                ?.name ?? classId,
         [classOptions],
     );
 
     const handleEnterClassChat = useCallback(
         (payload: AppShellEnterClassChatPayload) => {
             const className =
-                payload.className ?? getClassNameById(payload.classId);
+                payload.className ??
+                getClassNameById(payload.classId);
 
             handleClearCurrentSessionSelection();
-            selectedClassState.actions.setSelectedClassId(payload.classId);
+            selectedClassState.actions.setSelectedClassId(
+                payload.classId,
+            );
             activeChatTargetState.actions.setClassChatTarget({
                 classId: payload.classId,
                 className,
@@ -460,10 +528,11 @@ export const useAppShellState = () => {
         async (classId: string) => {
             try {
                 setCreatingClassThreadId(classId);
-                const thread = await createGroupThreadMutation.mutateAsync({
-                    classId,
-                    title: "班级讨论",
-                });
+                const thread =
+                    await createGroupThreadMutation.mutateAsync({
+                        classId,
+                        title: "班级讨论",
+                    });
 
                 handleEnterClassChat({
                     classId,
@@ -483,20 +552,23 @@ export const useAppShellState = () => {
             const nextTitle = title.trim();
             if (!nextTitle) {
                 toast.error("请输入有效的话题名称");
+
                 return false;
             }
 
             if (nextTitle.length > 60) {
                 toast.error("话题名称最多 60 个字符");
+
                 return false;
             }
 
             try {
-                const thread = await renameClassThreadMutation.mutateAsync({
-                    classId,
-                    threadId,
-                    title: nextTitle,
-                });
+                const thread =
+                    await renameClassThreadMutation.mutateAsync({
+                        classId,
+                        threadId,
+                        title: nextTitle,
+                    });
 
                 const currentClassTarget =
                     activeChatTargetState.state.classChatTarget;
@@ -522,16 +594,19 @@ export const useAppShellState = () => {
     const handleDeleteClassThread = useCallback(
         async (classId: string, threadId: string) => {
             try {
-                const result = await deleteClassThreadMutation.mutateAsync({
-                    classId,
-                    threadId,
-                });
+                const result =
+                    await deleteClassThreadMutation.mutateAsync({
+                        classId,
+                        threadId,
+                    });
 
                 const currentClassTarget =
                     activeChatTargetState.state.classChatTarget;
                 if (currentClassTarget?.threadId === threadId) {
                     activeChatTargetState.actions.setPrivateChatTarget();
-                    selectedClassState.actions.setSelectedClassId(classId);
+                    selectedClassState.actions.setSelectedClassId(
+                        classId,
+                    );
                     guardedSetActiveView("classHub");
                 }
 
@@ -562,6 +637,7 @@ export const useAppShellState = () => {
 
                 selectedClassState.actions.setSelectedClassId(null);
                 guardedSetActiveView("classHub");
+
                 return true;
             } catch {
                 return false;
@@ -614,20 +690,27 @@ export const useAppShellState = () => {
         async (content: Record<string, unknown>) => {
             if (!canAccessChat) {
                 toast.error("Chat access is required.");
+
                 return;
             }
 
             const sharedMessages = parseSharedChatMessages(content);
             if (sharedMessages.length === 0) {
                 toast.error("分享内容为空，无法复制到会话。");
+
                 return;
             }
 
             const sourceTitle =
-                typeof content.sourceTitle === "string" && content.sourceTitle
+                typeof content.sourceTitle === "string" &&
+                content.sourceTitle
                     ? content.sourceTitle
                     : "班级分享";
-            const sessionTitle = `复制分享: ${sourceTitle}`.slice(0, 40);
+
+            const sessionTitle = `复制分享: ${sourceTitle}`.slice(
+                0,
+                40,
+            );
 
             try {
                 const savedSession =
@@ -637,7 +720,11 @@ export const useAppShellState = () => {
                         sessionTitle,
                     );
 
-                upsertSavedChatSession(queryClient, viewerUserId, savedSession);
+                upsertSavedChatSession(
+                    queryClient,
+                    viewerUserId,
+                    savedSession,
+                );
                 await queryClient.invalidateQueries({
                     queryKey: chatKeys.lists(viewerUserId),
                     refetchType: "inactive",
@@ -649,7 +736,9 @@ export const useAppShellState = () => {
                 toast.success("已复制到你的新会话");
             } catch (error) {
                 const message =
-                    error instanceof Error ? error.message : "复制失败";
+                    error instanceof Error
+                        ? error.message
+                        : "复制失败";
                 toast.error(message);
             }
         },
@@ -667,32 +756,42 @@ export const useAppShellState = () => {
         () => new Set(classOptions.map((classItem) => classItem.id)),
         [classOptions],
     );
+
     const studentAssignments = useMemo(() => {
         const assignments = myAssignmentsQuery.data ?? [];
         if (classIdSet.size === 0) {
             return [];
         }
+
         return assignments.filter((assignment) =>
             classIdSet.has(assignment.classId),
         );
     }, [classIdSet, myAssignmentsQuery.data]);
+
     const feedbackSummaries = useMemo(() => {
         const feedback = myFeedbackQuery.data ?? [];
         if (classIdSet.size === 0) {
             return [];
         }
+
         return feedback.filter((item) => {
-            const classId = item.assignment?.classId || item.submission.classId;
+            const classId =
+                item.assignment?.classId || item.submission.classId;
+
             return classIdSet.has(classId);
         });
     }, [classIdSet, myFeedbackQuery.data]);
 
     const assignmentById = useMemo(
         () =>
-            studentAssignments.reduce<Map<string, Assignment>>((map, item) => {
-                map.set(item.id, item);
-                return map;
-            }, new Map<string, Assignment>()),
+            studentAssignments.reduce<Map<string, Assignment>>(
+                (map, item) => {
+                    map.set(item.id, item);
+
+                    return map;
+                },
+                new Map<string, Assignment>(),
+            ),
         [studentAssignments],
     );
 
@@ -708,16 +807,19 @@ export const useAppShellState = () => {
         (sessionId: string) => {
             if (!canAccessStudentAssignments) {
                 toast.error("需要学生作业权限。");
+
                 return;
             }
 
             if (!sessionId) {
                 toast.error("请先打开一个私聊会话。");
+
                 return;
             }
 
             if (submitTargetAssignments.length === 0) {
                 toast.error("当前没有可提交的作业。");
+
                 return;
             }
 
@@ -733,16 +835,19 @@ export const useAppShellState = () => {
         (messageId: string) => {
             if (!canAccessStudentAssignments) {
                 toast.error("需要学生作业权限。");
+
                 return;
             }
 
             if (!safeCurrentSessionId) {
                 toast.error("请先打开一个私聊会话。");
+
                 return;
             }
 
             if (submitTargetAssignments.length === 0) {
                 toast.error("当前没有可提交的作业。");
+
                 return;
             }
 
@@ -764,11 +869,13 @@ export const useAppShellState = () => {
             const assignment = assignmentById.get(assignmentId);
             if (!assignment) {
                 toast.error("未找到作业。");
+
                 return false;
             }
 
             if (!submitToAssignmentIntent) {
                 toast.error("请选择聊天提交来源。");
+
                 return false;
             }
 
@@ -777,18 +884,21 @@ export const useAppShellState = () => {
                     assignmentId,
                     classId: assignment.classId,
                     sourceKind:
-                        submitToAssignmentIntent.kind === "chatSession"
+                        submitToAssignmentIntent.kind ===
+                        "chatSession"
                             ? "chat_session_snapshot"
                             : "chat_response_snapshot",
                     sourceChatId: submitToAssignmentIntent.chatId,
                     sourceMessageId:
-                        submitToAssignmentIntent.kind === "chatMessage"
+                        submitToAssignmentIntent.kind ===
+                        "chatMessage"
                             ? submitToAssignmentIntent.messageId
                             : undefined,
                     reflectionText: reflectionText.trim(),
                 });
 
                 setSubmitToAssignmentIntent(null);
+
                 return true;
             } catch {
                 return false;
@@ -805,12 +915,14 @@ export const useAppShellState = () => {
         async (assignmentId: string, reflectionText = "") => {
             if (!safeCurrentSessionId) {
                 toast.error("请先打开一个私聊会话。");
+
                 return false;
             }
 
             const assignment = assignmentById.get(assignmentId);
             if (!assignment) {
                 toast.error("未找到作业。");
+
                 return false;
             }
 
@@ -822,6 +934,7 @@ export const useAppShellState = () => {
                     sourceChatId: safeCurrentSessionId,
                     reflectionText: reflectionText.trim(),
                 });
+
                 return true;
             } catch {
                 return false;
@@ -838,6 +951,7 @@ export const useAppShellState = () => {
         async (payload: CreateAssignmentPayload) => {
             try {
                 await createAssignmentMutation.mutateAsync(payload);
+
                 return true;
             } catch {
                 return false;
@@ -846,11 +960,13 @@ export const useAppShellState = () => {
         [createAssignmentMutation],
     );
 
-    const { handlePublishAssignment } = usePublishAssignmentCreationFlow({
-        classOptions,
-        onCreateAssignment: handleCreateAssignment,
-        onPublished: () => guardedSetActiveView("gradeAssignment"),
-    });
+    const { handlePublishAssignment } =
+        usePublishAssignmentCreationFlow({
+            classOptions,
+            onCreateAssignment: handleCreateAssignment,
+            onPublished: () =>
+                guardedSetActiveView("gradeAssignment"),
+        });
 
     const handleGenerateGradeDraft = useCallback(
         async (
@@ -861,6 +977,7 @@ export const useAppShellState = () => {
             setGeneratingGradeDraftIds((previous) => {
                 const next = new Set(previous);
                 next.add(submissionId);
+
                 return next;
             });
             if (!options?.silent) {
@@ -869,6 +986,7 @@ export const useAppShellState = () => {
                         submissionId,
                         model,
                     });
+
                     return true;
                 } catch {
                     return false;
@@ -876,6 +994,7 @@ export const useAppShellState = () => {
                     setGeneratingGradeDraftIds((previous) => {
                         const next = new Set(previous);
                         next.delete(submissionId);
+
                         return next;
                     });
                 }
@@ -883,10 +1002,13 @@ export const useAppShellState = () => {
 
             try {
                 const result =
-                    await assignmentDomainInterface.generateGradeDraft({
-                        submissionId,
-                        model,
-                    });
+                    await assignmentInterface.generateGradeDraft(
+                        {
+                            submissionId,
+                            model,
+                        },
+                    );
+
                 const resolvedSubmissionId =
                     result.submissionId || submissionId;
 
@@ -901,6 +1023,7 @@ export const useAppShellState = () => {
                         queryKey: assignmentKeys.all(viewerUserId),
                     }),
                 ]);
+
                 return true;
             } catch {
                 return false;
@@ -908,6 +1031,7 @@ export const useAppShellState = () => {
                 setGeneratingGradeDraftIds((previous) => {
                     const next = new Set(previous);
                     next.delete(submissionId);
+
                     return next;
                 });
             }
@@ -919,6 +1043,7 @@ export const useAppShellState = () => {
         async (payload: SaveGradeReviewPayload) => {
             try {
                 await saveGradeReviewMutation.mutateAsync(payload);
+
                 return true;
             } catch {
                 return false;
@@ -930,7 +1055,10 @@ export const useAppShellState = () => {
     const handleReleaseGrade = useCallback(
         async (submissionId: string) => {
             try {
-                await releaseGradeMutation.mutateAsync({ submissionId });
+                await releaseGradeMutation.mutateAsync({
+                    submissionId,
+                });
+
                 return true;
             } catch {
                 return false;
@@ -939,9 +1067,14 @@ export const useAppShellState = () => {
         [releaseGradeMutation],
     );
 
-    const classChatTarget = activeChatTargetState.state.classChatTarget;
-    const activeClassThreadId = activeChatTargetState.state.activeClassThreadId;
-    const chatTargetType = activeChatTargetState.state.activeChatTarget.type;
+    const classChatTarget =
+        activeChatTargetState.state.classChatTarget;
+
+    const activeClassThreadId =
+        activeChatTargetState.state.activeClassThreadId;
+
+    const chatTargetType =
+        activeChatTargetState.state.activeChatTarget.type;
 
     const shareableThreadGroups = useMemo(
         () =>
@@ -954,7 +1087,8 @@ export const useAppShellState = () => {
         [classSessionGroups],
     );
 
-    const sharePickerDescription = buildSharePickerDescription(shareIntent);
+    const sharePickerDescription =
+        buildSharePickerDescription(shareIntent);
 
     const isAppLoading =
         loading ||
@@ -969,7 +1103,8 @@ export const useAppShellState = () => {
             showAuth,
             activeView,
             selectedClassId,
-            activeChatTarget: activeChatTargetState.state.activeChatTarget,
+            activeChatTarget:
+                activeChatTargetState.state.activeChatTarget,
             shareIntent,
             submitToAssignmentIntent,
             chatMode,
@@ -977,10 +1112,10 @@ export const useAppShellState = () => {
         actions: {
             setShowAuth,
             setActiveView: guardedSetActiveView,
-            setSelectedClassId: selectedClassState.actions.setSelectedClassId,
+            setSelectedClassId:
+                selectedClassState.actions.setSelectedClassId,
             setShareIntent,
             setSubmitToAssignmentIntent,
-            handleUpdateProfile,
             handleSignOut,
             onSendMessage: safeOnSendMessage,
             onStartChat: safeOnStartChat,
@@ -1042,9 +1177,11 @@ export const useAppShellState = () => {
             classHubProps: {
                 requesterEmail: session?.user.email,
                 canCreateClass:
-                    !!classContext?.isAdmin || canAccessTeacherAssignments,
+                    !!classContext?.isAdmin ||
+                    canAccessTeacherAssignments,
                 canJoinClass:
-                    canAccessStudentAssignments || canAccessTeacherAssignments,
+                    canAccessStudentAssignments ||
+                    canAccessTeacherAssignments,
                 selectedClassId,
                 onSelectedClassIdChange:
                     selectedClassState.actions.setSelectedClassId,
@@ -1064,9 +1201,11 @@ export const useAppShellState = () => {
             isClassContextLoading,
             isSharing,
             creatingClassThreadId,
-            isSubmittingAssignment: submitAssignmentFromChatMutation.isPending,
+            isSubmittingAssignment:
+                submitAssignmentFromChatMutation.isPending,
             isCreatingAssignment: createAssignmentMutation.isPending,
-            isGeneratingGradeDraft: generateGradeDraftMutation.isPending,
+            isGeneratingGradeDraft:
+                generateGradeDraftMutation.isPending,
             isSavingGradeReview: saveGradeReviewMutation.isPending,
             isReleasingGrade: releaseGradeMutation.isPending,
             isLoadingStudentAssignments: myAssignmentsQuery.isLoading,
@@ -1074,3 +1213,4 @@ export const useAppShellState = () => {
         },
     };
 };
+

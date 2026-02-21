@@ -31,6 +31,7 @@ export const ClassThreadChatPresenter = ({
         if (nextMode === "correct") {
             toast.warning("班级群聊不支持批改模式");
             setMode("study");
+
             return;
         }
         setMode(nextMode);

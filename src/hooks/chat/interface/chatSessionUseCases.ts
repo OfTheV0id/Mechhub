@@ -3,11 +3,11 @@ import {
     createChatTitle,
     upsertAssistantMessages,
 } from "./chatMessagePolicies";
-import type { ChatCachePort } from "./ChatCachePort";
+import type { ChatCacheInterface } from "./chatCacheInterface";
 import { getHooksLogger } from "../../shared/logger";
 
 interface PrepareActiveSessionParams {
-    cache: ChatCachePort;
+    cache: ChatCacheInterface;
     currentSessionId: string | null;
     setCurrentSessionId: (id: string | null) => void;
     setSessionTyping: (id: string, isTyping: boolean) => void;
@@ -58,7 +58,7 @@ export const prepareActiveSession = ({
 };
 
 export const appendMessage = (
-    cache: ChatCachePort,
+    cache: ChatCacheInterface,
     sessionId: string,
     message: Message,
 ) => {
@@ -66,7 +66,7 @@ export const appendMessage = (
 };
 
 export const updateMessage = (
-    cache: ChatCachePort,
+    cache: ChatCacheInterface,
     sessionId: string,
     messageId: string,
     updater: (message: Message) => Message,
@@ -79,7 +79,7 @@ export const updateMessage = (
 };
 
 export const upsertAssistantMessage = (
-    cache: ChatCachePort,
+    cache: ChatCacheInterface,
     sessionId: string,
     mode: ChatMode,
     aiResponse: Message,
@@ -90,7 +90,7 @@ export const upsertAssistantMessage = (
 };
 
 export const persistSession = async (
-    cache: ChatCachePort,
+    cache: ChatCacheInterface,
     activeId: string,
     title: string,
     saveChat: (payload: {
@@ -112,7 +112,7 @@ export const persistSession = async (
 };
 
 export const generateAndPersistTitle = async (
-    cache: ChatCachePort,
+    cache: ChatCacheInterface,
     activeId: string,
     finalMessages: Message[],
     generateTitle: (messages: Message[]) => Promise<string>,
@@ -139,3 +139,4 @@ export const generateAndPersistTitle = async (
         cache.setChatTitleGenerating(activeId, false);
     }
 };
+

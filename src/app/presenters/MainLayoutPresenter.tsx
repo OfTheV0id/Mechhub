@@ -2,8 +2,9 @@ import { MainLayoutView } from "@views/layout/MainLayoutView";
 import { HomePresenter } from "./HomePresenter";
 import { ChatPresenter } from "./ChatPresenter";
 import { SidebarPresenter } from "./SidebarPresenter";
-import { ProfilePresenter } from "./ProfilePresenter";
 import { ClassThreadChatPresenter } from "./ClassThreadChatPresenter";
+import { ProfileView } from "@views/profile/ProfileView";
+import { useProfileState } from "@hooks";
 import type {
     ChatMode as HookChatMode,
     ChatSession as HookChatSession,
@@ -60,7 +61,6 @@ interface MainLayoutPresenterProps {
     uploadImage: UploadImageHandler;
     isTyping: boolean;
     handleStopGeneration: () => void;
-    handleUpdateProfile: (name: string, avatar: string) => void;
     onStartChat: (
         message?: string,
         imageUrls?: string[],
@@ -121,7 +121,6 @@ export const MainLayoutPresenter = ({
     uploadImage,
     isTyping,
     handleStopGeneration,
-    handleUpdateProfile,
     onStartChat,
     onShareChatMessageToClass,
     onSubmitChatMessageToAssignment,
@@ -137,6 +136,7 @@ export const MainLayoutPresenter = ({
     const viewUserProfile = mapUserProfile(userProfile);
     const viewSessions = chatSessions.map(mapChatSession);
     const viewMessages = messages.map(mapMessage);
+    const profileState = useProfileState();
 
     return (
         <MainLayoutView
@@ -214,9 +214,13 @@ export const MainLayoutPresenter = ({
             }
             profile={
                 canAccessProfile ? (
-                    <ProfilePresenter
-                        user={userProfile}
-                        onUpdateProfile={handleUpdateProfile}
+                    <ProfileView
+                        {...profileState}
+                        isUploadingAvatar={profileState.isSaving}
+                        handleSave={profileState.handleSave}
+                        handleAvatarUpload={
+                            profileState.handleAvatarSelect
+                        }
                     />
                 ) : undefined
             }

@@ -33,6 +33,7 @@ export const DetailPanel = ({
     const hasReasoning = !!content && content.trim().length > 0;
 
     if (!show) return null;
+
     return (
         <div className={`flex w-full flex-col ${className}`}>
             <Button

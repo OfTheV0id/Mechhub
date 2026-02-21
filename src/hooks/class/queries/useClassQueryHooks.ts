@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useSessionQuery } from "../../auth/queries/useSession";
-import { classDomainInterface } from "../interface/ClassDomainInterface";
+import { useSessionQuery } from "../../auth/public";
+import { classInterface } from "../interface/classInterface";
 import { classKeys } from "./classKeys";
 
 export const useMyClassContextQuery = () => {
@@ -9,7 +9,7 @@ export const useMyClassContextQuery = () => {
 
     return useQuery({
         queryKey: classKeys.context(viewerUserId),
-        queryFn: classDomainInterface.getMyClassContext,
+        queryFn: classInterface.getMyClassContext,
         enabled: !!session,
         staleTime: 60_000,
     });
@@ -31,7 +31,7 @@ export const useClassMembersQuery = (
 
     return useQuery({
         queryKey: classKeys.members(viewerUserId, classId ?? "unknown"),
-        queryFn: () => classDomainInterface.listClassMembers(classId ?? ""),
+        queryFn: () => classInterface.listClassMembers(classId ?? ""),
         enabled: enabled && !!classId && !!session,
         staleTime: options?.staleTime ?? 30_000,
         refetchInterval: options?.refetchInterval,
@@ -45,7 +45,7 @@ export const useInviteCodesQuery = (classId?: string, enabled = true) => {
 
     return useQuery({
         queryKey: classKeys.inviteCodes(viewerUserId, classId ?? "unknown"),
-        queryFn: () => classDomainInterface.listInviteCodes(classId ?? ""),
+        queryFn: () => classInterface.listInviteCodes(classId ?? ""),
         enabled: enabled && !!classId && !!session,
         staleTime: 15_000,
     });
@@ -57,7 +57,7 @@ export const useClassThreadsQuery = (classId?: string, enabled = true) => {
 
     return useQuery({
         queryKey: classKeys.threads(viewerUserId, classId ?? "unknown"),
-        queryFn: () => classDomainInterface.listClassThreads(classId ?? ""),
+        queryFn: () => classInterface.listClassThreads(classId ?? ""),
         enabled: enabled && !!classId && !!session,
         staleTime: 5_000,
     });
@@ -73,7 +73,7 @@ export const useClassThreadMessagesQuery = (
     return useQuery({
         queryKey: classKeys.threadMessages(viewerUserId, threadId ?? "unknown"),
         queryFn: () =>
-            classDomainInterface.getClassThreadMessages(threadId ?? ""),
+            classInterface.getClassThreadMessages(threadId ?? ""),
         enabled: enabled && !!threadId && !!session,
         staleTime: 2_000,
     });

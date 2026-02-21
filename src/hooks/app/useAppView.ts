@@ -60,3 +60,4 @@ export const useAppView = ({ handleSendMessage }: UseAppViewParams) => {
         onStartChat,
     };
 };
+

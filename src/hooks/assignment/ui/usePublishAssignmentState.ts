@@ -1,6 +1,6 @@
-import { usePublishAssignmentFileState } from "../states/usePublishAssignmentFileState";
-import { usePublishAssignmentFlow } from "../flows/usePublishAssignmentFlow";
-import { usePublishAssignmentFormState } from "../states/usePublishAssignmentFormState";
+import { usePublishAssignmentFileState } from "./usePublishAssignmentFileState";
+import { usePublishAssignmentActionState } from "./usePublishAssignmentActionState";
+import { usePublishAssignmentFormState } from "./usePublishAssignmentFormState";
 import type { PublishAssignmentDraft } from "../types";
 
 interface UsePublishAssignmentStateParams {
@@ -12,10 +12,10 @@ export const usePublishAssignmentState = ({
 }: UsePublishAssignmentStateParams) => {
     const form = usePublishAssignmentFormState();
     const files = usePublishAssignmentFileState();
-    const flow = usePublishAssignmentFlow({ onPublish });
+    const actionState = usePublishAssignmentActionState({ onPublish });
 
     const handlePublish = async () => {
-        await flow.actions.handlePublish({
+        await actionState.actions.handlePublish({
             title: form.state.title,
             classId: form.state.classId,
             dueDate: form.state.dueDate,
@@ -29,7 +29,7 @@ export const usePublishAssignmentState = ({
     const state = {
         ...form.state,
         ...files.state,
-        ...flow.state,
+        ...actionState.state,
     };
 
     const actions = {

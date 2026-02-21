@@ -1,7 +1,7 @@
 import { MessageSquare, Share2, Upload } from "lucide-react";
 import {
     useSidebarFooterState,
-    useSidebarActionsFlow,
+    useSidebarActionsState,
     useSidebarResizeState,
     useSidebarSessionsState,
     type DeleteChatResult,
@@ -86,12 +86,15 @@ export const SidebarPresenter = ({
     const onSubmitAssignment = canAccessStudentAssignments
         ? () => setActiveView("submitAssignment")
         : undefined;
+
     const onViewFeedback = canAccessStudentAssignments
         ? () => setActiveView("viewFeedback")
         : undefined;
+
     const onPublishAssignment = canAccessTeacherAssignments
         ? () => setActiveView("publishAssignment")
         : undefined;
+
     const onGradeAssignment = canAccessTeacherAssignments
         ? () => setActiveView("gradeAssignment")
         : undefined;
@@ -110,7 +113,7 @@ export const SidebarPresenter = ({
         onGradeAssignment,
     });
 
-    const { onNewQuest, handleDeleteSession } = useSidebarActionsFlow({
+    const { onNewQuest, handleDeleteSession } = useSidebarActionsState({
         setActiveView,
         handleSelectSession,
         handleStartNewQuest,

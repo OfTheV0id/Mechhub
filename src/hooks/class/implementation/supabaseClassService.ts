@@ -10,7 +10,7 @@ export {
     listInviteCodes,
     removeStudentFromClass,
     revokeInviteCode,
-} from "../services/classManagementService";
+} from "./classManagementService";
 export {
     createGroupThread,
     deleteClassThread,
@@ -20,10 +20,10 @@ export {
     renameClassThread,
     shareGradeResultToClass,
     sharePrivateChatToClass,
-} from "../services/classThreadService";
+} from "./classThreadService";
 export {
     ClassServiceError,
     extractClassErrorStatus,
     isClassForbiddenError,
     toClassServiceError,
-} from "../services/classErrors";
+} from "./classErrors";

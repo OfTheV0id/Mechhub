@@ -1,17 +1,17 @@
 import { useRef } from "react";
 import { toast } from "sonner";
-import type { AttachmentNotifier } from "../model/attachment";
+import type { AttachmentNotifier } from "../types";
 import {
-    useAttachmentUploadFlow,
+    useAttachmentUploadActionState,
     type UploadImageHandler,
-} from "../flow/useAttachmentUploadFlow";
-import { useImageAttachmentState } from "../states/useImageAttachmentState";
-import { useTextAttachmentState } from "../states/useTextAttachmentState";
+} from "./useAttachmentUploadActionState";
+import { useImageAttachmentState } from "./useImageAttachmentState";
+import { useTextAttachmentState } from "./useTextAttachmentState";
 
 export type {
     UploadImageHandler,
     UploadImageResult,
-} from "../flow/useAttachmentUploadFlow";
+} from "./useAttachmentUploadActionState";
 
 interface UseAttachmentUploadStateParams {
     uploadImage: UploadImageHandler;
@@ -32,7 +32,7 @@ export const useAttachmentUploadState = ({
     const imageState = useImageAttachmentState();
     const textState = useTextAttachmentState();
 
-    const flow = useAttachmentUploadFlow({
+    const flow = useAttachmentUploadActionState({
         uploadImage,
         imageState,
         textState,
@@ -80,3 +80,4 @@ export const useAttachmentUploadState = ({
         resetAttachments: actions.resetAttachments,
     };
 };
+

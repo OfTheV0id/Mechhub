@@ -1,6 +1,6 @@
-import { useGradeDraftState } from "../states/useGradeDraftState";
-import { useStudentCursorState } from "../states/useStudentCursorState";
-import { useGradeSubmitFlow } from "../flows/useGradeSubmitFlow";
+import { useGradeDraftState } from "./useGradeDraftState";
+import { useStudentCursorState } from "./useStudentCursorState";
+import { useGradeSubmitActionState } from "./useGradeSubmitActionState";
 import type { AssignmentStudentSubmission } from "../types";
 
 interface UseGradeAssignmentStateParams {
@@ -18,7 +18,7 @@ export const useGradeAssignmentState = ({
 }: UseGradeAssignmentStateParams) => {
     const cursor = useStudentCursorState(students);
     const draft = useGradeDraftState();
-    const submit = useGradeSubmitFlow({ onSaveGrade });
+    const submit = useGradeSubmitActionState({ onSaveGrade });
 
     const { currentStudentIndex, currentStudent } = cursor.state;
     const currentStudentId = currentStudent?.id;

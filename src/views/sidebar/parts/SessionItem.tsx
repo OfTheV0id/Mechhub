@@ -66,6 +66,7 @@ export const SessionItem = ({
             onCancel();
         }
     };
+
     const hasMenuOptions =
         menuActions.length > 0 || !!onStartEdit || !!onDelete;
 
@@ -157,10 +158,12 @@ export const SessionItem = ({
                                                     action.variant === "danger"
                                                         ? "w-full px-3 py-2 text-left text-sm hover:bg-[#fef2f2] flex items-center gap-2.5 text-[#334155] hover:text-[#dc2626] transition-colors whitespace-nowrap leading-none"
                                                         : "w-full px-3 py-2 text-left text-sm hover:bg-[#f8fafc] flex items-center gap-2.5 text-[#334155] transition-colors whitespace-nowrap leading-none";
+
                                                 const iconClass =
                                                     action.variant === "danger"
                                                         ? "text-[#ef4444] stroke-[1.5]"
                                                         : "text-[#3b82f6] stroke-[1.5]";
+
                                                 return (
                                                     <button
                                                         key={action.key}

@@ -117,6 +117,7 @@ export const upsertSavedChatSession = (
             const filtered = old.filter(
                 (session) => session.id !== savedChat.id,
             );
+
             return [savedChat, ...filtered].sort(
                 (a, b) => (b.updatedAt || 0) - (a.updatedAt || 0),
             );

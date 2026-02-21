@@ -67,6 +67,7 @@ export const SidebarSessions = ({
                         const isActive =
                             currentSessionId === session.id &&
                             activeView === "chat";
+
                         return (
                             <Fragment key={session.id}>
                                 {renderSession(session, isActive)}
@@ -89,6 +90,7 @@ export const SidebarSessions = ({
                         const isOpen = openGroupIds.has(group.classId);
                         const canManageGroupThreads =
                             isClassAdmin || group.role === "teacher";
+
                         return (
                             <div
                                 key={group.classId}

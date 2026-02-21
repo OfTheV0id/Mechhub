@@ -48,6 +48,7 @@ const tryUploadAttachments = async (files: File[]) => {
     } catch (error) {
         const message = error instanceof Error ? error.message : "附件上传失败";
         toast.error(message);
+
         return null;
     }
 };
@@ -65,6 +66,7 @@ export const usePublishAssignmentCreationFlow = ({
             );
             if (!targetClass) {
                 toast.error("请选择可发布作业的班级");
+
                 return;
             }
 

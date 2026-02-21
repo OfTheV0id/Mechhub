@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import type { Message } from "../types";
 import { useImagePreviewState } from "./useImagePreviewState";
-import { useAutoScrollState } from "../states/useAutoScrollState";
-import { useThinkingAutoOpenState } from "../states/useThinkingAutoOpenState";
-import { useTypingNotificationState } from "../states/useTypingNotificationState";
-import { isThinkingModel } from "../services/ai/aiPromptBuilder";
+import { useAutoScrollState } from "./useAutoScrollState";
+import { useThinkingAutoOpenState } from "./useThinkingAutoOpenState";
+import { useTypingNotificationState } from "./useTypingNotificationState";
+import { isThinkingModel } from "../implementation/ai/aiPromptBuilder";
 
 interface UseMessageListUiStateProps {
     messages: Message[];
@@ -53,6 +53,7 @@ export const useMessageListUiState = ({
                 const isLastMessage = index === messages.length - 1;
                 const isGenerating =
                     isTyping && isLastMessage && message.role === "assistant";
+
                 const shouldAutoOpenThinking =
                     message.id === autoOpenThinkingMessageId &&
                     message.role === "assistant" &&
@@ -83,3 +84,4 @@ export const useMessageListUiState = ({
         messageRenderItems,
     };
 };
+

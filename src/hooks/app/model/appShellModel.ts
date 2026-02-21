@@ -1,5 +1,5 @@
-import type { UserProfile } from "../../auth/types";
-import type { ClassSummary, ClassThread } from "../../class/types";
+import type { UserProfile } from "../../auth/public";
+import type { ClassSummary, ClassThread } from "../../class/public";
 import type { ShareIntent } from "../types/share";
 import type { ActiveView } from "../types/view";
 
@@ -16,7 +16,6 @@ export const APP_FALLBACK_VIEW_ORDER: ActiveView[] = [
 export const APP_FALLBACK_USER_PROFILE: UserProfile = {
     name: "张同学",
     avatar: "",
-    role: "工程力学专业学生",
 };
 
 export const APP_CLASS_MEMBERSHIP_NOTICES = {

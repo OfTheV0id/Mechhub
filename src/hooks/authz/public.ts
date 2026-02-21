@@ -6,7 +6,8 @@ export {
     useMyAuthorizationQuery,
     useUpsertUserAccessMutation,
 } from "./queries/useAuthorizationQueries";
-export { hasPermission } from "./utils/permissionPredicates";
+export { authzKeys } from "./queries/authzKeys";
+export { hasPermission } from "./implementation/permissionPredicates";
 export type {
     AdminUserSummary,
     BaseRole,
@@ -14,4 +15,5 @@ export type {
     PermissionKey,
 } from "./types";
 export { PERMISSION_KEYS } from "./types";
-export { usePermissionsConsoleState } from "./usePermissionsConsoleState";
+export { usePermissionsConsoleState } from "./ui/usePermissionsConsoleState";
+export { authzInterface } from "./interface/authzInterface";

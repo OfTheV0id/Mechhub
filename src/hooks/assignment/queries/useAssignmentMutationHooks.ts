@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useSessionQuery } from "../../auth/queries/useSession";
-import { assignmentDomainInterface } from "../interface/AssignmentDomainInterface";
+import { useSessionQuery } from "../../auth/public";
+import { assignmentInterface } from "../interface/assignmentInterface";
 import type {
     CreateAssignmentPayload,
     GenerateGradeDraftPayload,
@@ -16,6 +16,7 @@ const getErrorMessage = (error: unknown, fallback: string) =>
 
 const useViewerUserId = () => {
     const { data: session } = useSessionQuery();
+
     return session?.user.id ?? null;
 };
 
@@ -25,7 +26,7 @@ export const useCreateAssignmentMutation = () => {
 
     return useMutation({
         mutationFn: (payload: CreateAssignmentPayload) =>
-            assignmentDomainInterface.createAssignment(payload),
+            assignmentInterface.createAssignment(payload),
         onSuccess: async (assignment) => {
             toast.success("作业已创建");
             await Promise.all([
@@ -58,7 +59,7 @@ export const useSubmitAssignmentFromChatMutation = () => {
 
     return useMutation({
         mutationFn: (payload: SubmitAssignmentFromChatPayload) =>
-            assignmentDomainInterface.submitAssignmentFromChat(payload),
+            assignmentInterface.submitAssignmentFromChat(payload),
         onSuccess: async (submission) => {
             toast.success("作业提交成功");
             await Promise.all([
@@ -100,7 +101,7 @@ export const useGenerateGradeDraftMutation = () => {
 
     return useMutation({
         mutationFn: (payload: GenerateGradeDraftPayload) =>
-            assignmentDomainInterface.generateGradeDraft(payload),
+            assignmentInterface.generateGradeDraft(payload),
         onSuccess: async (result) => {
             toast.success("AI 批改草稿已生成");
             await Promise.all([
@@ -127,7 +128,7 @@ export const useSaveGradeReviewMutation = () => {
 
     return useMutation({
         mutationFn: (payload: SaveGradeReviewPayload) =>
-            assignmentDomainInterface.saveGradeReview(payload),
+            assignmentInterface.saveGradeReview(payload),
         onSuccess: async (result) => {
             toast.success("评分草稿已保存");
             await Promise.all([
@@ -154,7 +155,7 @@ export const useReleaseGradeMutation = () => {
 
     return useMutation({
         mutationFn: (payload: ReleaseGradePayload) =>
-            assignmentDomainInterface.releaseGrade(payload),
+            assignmentInterface.releaseGrade(payload),
         onSuccess: async (result) => {
             toast.success("反馈已发布给学生");
             await Promise.all([

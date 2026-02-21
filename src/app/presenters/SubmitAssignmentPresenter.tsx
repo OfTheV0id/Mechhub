@@ -31,6 +31,7 @@ export const SubmitAssignmentPresenter = ({
                           const preview = buildSnapshotPreview(
                               assignment.latestEvidenceSnapshot,
                           );
+
                           return {
                               hasPreview: preview.messages.length > 0,
                               previewContent:

@@ -1,4 +1,4 @@
-import type { ChatMode, FileAttachment, SubmitMessage } from "../../chat/types";
+import type { ChatMode, FileAttachment, SubmitMessage } from "../../chat/public";
 
 const DEFAULT_CHAT_MODEL = "qwen3.5-plus";
 

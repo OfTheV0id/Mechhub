@@ -1,6 +1,6 @@
 import type { Message, SubmitMessage } from "../types";
-import type { AIGatewayPort } from "./AIGatewayPort";
-import type { ChatCachePort } from "./ChatCachePort";
+import type { AIGatewayInterface } from "./aiGatewayInterface";
+import type { ChatCacheInterface } from "./chatCacheInterface";
 import { appendMessage, updateMessage } from "./chatSessionUseCases";
 import { streamAssistantResponse } from "./chatStreamUseCase";
 import { getHooksLogger } from "../../shared/logger";
@@ -54,20 +54,21 @@ const getDisplayModel = (model: string) => {
     if (model.startsWith("gemini-") && !model.includes("thinking")) {
         return `${model}-thinking`;
     }
+
     return model;
 };
 
 interface RunStudyParams {
-    cache: ChatCachePort;
-    aiGateway: AIGatewayPort;
+    cache: ChatCacheInterface;
+    aiGateway: AIGatewayInterface;
     activeId: string;
     submitMessage: SubmitMessage;
     signal?: AbortSignal;
 }
 
 interface RunCorrectParams {
-    cache: ChatCachePort;
-    aiGateway: AIGatewayPort;
+    cache: ChatCacheInterface;
+    aiGateway: AIGatewayInterface;
     activeId: string;
     submitMessage: SubmitMessage;
 }
@@ -149,6 +150,7 @@ export const runCorrectPipeline = async ({
                         const header = `图片 ${index + 1}`;
                         const text =
                             typeof result.text === "string" ? result.text : "";
+
                         return `${header}\n${text}`.trim();
                     })
                     .filter((segment) => segment.length > 0)
@@ -201,6 +203,7 @@ export const runCorrectPipeline = async ({
         };
     } catch (error) {
         logger.error("AI response failed (correct mode)", error);
+
         return {
             id: processingMessageId,
             role: "assistant",
@@ -218,3 +221,4 @@ export const runCorrectPipeline = async ({
         };
     }
 };
+

@@ -9,6 +9,7 @@ const formatSharedSummary = (content: Record<string, unknown>) => {
         typeof content.sourceTitle === "string"
             ? content.sourceTitle
             : "未命名会话";
+
     const messageCount = Array.isArray(content.sharedMessages)
         ? content.sharedMessages.length
         : 0;
@@ -88,9 +89,11 @@ export const ClassThreadChatView = ({
                         messages.map((message) => {
                             const isOwnMessage =
                                 message.senderUserId === currentUserId;
+
                             const isSharedChatMessage =
                                 message.role === "system" &&
                                 message.content.kind === "shared_chat";
+
                             const isAiTyping =
                                 message.content.kind === "ai_typing";
 

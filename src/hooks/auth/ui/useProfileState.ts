@@ -1,100 +1,123 @@
-import { useEffect, useState } from "react";
-import { UserProfile } from "../../auth/types";
+//Profile UI Statement
+import { useEffect, useRef, useState } from "react";
+import { useSessionQuery } from "../queries/useSession";
+import { useProfileQuery } from "../queries/useProfile";
+import type { UserProfile } from "../types";
 
-const DEFAULT_USER = {
-    name: "张同学",
-    avatar: "",
-    role: "机械工程专业学生",
-};
+//Distribute profile UI statement.
+export const useProfileState = () => {
+    const { data: session } = useSessionQuery();
+    const {
+        data: profile,
+        updateProfileAsync,
+        isUpdating,
+    } = useProfileQuery(session);
+    const profileName = profile.name;
+    const profileAvatar = profile.avatar;
+    const [name, setName] = useState(profileName);
+    const [avatar, setAvatar] = useState(profileAvatar);
+    const [isEditing, setIsEditingState] = useState(false);
+    const [pendingAvatarFile, setPendingAvatarFile] =
+        useState<File | null>(null);
+    const previewUrlRef = useRef<string | null>(null);
+    const snapshotRef = useRef<UserProfile | null>(null);
 
-export const useProfileState = (
-    user: UserProfile = DEFAULT_USER,
-    onUpdateProfile: (name: string, avatar: string) => void = () => {},
-    onUploadAvatar?: (file: File) => Promise<string>,
-) => {
-    const [name, setName] = useState(user.name);
-    const [avatar, setAvatar] = useState(user.avatar);
-    const [isEditing, setIsEditing] = useState(false);
-    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-
-    useEffect(() => {
-        setName(user.name);
-        setAvatar(user.avatar);
-    }, [user]);
-
-    const handleSave = () => {
-        onUpdateProfile(name, avatar);
-        setIsEditing(false);
+    const clearPreviewDraft = () => {
+        if (previewUrlRef.current) {
+            URL.revokeObjectURL(previewUrlRef.current);
+            previewUrlRef.current = null;
+        }
+        setPendingAvatarFile(null);
     };
 
-    const handleAvatarUpload = async (file: File) => {
-        if (!onUploadAvatar) {
+    //Clear blob data when shut down.
+    useEffect(() => {
+        return () => {
+            clearPreviewDraft();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (isEditing) {
+            return;
+        }
+        setName(profileName);
+        setAvatar(profileAvatar);
+    }, [isEditing, profileAvatar, profileName]);
+
+    const setIsEditing = (editing: boolean) => {
+        if (editing && !isEditing) {
+            snapshotRef.current = {
+                name: profileName,
+                avatar: profileAvatar,
+            };
+        }
+
+        if (!editing) {
+            snapshotRef.current = null;
+        }
+
+        setIsEditingState(editing);
+    };
+
+    //Toggle avatar select.
+    const handleAvatarSelect = (file: File) => {
+        if (!isEditing) {
+            return;
+        }
+        const previewUrl = URL.createObjectURL(file);
+        //Clear existing blob url.
+        if (previewUrlRef.current) {
+            URL.revokeObjectURL(previewUrlRef.current);
+        }
+        previewUrlRef.current = previewUrl;
+        setPendingAvatarFile(file);
+        setAvatar(previewUrl);
+    };
+
+    //Toggle save button.
+    const handleSave = () => {
+        if (!isEditing) {
+            return;
+        }
+        const nextProfile = {
+            name,
+            avatar,
+            avatarFile: pendingAvatarFile,
+        };
+
+        void updateProfileAsync(nextProfile).catch(() => undefined);
+        setPendingAvatarFile(null);
+        snapshotRef.current = null;
+        setIsEditingState(false);
+    };
+
+    //Toggle cancel button.
+    const handleCancel = () => {
+        if (!isEditing) {
             return;
         }
 
-        setIsUploadingAvatar(true);
-        try {
-            const uploadedUrl = await onUploadAvatar(file);
-            setAvatar(uploadedUrl);
-        } catch {
-        } finally {
-            setIsUploadingAvatar(false);
-        }
-    };
-
-    const handleCancel = () => {
-        setName(user.name);
-        setAvatar(user.avatar);
-        setIsEditing(false);
-    };
-
-    const state = {
-        name,
-        role: user.role,
-        avatar,
-        isEditing,
-        isUploadingAvatar,
-    };
-
-    const derived = {
-        containerVariants: {
-            hidden: { opacity: 0 },
-            visible: {
-                opacity: 1,
-                transition: { staggerChildren: 0.08 },
-            },
-        },
-        itemVariants: {
-            hidden: { opacity: 0, y: 10 },
-            visible: { opacity: 1, y: 0 },
-        },
-    };
-
-    const actions = {
-        setName,
-        setAvatar,
-        setIsEditing,
-        handleAvatarUpload,
-        handleSave,
-        handleCancel,
+        const snapshot = snapshotRef.current ?? {
+            name: profileName,
+            avatar: profileAvatar,
+        };
+        clearPreviewDraft();
+        setName(snapshot.name);
+        setAvatar(snapshot.avatar);
+        snapshotRef.current = null;
+        setIsEditingState(false);
     };
 
     return {
-        state,
-        actions,
-        derived,
-        name: state.name,
-        setName: actions.setName,
-        role: state.role,
-        avatar: state.avatar,
-        setAvatar: actions.setAvatar,
-        isEditing: state.isEditing,
-        setIsEditing: actions.setIsEditing,
-        isUploadingAvatar: state.isUploadingAvatar,
-        handleAvatarUpload: actions.handleAvatarUpload,
-        handleSave: actions.handleSave,
-        handleCancel: actions.handleCancel,
-        containerVariants: derived.containerVariants,
-        itemVariants: derived.itemVariants,
+        name,
+        setName,
+        avatar,
+        isEditing,
+        setIsEditing,
+        handleAvatarSelect,
+        handleSave,
+        handleCancel,
+        isSaving: isUpdating,
     };
 };

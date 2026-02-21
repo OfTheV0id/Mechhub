@@ -1,6 +1,8 @@
 export { chatUseCases } from "./interface/chatUseCases";
-export { useChatRuntimeFlow } from "./flow/useChatRuntimeFlow";
-export { useChatSessionsFlow } from "./flow/useChatSessionsFlow";
+export { chatInterface } from "./interface/chatInterface";
+export { CHAT_DOMAIN_KEY } from "./constants";
+export { useChatRuntimeState } from "./ui/useChatRuntimeState";
+export { useChatSessionsState } from "./ui/useChatSessionsState";
 export { useAttachmentUploadState } from "./ui/useAttachmentUploadState";
 export { useChatModelState } from "./ui/useChatModelState";
 export { useGradingResultUiState } from "./ui/useGradingResultUiState";
@@ -9,10 +11,19 @@ export { useMessageListUiState } from "./ui/useMessageListUiState";
 export { useSendState } from "./ui/useSendState";
 export { useTextMessageUiState } from "./ui/useTextMessageUiState";
 export {
+    useChatsQuery,
+    useDeleteChatMutation,
+    useGenerateTitleMutation,
+    useRenameChatMutation,
+    useSaveChatMutation,
+} from "./queries/useChatQueries";
+export { chatKeys } from "./queries/chatKeys";
+export { upsertSavedChatSession } from "./queries/chatCache";
+export {
     normalizeSnapshotMessage,
     normalizeSnapshotMessages,
-} from "./utils/normalizeSnapshotMessage";
-export { buildSnapshotPreview } from "./utils/snapshotPreview";
+} from "./implementation/normalizeSnapshotMessage";
+export { buildSnapshotPreview } from "./implementation/snapshotPreview";
 export type {
     ChatMode,
     ChatSession,
@@ -24,4 +35,5 @@ export type {
 export type {
     UploadImageHandler,
     UploadImageResult,
-} from "./flow/useAttachmentUploadFlow";
+} from "./ui/useAttachmentUploadActionState";
+
